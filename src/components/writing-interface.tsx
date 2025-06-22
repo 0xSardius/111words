@@ -1,6 +1,6 @@
 "use client"
 
-import { useWordCounter } from "@/hooks/useWordCounter"
+import { useWordCounter } from "../hooks/useWordCounter"
 import { ProgressIndicator } from "./progress-indicator"
 import { Button } from "./ui/Button"
 

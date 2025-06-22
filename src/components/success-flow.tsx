@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CelebrationScreen, SharePromptScreen, NextDayTeaseScreen } from "./success-screens"
+import { CelebrationScreen, SharePromptScreen, NextDayTeaseScreen } from "../components/success-screens"
 
 interface CoinDetails {
   symbol: string

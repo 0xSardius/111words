@@ -1,4 +1,4 @@
-import MiniApp from "../miniapp"
+import MiniApp from "./miniapp"
 
 export default function Page() {
   return <MiniApp />
