@@ -1,6 +1,6 @@
 "use client"
 
-import { ShareImageGenerator } from "./components/sharing-images/image-generator"
+import { ShareImageGenerator } from "../components/sharing-images/image-generator"
 
 // Mock data for demo
 const mockCoinDetails = {

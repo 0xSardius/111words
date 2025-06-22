@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import MiniApp from "./miniapp"
-import { SuccessFlow } from "./components/success-flow"
+import { SuccessFlow } from "../components/success-flow"
 
 interface CoinDetails {
   symbol: string

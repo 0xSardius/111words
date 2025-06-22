@@ -28,7 +28,11 @@ const mockStats: UserStats = {
   tradingVolume: 2.4,
 }
 
-export default function MiniApp() {
+interface MiniAppProps {
+  onCoinCreated?: (details: { symbol: string; address: string; wordCount: number; dayNumber: number; content: string }) => void
+}
+
+export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const [user, setUser] = useState<User>(mockUser)
   const [stats, setStats] = useState<UserStats>(mockStats)
   const [isCreating, setIsCreating] = useState(false)
@@ -40,26 +44,38 @@ export default function MiniApp() {
       // Simulate coin creation
       await new Promise((resolve) => setTimeout(resolve, 3000))
 
+      const coinSymbol = "WORD" + Math.floor(Math.random() * 1000)
+      const coinAddress = "0x" + Math.random().toString(16).substr(2, 8)
+      const wordCount = content.trim().split(/\s+/).length
+
       // Update stats
       setStats((prev) => ({
         ...prev,
         totalCoins: prev.totalCoins + 1,
-        totalWords: prev.totalWords + content.trim().split(/\s+/).length,
+        totalWords: prev.totalWords + wordCount,
         recentCoins: [
           {
             id: Date.now().toString(),
             content,
-            wordCount: content.trim().split(/\s+/).length,
+            wordCount,
             createdAt: new Date().toISOString(),
-            coinSymbol: "WORD" + Math.floor(Math.random() * 1000),
-            coinAddress: "0x" + Math.random().toString(16).substr(2, 8),
+            coinSymbol,
+            coinAddress,
           },
           ...prev.recentCoins.slice(0, 2),
         ],
       }))
 
-      // Show success message or redirect
-      alert("🎉 Coin created successfully!")
+      // Call the success callback if provided
+      if (onCoinCreated) {
+        onCoinCreated({
+          symbol: coinSymbol,
+          address: coinAddress,
+          wordCount,
+          dayNumber: user.streak + 1,
+          content,
+        })
+      }
     } catch (error) {
       console.error("Failed to create coin:", error)
       alert("❌ Failed to create coin. Please try again.")
