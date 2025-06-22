@@ -1,8 +1,8 @@
 "use client"
 
-import { useWordCounter } from "../hooks/useWordCounter"
+import { useWordCounter } from "@/hooks/useWordCounter"
 import { ProgressIndicator } from "./progress-indicator"
-import { Button } from "@/components/ui/button"
+import { Button } from "./ui/Button"
 
 interface WritingInterfaceProps {
   onCreateCoin: (content: string) => void

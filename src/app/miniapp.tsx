@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { WritingInterface } from "./components/writing-interface"
-import { StatsPanel } from "./components/stats-panel"
-import type { User, UserStats } from "./types"
+import { WritingInterface } from "../components/writing-interface"
+import { StatsPanel } from "../components/stats-panel"
+import type { User, UserStats } from "../types/index"
 
 // Mock data for development
 const mockUser: User = {
