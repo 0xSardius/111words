@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { SignInButton } from "../components/ui/SignInButton"
@@ -11,8 +11,6 @@ import {
   createWritingAndUpdateUser, 
   getUserWritings,
   checkUserWroteToday,
-  getCurrentStreak,
-  type User as DbUser,
   type Writing
 } from "../lib/supabase"
 import { useSession } from "next-auth/react"
@@ -35,12 +33,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   // Use real FID if authenticated, otherwise use mock FID
   const currentFid = session?.user?.fid || MOCK_FID
 
-  // Load user data on component mount or when session changes
-  useEffect(() => {
-    loadUserData()
-  }, [currentFid])
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       setIsLoading(true)
       
@@ -112,7 +105,12 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentFid, session?.user?.fid])
+
+  // Load user data on component mount or when session changes
+  useEffect(() => {
+    loadUserData()
+  }, [loadUserData])
 
   const handleCreateCoin = async (content: string) => {
     if (!user) return

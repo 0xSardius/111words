@@ -1,9 +1,21 @@
 import { setApiKey } from "@zoralabs/coins-sdk";
+import { z } from "zod";
 
 // Initialize API key
 if (process.env.ZORA_API_KEY) {
   setApiKey(process.env.ZORA_API_KEY);
 }
+
+// Coin creation parameters validation schema
+const CoinParamsSchema = z.object({
+  content: z.string().min(1, "Content cannot be empty"),
+  wordCount: z.number().min(1, "Word count must be at least 1"),
+  streakDay: z.number().min(1, "Streak day must be at least 1"),
+  userFid: z.number().min(1, "User FID must be valid"),
+  userAddress: z.string().min(1, "User address is required"),
+});
+
+export type CoinParams = z.infer<typeof CoinParamsSchema>;
 
 export interface CoinCreationParams {
   content: string;
@@ -33,68 +45,123 @@ export interface CoinCreationResult {
   error?: string;
 }
 
-export async function createWritingCoin(params: CoinCreationParams): Promise<CoinCreationResult> {
+// Validate coin creation parameters
+export function validateCoinParams(params: CoinParams): boolean {
   try {
-    // Generate coin metadata
-    const metadata: CoinMetadata = {
-      name: `Day ${params.streakDay} Creation`,
-      description: `Daily writing creation from 111words. ${params.wordCount} words written on day ${params.streakDay} of the writing streak.`,
-      content: params.content,
-      attributes: [
-        { trait_type: "Day", value: params.streakDay.toString() },
-        { trait_type: "Word Count", value: params.wordCount.toString() },
-        { trait_type: "Creation Date", value: new Date().toISOString() },
-        { trait_type: "Platform", value: "111words" },
-        { trait_type: "User FID", value: params.userFid.toString() },
-        { trait_type: "111 Legend", value: (params.wordCount >= 111).toString() },
-      ],
-    };
+    CoinParamsSchema.parse(params);
+    return true;
+  } catch (error) {
+    console.error("Coin params validation failed:", error);
+    return false;
+  }
+}
 
-    // For now, simulate coin creation
-    // TODO: Implement actual coin creation with proper SDK integration
-    const mockResult = await simulateCoinCreation(params, metadata);
+// Generate coin symbol based on user and day
+export function generateCoinSymbol(userFid: number, streakDay: number): string {
+  // Create a unique symbol: USER + DAY (e.g., "12345D1", "12345D2")
+  return `${userFid}D${streakDay}`;
+}
+
+// Generate coin name based on user and day
+export function generateCoinName(userFid: number, streakDay: number): string {
+  return `Day ${streakDay} Creation by User ${userFid}`;
+}
+
+// Create coin metadata for Zora Coins v4
+export function createCoinMetadata(params: CoinParams) {
+  const symbol = generateCoinSymbol(params.userFid, params.streakDay);
+  const name = generateCoinName(params.userFid, params.streakDay);
+  
+  return {
+    name,
+    symbol,
+    description: `A daily writing coin created on day ${params.streakDay} of the user's writing streak. This coin represents ${params.wordCount} words of creative expression.`,
+    image: "https://placeholder.com/coin-image.png", // TODO: Generate actual image
+    attributes: [
+      {
+        trait_type: "Word Count",
+        value: params.wordCount.toString()
+      },
+      {
+        trait_type: "Streak Day",
+        value: params.streakDay.toString()
+      },
+      {
+        trait_type: "Creator FID",
+        value: params.userFid.toString()
+      },
+      {
+        trait_type: "Content Preview",
+        value: params.content.substring(0, 100) + (params.content.length > 100 ? "..." : "")
+      }
+    ]
+  };
+}
+
+// Simulated coin creation function
+// TODO: Replace with actual Zora Coins v4 SDK integration
+export async function createWritingCoin(params: CoinParams): Promise<CoinCreationResult> {
+  try {
+    // Validate parameters
+    if (!validateCoinParams(params)) {
+      return {
+        success: false,
+        error: "Invalid coin creation parameters"
+      };
+    }
+
+    // Generate coin details
+    const symbol = generateCoinSymbol(params.userFid, params.streakDay);
+    const coinAddress = `0x${Math.random().toString(16).substring(2, 42)}`; // Mock address
+    const txHash = `0x${Math.random().toString(16).substring(2, 66)}`; // Mock transaction hash
+
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // TODO: Replace with actual Zora Coins v4 SDK call
+    // const coinMetadata = createCoinMetadata(params);
+    // const result = await zoraCoinsSDK.createCoin({
+    //   name: coinMetadata.name,
+    //   symbol: coinMetadata.symbol,
+    //   description: coinMetadata.description,
+    //   image: coinMetadata.image,
+    //   attributes: coinMetadata.attributes,
+    //   network: "base",
+    //   creator: params.userAddress
+    // });
+
+    console.log("Simulated coin creation:", {
+      symbol,
+      coinAddress,
+      txHash,
+      wordCount: params.wordCount,
+      streakDay: params.streakDay
+    });
 
     return {
       success: true,
-      coinAddress: mockResult.coinAddress,
-      txHash: mockResult.txHash,
-      symbol: mockResult.symbol,
-      metadata: metadata,
+      coinAddress,
+      symbol,
+      txHash
     };
   } catch (error) {
-    console.error("Failed to create coin:", error);
+    console.error("Coin creation failed:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : "Unknown error occurred"
     };
   }
 }
 
-// Temporary simulation function until we get the SDK working properly
-async function simulateCoinCreation(params: CoinCreationParams, metadata: CoinMetadata) {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Generate mock coin address
-  const mockAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
-  const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
-  
+// Get coin trading data (placeholder for future integration)
+export async function getCoinTradingData(coinAddress: string) {
+  // TODO: Integrate with actual trading data API
   return {
-    coinAddress: mockAddress,
-    txHash: mockTxHash,
-    symbol: `DAY${params.streakDay}`,
+    price: Math.random() * 100,
+    volume: Math.random() * 1000,
+    holders: Math.floor(Math.random() * 100),
+    marketCap: Math.random() * 10000
   };
-}
-
-// Helper function to validate coin creation parameters
-export function validateCoinParams(params: CoinCreationParams): boolean {
-  return (
-    params.content.length > 0 &&
-    params.wordCount >= 100 &&
-    params.streakDay > 0 &&
-    params.userFid > 0 &&
-    params.userAddress.length > 0
-  );
 }
 
 // Get coin information
