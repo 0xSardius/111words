@@ -14,6 +14,7 @@ import {
   type User as DbUser,
   type Writing
 } from "../lib/supabase"
+import { useAuth } from "../hooks/useAuth"
 import type { User, UserStats } from "../types/index"
 
 // Mock user for development (will be replaced with real Farcaster auth)
@@ -24,30 +25,52 @@ interface MiniAppProps {
 }
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
+  const { user: authUser, isLoading: authLoading, error: authError, authMethod } = useAuth()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load user data on component mount
+  // Load user data when auth changes
   useEffect(() => {
-    loadUserData()
-  }, [])
+    if (authUser?.fid) {
+      loadUserData(authUser.fid)
+    } else if (!authLoading) {
+      // No auth available, use fallback
+      setUser({
+        fid: 12345, // Fallback FID
+        username: "writer",
+        displayName: "Daily Writer",
+        pfpUrl: "/placeholder.svg?height=40&width=40",
+        streak: 0,
+        totalCoins: 0,
+        totalWords: 0,
+      })
+      setStats({
+        streak: 0,
+        totalCoins: 0,
+        totalWords: 0,
+        recentCoins: [],
+        tradingVolume: 0,
+      })
+      setIsLoading(false)
+    }
+  }, [authUser, authLoading])
 
-  const loadUserData = async () => {
+  const loadUserData = async (fid: number) => {
     try {
       setIsLoading(true)
       
       // Try to get existing user
-      let dbUser = await getUserByFid(MOCK_FID)
+      let dbUser = await getUserByFid(fid)
       
       // Create user if doesn't exist
       if (!dbUser) {
         dbUser = await createUser({
-          fid: MOCK_FID,
-          username: "writer",
-          display_name: "Daily Writer",
-          pfp_url: "/placeholder.svg?height=40&width=40"
+          fid: fid,
+          username: authUser?.username || "writer",
+          display_name: authUser?.displayName || "Daily Writer",
+          pfp_url: authUser?.pfpUrl || "/placeholder.svg?height=40&width=40"
         })
       }
 
@@ -65,7 +88,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         setUser(uiUser)
 
         // Load user writings for stats
-        const writings = await getUserWritings(MOCK_FID, 3)
+        const writings = await getUserWritings(fid, 3)
         const recentCoins = writings.map((writing: Writing) => ({
           id: writing.id,
           content: writing.content,
@@ -86,12 +109,12 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       }
     } catch (error) {
       console.error("Failed to load user data:", error)
-      // Fallback to mock data if database fails
+      // Fallback to basic user data
       setUser({
-        fid: MOCK_FID,
-        username: "writer",
-        displayName: "Daily Writer",
-        pfpUrl: "/placeholder.svg?height=40&width=40",
+        fid: fid,
+        username: authUser?.username || "writer",
+        displayName: authUser?.displayName || "Daily Writer",
+        pfpUrl: authUser?.pfpUrl || "/placeholder.svg?height=40&width=40",
         streak: 0,
         totalCoins: 0,
         totalWords: 0,
@@ -205,12 +228,27 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     }
   }
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-lg font-bold">Loading your writing streak...</p>
+          {authMethod && (
+            <p className="text-sm text-gray-600 mt-2">Auth: {authMethod}</p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (authError) {
+    return (
+      <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-bold text-red-600">Authentication Error</p>
+          <p className="text-sm text-gray-600 mt-2">{authError}</p>
+          <p className="text-xs text-gray-500 mt-4">Using fallback mode</p>
         </div>
       </div>
     )
@@ -222,7 +260,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         <div className="text-center">
           <p className="text-lg font-bold text-red-600">Failed to load user data</p>
           <button 
-            onClick={loadUserData}
+            onClick={() => authUser?.fid && loadUserData(authUser.fid)}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
           >
             Retry
@@ -247,6 +285,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
               <div>
                 <h1 className="text-2xl font-black">111WORDS</h1>
                 <p className="text-sm font-bold text-gray-600">@{user.username}</p>
+                {authMethod && (
+                  <p className="text-xs text-gray-500">Auth: {authMethod}</p>
+                )}
               </div>
             </div>
             <div className="bg-orange-300 border-2 border-black px-3 py-1">
