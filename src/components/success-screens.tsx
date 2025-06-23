@@ -13,12 +13,11 @@ interface CoinDetails {
 
 interface SuccessFlowProps {
   coinDetails: CoinDetails
-  streakCount: number
   onComplete: () => void
   onShare: (details: CoinDetails) => void
 }
 
-export function SuccessFlow({ coinDetails, streakCount, onComplete, onShare }: SuccessFlowProps) {
+export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowProps) {
   const [currentStep, setCurrentStep] = useState<'minting' | 'success' | 'share'>('minting')
 
   // Simulate minting process

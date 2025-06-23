@@ -154,7 +154,7 @@ export async function createWritingCoin(params: CoinParams): Promise<CoinCreatio
 }
 
 // Get coin trading data (placeholder for future integration)
-export async function getCoinTradingData(coinAddress: string) {
+export async function getCoinTradingData() {
   // TODO: Integrate with actual trading data API
   return {
     price: Math.random() * 100,
