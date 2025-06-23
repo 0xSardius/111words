@@ -32,9 +32,9 @@
 - [ ] Test coin creation on Base testnet
 
 ### **1.2 Supabase Database Setup** 🗄️
-- [ ] Create Supabase project
+- [x] Create Supabase project
 - [x] Install `@supabase/supabase-js`
-- [ ] Execute database schema from `111words-sql-query.md`:
+- [x] Execute database schema from `111words-sql-query.md`:
   - Users table with FID, streaks, stats
   - Writings table with coin data
   - Daily stats view
@@ -42,9 +42,9 @@
   - Performance indexes
   - `create_writing_and_update_user()` function
 - [x] Create Supabase client configuration (`src/lib/supabase.ts`)
-- [ ] Add environment variables for Supabase
-- [ ] Test database connections and functions
-- [ ] Set up RLS policies for security
+- [x] Add environment variables for Supabase
+- [x] Test database connections and functions
+- [x] Set up RLS policies for security
 
 ### **1.3 Frame Routing & State Management** 🖼️
 - [ ] Create `/api/frame` route for frame interactions
@@ -187,10 +187,11 @@
 ✅ **Coins v4 SDK**: Installed `@zoralabs/coins-sdk` dependency
 ✅ **Coin Service**: Created `src/lib/coins.ts` with coin creation functionality
 ✅ **UI Integration**: Updated miniapp to use new coin service
-🔄 **Next**: Setting up Supabase database with existing schema
+✅ **Supabase Database**: Fully set up and tested with RLS policies
+🔄 **Next**: Integrating Supabase with existing UI components for real data persistence
 
 ### **Blockers:**
-None currently - ready to proceed with database setup
+None currently - ready to proceed with UI integration
 
 ### **Decisions Made:**
 - Using existing comprehensive database schema from `111words-sql-query.md`
@@ -200,13 +201,14 @@ None currently - ready to proceed with database setup
 - Integrated coin service with existing UI components
 - **Farcaster sharing is a priority** - users should be able to create and share in one go
 - **Coin naming strategy**: Default "@username's Day X Creation" with optional custom titles (50 char limit)
+- **Database setup complete** - All tables, functions, and RLS policies working
 
 ### **Next Steps:**
-1. **Set up Supabase project** and install dependencies
-2. **Execute database schema** from `111words-sql-query.md`
-3. **Create Supabase client** configuration
-4. **Test database connections** and functions
-5. **Integrate with existing UI** components
+1. **Integrate Supabase with miniapp** - Replace mock data with real database calls
+2. **Implement user authentication flow** - Create/get users by FID
+3. **Connect coin creation to database** - Save writings and update streaks
+4. **Test full user flow** - Write → Create coin → Save to DB → Update stats
+5. **Remove test component** - Clean up the UI
 
 ---
 

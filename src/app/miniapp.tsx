@@ -1,49 +1,128 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { createWritingCoin, validateCoinParams } from "../lib/coins"
+import { 
+  getUserByFid, 
+  createUser, 
+  createWritingAndUpdateUser, 
+  getUserWritings,
+  checkUserWroteToday,
+  getCurrentStreak,
+  type User as DbUser,
+  type Writing
+} from "../lib/supabase"
 import type { User, UserStats } from "../types/index"
 
-// Mock data for development
-const mockUser: User = {
-  fid: 12345,
-  username: "writer",
-  displayName: "Daily Writer",
-  pfpUrl: "/placeholder.svg?height=40&width=40",
-  streak: 7,
-  totalCoins: 12,
-  totalWords: 15420,
-}
-
-const mockStats: UserStats = {
-  streak: 7,
-  totalCoins: 12,
-  totalWords: 15420,
-  recentCoins: [
-    { id: "1", content: "", wordCount: 156, createdAt: "2024-01-15", coinSymbol: "THOUGHTS", coinAddress: "0x123" },
-    { id: "2", content: "", wordCount: 203, createdAt: "2024-01-14", coinSymbol: "IDEAS", coinAddress: "0x456" },
-    { id: "3", content: "", wordCount: 134, createdAt: "2024-01-13", coinSymbol: "DREAMS", coinAddress: "0x789" },
-  ],
-  tradingVolume: 2.4,
-}
+// Mock user for development (will be replaced with real Farcaster auth)
+const MOCK_FID = 12345
 
 interface MiniAppProps {
   onCoinCreated?: (details: { symbol: string; address: string; wordCount: number; dayNumber: number; content: string }) => void
 }
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
-  const [user, setUser] = useState<User>(mockUser)
-  const [stats, setStats] = useState<UserStats>(mockStats)
+  const [user, setUser] = useState<User | null>(null)
+  const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Load user data on component mount
+  useEffect(() => {
+    loadUserData()
+  }, [])
+
+  const loadUserData = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Try to get existing user
+      let dbUser = await getUserByFid(MOCK_FID)
+      
+      // Create user if doesn't exist
+      if (!dbUser) {
+        dbUser = await createUser({
+          fid: MOCK_FID,
+          username: "writer",
+          display_name: "Daily Writer",
+          pfp_url: "/placeholder.svg?height=40&width=40"
+        })
+      }
+
+      if (dbUser) {
+        // Convert DB user to UI user format
+        const uiUser: User = {
+          fid: dbUser.fid,
+          username: dbUser.username || "writer",
+          displayName: dbUser.display_name || "Daily Writer",
+          pfpUrl: dbUser.pfp_url || "/placeholder.svg?height=40&width=40",
+          streak: dbUser.current_streak,
+          totalCoins: dbUser.total_coins,
+          totalWords: dbUser.total_words,
+        }
+        setUser(uiUser)
+
+        // Load user writings for stats
+        const writings = await getUserWritings(MOCK_FID, 3)
+        const recentCoins = writings.map((writing: Writing) => ({
+          id: writing.id,
+          content: writing.content,
+          wordCount: writing.word_count,
+          createdAt: writing.created_at,
+          coinSymbol: writing.coin_symbol || "DAY",
+          coinAddress: writing.coin_address || "",
+        }))
+
+        const uiStats: UserStats = {
+          streak: dbUser.current_streak,
+          totalCoins: dbUser.total_coins,
+          totalWords: dbUser.total_words,
+          recentCoins,
+          tradingVolume: 0, // TODO: Calculate from actual trading data
+        }
+        setStats(uiStats)
+      }
+    } catch (error) {
+      console.error("Failed to load user data:", error)
+      // Fallback to mock data if database fails
+      setUser({
+        fid: MOCK_FID,
+        username: "writer",
+        displayName: "Daily Writer",
+        pfpUrl: "/placeholder.svg?height=40&width=40",
+        streak: 0,
+        totalCoins: 0,
+        totalWords: 0,
+      })
+      setStats({
+        streak: 0,
+        totalCoins: 0,
+        totalWords: 0,
+        recentCoins: [],
+        tradingVolume: 0,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleCreateCoin = async (content: string) => {
+    if (!user) return
+
     setIsCreating(true)
 
     try {
       const wordCount = content.trim().split(/\s+/).length
       const streakDay = user.streak + 1
+      const is111Legend = wordCount >= 111
+
+      // Check if user already wrote today
+      const alreadyWroteToday = await checkUserWroteToday(user.fid)
+      if (alreadyWroteToday) {
+        throw new Error("You've already created a coin today! Come back tomorrow.")
+      }
 
       // Validate coin creation parameters
       const coinParams = {
@@ -65,41 +144,58 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         throw new Error(result.error || "Failed to create coin")
       }
 
-      // Update stats
-      setStats((prev) => ({
-        ...prev,
-        totalCoins: prev.totalCoins + 1,
-        totalWords: prev.totalWords + wordCount,
-        recentCoins: [
-          {
-            id: Date.now().toString(),
-            content,
+      // Save to database using our atomic function
+      const dbResult = await createWritingAndUpdateUser({
+        fid: user.fid,
+        content,
+        word_count: wordCount,
+        streak_day: streakDay,
+        is_111_legend: is111Legend,
+        coin_address: result.coinAddress,
+        tx_hash: result.txHash,
+        coin_symbol: result.symbol,
+      })
+
+      if (dbResult) {
+        // Update local state with new data
+        const updatedUser: User = {
+          ...user,
+          streak: dbResult.user.current_streak,
+          totalCoins: dbResult.user.total_coins,
+          totalWords: dbResult.user.total_words,
+        }
+        setUser(updatedUser)
+
+        // Update stats
+        const updatedStats: UserStats = {
+          streak: dbResult.user.current_streak,
+          totalCoins: dbResult.user.total_coins,
+          totalWords: dbResult.user.total_words,
+          recentCoins: [
+            {
+              id: dbResult.writing.id,
+              content: dbResult.writing.content,
+              wordCount: dbResult.writing.word_count,
+              createdAt: dbResult.writing.created_at,
+              coinSymbol: dbResult.writing.coin_symbol || "DAY",
+              coinAddress: dbResult.writing.coin_address || "",
+            },
+            ...(stats?.recentCoins.slice(0, 2) || []),
+          ],
+          tradingVolume: stats?.tradingVolume || 0,
+        }
+        setStats(updatedStats)
+
+        // Call the success callback if provided
+        if (onCoinCreated && result.coinAddress && result.symbol) {
+          onCoinCreated({
+            symbol: result.symbol,
+            address: result.coinAddress,
             wordCount,
-            createdAt: new Date().toISOString(),
-            coinSymbol: result.symbol || "DAY",
-            coinAddress: result.coinAddress || "",
-          },
-          ...prev.recentCoins.slice(0, 2),
-        ],
-      }))
-
-      // Update user streak
-      setUser((prev) => ({
-        ...prev,
-        streak: streakDay,
-        totalCoins: prev.totalCoins + 1,
-        totalWords: prev.totalWords + wordCount,
-      }))
-
-      // Call the success callback if provided
-      if (onCoinCreated && result.coinAddress && result.symbol) {
-        onCoinCreated({
-          symbol: result.symbol,
-          address: result.coinAddress,
-          wordCount,
-          dayNumber: streakDay,
-          content,
-        })
+            dayNumber: streakDay,
+            content,
+          })
+        }
       }
     } catch (error) {
       console.error("Failed to create coin:", error)
@@ -107,6 +203,33 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     } finally {
       setIsCreating(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg font-bold">Loading your writing streak...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user || !stats) {
+    return (
+      <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-bold text-red-600">Failed to load user data</p>
+          <button 
+            onClick={loadUserData}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

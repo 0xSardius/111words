@@ -41,7 +41,11 @@ export function SupabaseTest() {
       }
     } catch (error) {
       setStatus("❌ User functions failed!")
-      setResult({ error: error instanceof Error ? error.message : "Unknown error" })
+      console.error("User function error details:", error)
+      setResult({ 
+        error: error instanceof Error ? error.message : "Unknown error",
+        fullError: error 
+      })
     }
   }
 
@@ -57,37 +61,70 @@ export function SupabaseTest() {
     }
   }
 
+  const testDirectInsert = async () => {
+    setStatus("Testing direct insert...")
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          fid: 88888,
+          username: "directtest",
+          display_name: "Direct Test User"
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      setStatus("✅ Direct insert working!")
+      setResult({ directInsert: data })
+    } catch (error) {
+      setStatus("❌ Direct insert failed!")
+      console.error("Direct insert error details:", error)
+      setResult({ 
+        error: error instanceof Error ? error.message : "Unknown error",
+        fullError: error 
+      })
+    }
+  }
+
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 bg-white border-2 border-black shadow-lg rounded-lg max-w-md">
       <h2 className="text-xl font-bold">Supabase Test</h2>
       
       <div className="space-y-2">
         <button 
           onClick={testConnection}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
+          className="px-4 py-2 bg-blue-500 text-white rounded w-full"
         >
           Test Connection
         </button>
         
         <button 
           onClick={testUserFunctions}
-          className="px-4 py-2 bg-green-500 text-white rounded ml-2"
+          className="px-4 py-2 bg-green-500 text-white rounded w-full"
         >
           Test User Functions
         </button>
         
         <button 
+          onClick={testDirectInsert}
+          className="px-4 py-2 bg-orange-500 text-white rounded w-full"
+        >
+          Test Direct Insert
+        </button>
+        
+        <button 
           onClick={testDailyStats}
-          className="px-4 py-2 bg-purple-500 text-white rounded ml-2"
+          className="px-4 py-2 bg-purple-500 text-white rounded w-full"
         >
           Test Daily Stats
         </button>
       </div>
 
       <div className="mt-4">
-        <p className="font-semibold">{status}</p>
+        <p className="font-semibold text-sm">{status}</p>
         {result && (
-          <pre className="mt-2 p-2 bg-gray-100 rounded text-sm overflow-auto">
+          <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-32">
             {JSON.stringify(result, null, 2)}
           </pre>
         )}
