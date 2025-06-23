@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
+import { createWritingCoin, validateCoinParams } from "../lib/coins"
 import type { User, UserStats } from "../types/index"
 
 // Mock data for development
@@ -41,12 +42,28 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     setIsCreating(true)
 
     try {
-      // Simulate coin creation
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-
-      const coinSymbol = "WORD" + Math.floor(Math.random() * 1000)
-      const coinAddress = "0x" + Math.random().toString(16).substr(2, 8)
       const wordCount = content.trim().split(/\s+/).length
+      const streakDay = user.streak + 1
+
+      // Validate coin creation parameters
+      const coinParams = {
+        content,
+        wordCount,
+        streakDay,
+        userFid: user.fid,
+        userAddress: "0x0000000000000000000000000000000000000000", // TODO: Get from wallet
+      }
+
+      if (!validateCoinParams(coinParams)) {
+        throw new Error("Invalid coin creation parameters")
+      }
+
+      // Create coin using our service
+      const result = await createWritingCoin(coinParams)
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create coin")
+      }
 
       // Update stats
       setStats((prev) => ({
@@ -59,26 +76,34 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
             content,
             wordCount,
             createdAt: new Date().toISOString(),
-            coinSymbol,
-            coinAddress,
+            coinSymbol: result.symbol || "DAY",
+            coinAddress: result.coinAddress || "",
           },
           ...prev.recentCoins.slice(0, 2),
         ],
       }))
 
+      // Update user streak
+      setUser((prev) => ({
+        ...prev,
+        streak: streakDay,
+        totalCoins: prev.totalCoins + 1,
+        totalWords: prev.totalWords + wordCount,
+      }))
+
       // Call the success callback if provided
-      if (onCoinCreated) {
+      if (onCoinCreated && result.coinAddress && result.symbol) {
         onCoinCreated({
-          symbol: coinSymbol,
-          address: coinAddress,
+          symbol: result.symbol,
+          address: result.coinAddress,
           wordCount,
-          dayNumber: user.streak + 1,
+          dayNumber: streakDay,
           content,
         })
       }
     } catch (error) {
       console.error("Failed to create coin:", error)
-      alert("❌ Failed to create coin. Please try again.")
+      alert(`❌ Failed to create coin: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsCreating(false)
     }
