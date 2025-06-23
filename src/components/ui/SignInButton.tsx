@@ -2,15 +2,38 @@
 
 import { signIn, useSession, signOut } from "next-auth/react"
 import { useState } from "react"
+import { useConnect, useAccount } from "wagmi"
 
 export function SignInButton() {
   const { data: session, status } = useSession()
+  const { connect, connectors } = useConnect()
+  const { isConnected, address } = useAccount()
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signIn("credentials", { callbackUrl: "/" })
+      // First, sign in with Farcaster
+      const result = await signIn("credentials", { 
+        callbackUrl: "/",
+        redirect: false // Don't redirect, handle it manually
+      })
+      
+      if (result?.ok) {
+        // If SIWF successful, automatically connect wallet
+        console.log("SIWF successful, connecting wallet...")
+        
+        // Try to connect to the first available connector (usually Farcaster Frame)
+        const availableConnector = connectors.find(connector => connector.ready)
+        if (availableConnector) {
+          try {
+            await connect({ connector: availableConnector })
+            console.log("Wallet connected automatically")
+          } catch (walletError) {
+            console.log("Auto wallet connection failed, user can connect manually:", walletError)
+          }
+        }
+      }
     } catch (error) {
       console.error("Sign in error:", error)
     } finally {
@@ -44,6 +67,16 @@ export function SignInButton() {
         <div className="text-center">
           <p className="text-sm font-bold">✅ Connected</p>
           <p className="text-xs">FID: {session.user.fid}</p>
+          {isConnected && address && (
+            <p className="text-xs text-green-700 font-bold mt-1">
+              💰 Wallet: {address.slice(0, 6)}...{address.slice(-4)}
+            </p>
+          )}
+          {!isConnected && (
+            <p className="text-xs text-orange-600 font-bold mt-1">
+              ⚠️ Wallet not connected
+            </p>
+          )}
           <button
             onClick={handleSignOut}
             disabled={isLoading}
@@ -59,7 +92,8 @@ export function SignInButton() {
   return (
     <div className="bg-blue-300 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-3">
       <div className="text-center">
-        <p className="text-sm font-bold mb-2">🔗 Connect Wallet</p>
+        <p className="text-sm font-bold mb-2">🔗 Connect Everything</p>
+        <p className="text-xs text-gray-700 mb-3">Sign in + Connect wallet in one click</p>
         <button
           onClick={handleSignIn}
           disabled={isLoading}
