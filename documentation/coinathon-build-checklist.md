@@ -33,7 +33,7 @@
 
 ### **1.2 Supabase Database Setup** 🗄️
 - [ ] Create Supabase project
-- [ ] Install `@supabase/supabase-js`
+- [x] Install `@supabase/supabase-js`
 - [ ] Execute database schema from `111words-sql-query.md`:
   - Users table with FID, streaks, stats
   - Writings table with coin data
@@ -41,7 +41,7 @@
   - Row Level Security
   - Performance indexes
   - `create_writing_and_update_user()` function
-- [ ] Create Supabase client configuration (`src/lib/supabase.ts`)
+- [x] Create Supabase client configuration (`src/lib/supabase.ts`)
 - [ ] Add environment variables for Supabase
 - [ ] Test database connections and functions
 - [ ] Set up RLS policies for security
@@ -60,6 +60,23 @@
 - [ ] Add coin metadata generation
 - [ ] Create coin success screen with real data
 - [ ] Add error handling for failed transactions
+
+### **1.5 Farcaster Sharing Integration** 📱
+- [ ] Create share service (`src/lib/sharing.ts`)
+- [ ] Implement Farcaster cast composition with coin embed
+- [ ] Add share button to success screen
+- [ ] Generate share text with coin details and trading link
+- [ ] Create share preview images for social media
+- [ ] Test sharing flow in Warpcast
+- [ ] Add share analytics tracking
+
+### **1.6 Coin Naming Enhancement** ✏️
+- [ ] Implement default coin naming: "@username's Day X Creation"
+- [ ] Add optional custom title input after coin creation
+- [ ] Create coin title customization UI component
+- [ ] Add character limit validation (50 chars)
+- [ ] Update coin metadata with custom names
+- [ ] Test naming flow with both default and custom titles
 
 ---
 
@@ -127,7 +144,8 @@
 2. **Supabase Database** - Needed for data persistence (schema ready in `111words-sql-query.md`)
 3. **Frame Routing** - Required for miniapp functionality
 4. **Real Coin Minting** - The main feature
-5. **Production Deployment** - Must be live for judging
+5. **Farcaster Sharing** - Create-and-share in one go (user priority)
+6. **Production Deployment** - Must be live for judging
 
 ---
 
@@ -169,7 +187,7 @@
 ✅ **Coins v4 SDK**: Installed `@zoralabs/coins-sdk` dependency
 ✅ **Coin Service**: Created `src/lib/coins.ts` with coin creation functionality
 ✅ **UI Integration**: Updated miniapp to use new coin service
-🔄 **Next**: Setting up Supabase database and testing coin creation flow
+🔄 **Next**: Setting up Supabase database with existing schema
 
 ### **Blockers:**
 None currently - ready to proceed with database setup
@@ -180,13 +198,15 @@ None currently - ready to proceed with database setup
 - Following Zora Coins SDK documentation for integration
 - Created coin service with simulation for development, ready for real SDK integration
 - Integrated coin service with existing UI components
+- **Farcaster sharing is a priority** - users should be able to create and share in one go
+- **Coin naming strategy**: Default "@username's Day X Creation" with optional custom titles (50 char limit)
 
 ### **Next Steps:**
-1. **Set up Supabase database** using existing schema
-2. **Test coin creation flow** with current simulation
-3. **Get Zora API key** for production deployment
-4. **Implement real SDK integration** once API key is available
-5. **Add wallet connection** for real coin minting
+1. **Set up Supabase project** and install dependencies
+2. **Execute database schema** from `111words-sql-query.md`
+3. **Create Supabase client** configuration
+4. **Test database connections** and functions
+5. **Integrate with existing UI** components
 
 ---
 
