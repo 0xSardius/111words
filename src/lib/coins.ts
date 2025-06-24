@@ -181,7 +181,7 @@ export async function getCoinInfo(coinAddress: string) {
 }
 
 // TODO: Implement actual coin creation with proper SDK integration
-export async function createCoinWithSDK(params: CoinCreationParams): Promise<CoinCreationResult> {
+export async function createCoinWithSDK(): Promise<CoinCreationResult> {
   // This function will be implemented once we resolve the SDK integration issues
   console.log("TODO: Implement actual coin creation with Zora Coins SDK");
   return {
