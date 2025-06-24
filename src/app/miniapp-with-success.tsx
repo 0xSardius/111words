@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import MiniApp from "./miniapp"
-import { SuccessFlow } from "../components/success-flow"
+import { SuccessFlow } from "../components/success-screens"
 
 interface CoinDetails {
   symbol: string
@@ -39,7 +39,6 @@ export default function MiniAppWithSuccess() {
     return (
       <SuccessFlow
         coinDetails={coinDetails}
-        streakCount={coinDetails.dayNumber}
         onComplete={handleSuccessComplete}
         onShare={handleShare}
       />
