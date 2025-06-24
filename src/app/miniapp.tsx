@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { SignInButton } from "../components/ui/SignInButton"
-import { createWritingCoin, validateCoinParams } from "../lib/coins"
+import { validateCoinParams } from "../lib/coins"
+import { useCoinCreation } from "../hooks/useCoinCreation"
 import { 
   getUserByFid, 
   createUser, 
@@ -25,6 +26,7 @@ interface MiniAppProps {
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const { data: session } = useSession()
+  const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -115,6 +117,17 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const handleCreateCoin = async (content: string) => {
     if (!user) return
 
+    // Check if user is connected and can create coins
+    if (!isConnected) {
+      alert("❌ Please connect your wallet to create coins")
+      return
+    }
+
+    if (!canCreateCoin) {
+      alert("❌ Wallet not ready for coin creation. Please try again.")
+      return
+    }
+
     setIsCreating(true)
 
     try {
@@ -134,15 +147,15 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         wordCount,
         streakDay,
         userFid: user.fid,
-        userAddress: "0x0000000000000000000000000000000000000000", // TODO: Get from wallet
+        userAddress: "0x0000000000000000000000000000000000000000", // Will be replaced by hook
       }
 
       if (!validateCoinParams(coinParams)) {
         throw new Error("Invalid coin creation parameters")
       }
 
-      // Create coin using our service
-      const result = await createWritingCoin(coinParams)
+      // Create coin using our new hook
+      const result = await createCoin(content, wordCount, streakDay, user.fid)
 
       if (!result.success) {
         throw new Error(result.error || "Failed to create coin")

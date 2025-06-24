@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const manifest = {
+    "accountAssociation": {
+    "header": "eyJmaWQiOjIzODgxNCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDNFMDg0QzMwODFmRTIwYTM0MUFBODQzODMzNWE0MjI2MDkwZDVFMkUifQ",
+    "payload": "eyJkb21haW4iOiIxMTF3b3Jkcy52ZXJjZWwuYXBwIn0",
+    "signature": "MHhlNmY0OTg3NTNlOTk5ZjI0N2NjN2IzOWM4MWRkOGYzZWJhMmUxNzQ0YmM0ZmVkOTQwZjU2OGQwNjdlOGZiN2Y2MmFhM2Y3NDJkNDQ3OWUxODZjZjEzNDlkYTUyOGVmNzM5MzBiOGQ3MDgyYjA3MGJjNmZkY2U0MzE2MmMxYzJjMjFj"
+  },
     frame: {
       version: "1",
       name: "111words",
