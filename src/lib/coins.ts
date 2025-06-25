@@ -1,6 +1,6 @@
 import { setApiKey, createCoin, DeployCurrency } from "@zoralabs/coins-sdk";
 import { z } from "zod";
-import { Address, Hex } from "viem";
+import { Address, type WalletClient, type PublicClient } from "viem";
 import { base } from "viem/chains";
 
 // Initialize API key
@@ -104,8 +104,8 @@ export function createCoinMetadata(params: CoinParams) {
 // Real coin creation function using Zora Coins SDK
 export async function createWritingCoin(
   params: CoinParams,
-  walletClient: any,
-  publicClient: any
+  walletClient: WalletClient,
+  publicClient: PublicClient
 ): Promise<CoinCreationResult> {
   try {
     // Validate parameters
