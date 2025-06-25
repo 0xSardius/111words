@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from "react"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
-import { SignInButton } from "../components/ui/SignInButton"
+import { QuickSignInButton } from "../components/ui/QuickSignInButton"
 import { validateCoinParams } from "../lib/coins"
 import { useCoinCreation } from "../hooks/useCoinCreation"
+import { useQuickAuth } from "../hooks/useQuickAuth"
 import { 
   getUserByFid, 
   createUser, 
@@ -14,10 +15,9 @@ import {
   checkUserWroteToday,
   type Writing
 } from "../lib/supabase"
-import { useSession } from "next-auth/react"
 import type { User, UserStats } from "../types/index"
 
-// Mock FID for development - replace with real auth later
+// Mock FID for development - only used when not authenticated
 const MOCK_FID = 12345
 
 interface MiniAppProps {
@@ -25,15 +25,15 @@ interface MiniAppProps {
 }
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
-  const { data: session } = useSession()
+  const { isAuthenticated, user: authUser, getUserFid } = useQuickAuth()
   const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Use real FID if authenticated, otherwise use mock FID
-  const currentFid = session?.user?.fid || MOCK_FID
+  // Get current FID - prioritize authenticated user, fall back to mock
+  const currentFid = getUserFid() || MOCK_FID
 
   const loadUserData = useCallback(async () => {
     try {
@@ -46,9 +46,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       if (!dbUser) {
         dbUser = await createUser({
           fid: currentFid,
-          username: session?.user?.fid ? "farcaster_user" : "writer",
-          display_name: session?.user?.fid ? "Farcaster User" : "Daily Writer",
-          pfp_url: "/placeholder.svg?height=40&width=40"
+          username: authUser?.username || "writer",
+          display_name: authUser?.displayName || "Daily Writer",
+          pfp_url: authUser?.pfpUrl || "/placeholder.svg?height=40&width=40"
         })
       }
 
@@ -56,9 +56,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         // Convert DB user to UI user format
         const uiUser: User = {
           fid: dbUser.fid,
-          username: dbUser.username || "writer",
-          displayName: dbUser.display_name || "Daily Writer",
-          pfpUrl: dbUser.pfp_url || "/placeholder.svg?height=40&width=40",
+          username: dbUser.username || authUser?.username || "writer",
+          displayName: dbUser.display_name || authUser?.displayName || "Daily Writer",
+          pfpUrl: dbUser.pfp_url || authUser?.pfpUrl || "/placeholder.svg?height=40&width=40",
           streak: dbUser.current_streak,
           totalCoins: dbUser.total_coins,
           totalWords: dbUser.total_words,
@@ -90,9 +90,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       // Fallback to mock data if database fails
       setUser({
         fid: currentFid,
-        username: session?.user?.fid ? "farcaster_user" : "writer",
-        displayName: session?.user?.fid ? "Farcaster User" : "Daily Writer",
-        pfpUrl: "/placeholder.svg?height=40&width=40",
+        username: authUser?.username || "writer",
+        displayName: authUser?.displayName || "Daily Writer",
+        pfpUrl: authUser?.pfpUrl || "/placeholder.svg?height=40&width=40",
         streak: 0,
         totalCoins: 0,
         totalWords: 0,
@@ -107,9 +107,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [currentFid, session?.user?.fid])
+  }, [currentFid, authUser])
 
-  // Load user data on component mount or when session changes
+  // Load user data when auth state or FID changes
   useEffect(() => {
     loadUserData()
   }, [loadUserData])
@@ -264,7 +264,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
               <div>
                 <h1 className="text-2xl font-black">111WORDS</h1>
                 <p className="text-sm font-bold text-gray-600">@{user.username}</p>
-                {session?.user?.fid && (
+                {isAuthenticated && (
                   <p className="text-xs text-green-600 font-bold">✅ Authenticated</p>
                 )}
               </div>
@@ -276,8 +276,8 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
           </div>
         </div>
 
-        {/* Sign In Button */}
-        <SignInButton />
+        {/* Quick Sign In Button */}
+        <QuickSignInButton />
 
         {/* Writing Interface */}
         <WritingInterface onCreateCoin={handleCreateCoin} isCreating={isCreating} />
