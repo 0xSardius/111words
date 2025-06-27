@@ -17,7 +17,7 @@ interface QuickAuthState {
 }
 
 export function useQuickAuth() {
-  const { context, actions } = useMiniApp();
+  const { context } = useMiniApp();
   const { data: session, status: sessionStatus } = useSession();
   const [authState, setAuthState] = useState<QuickAuthState>({
     isAuthenticated: false,
