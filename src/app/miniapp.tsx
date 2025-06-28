@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useMiniApp } from "@neynar/react"
+import { sdk } from "@farcaster/frame-sdk"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { QuickSignInButton } from "../components/ui/QuickSignInButton"
@@ -26,7 +26,6 @@ interface MiniAppProps {
 }
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
-  const { actions } = useMiniApp()
   const { isAuthenticated, user: authUser, getUserFid } = useQuickAuth()
   const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const [user, setUser] = useState<User | null>(null)
@@ -34,19 +33,18 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Signal to Farcaster that the MiniApp is ready
-  useEffect(() => {
-    if (actions?.ready) {
-      actions.ready()
-    }
-  }, [actions])
-
-  // Get current FID - prioritize authenticated user, fall back to mock
-  const currentFid = getUserFid() || MOCK_FID
+  // Quick Auth handles the ready signal automatically
+  // No need for manual ready() call
 
   const loadUserData = useCallback(async () => {
+    if (!isAuthenticated || !authUser) {
+      setIsLoading(false)
+      return
+    }
+
     try {
       setIsLoading(true)
+      const currentFid = authUser.fid
       
       // Try to get existing user
       let dbUser = await getUserByFid(currentFid)
@@ -55,9 +53,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       if (!dbUser) {
         dbUser = await createUser({
           fid: currentFid,
-          username: authUser?.username || "writer",
-          display_name: authUser?.displayName || "Daily Writer",
-          pfp_url: authUser?.pfpUrl || "/placeholder.svg?height=40&width=40"
+          username: authUser.username || `user_${currentFid}`,
+          display_name: authUser.displayName || "Daily Writer",
+          pfp_url: authUser.pfpUrl || "/icon.png"
         })
       }
 
@@ -65,9 +63,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         // Convert DB user to UI user format
         const uiUser: User = {
           fid: dbUser.fid,
-          username: dbUser.username || authUser?.username || "writer",
-          displayName: dbUser.display_name || authUser?.displayName || "Daily Writer",
-          pfpUrl: dbUser.pfp_url || authUser?.pfpUrl || "/placeholder.svg?height=40&width=40",
+          username: dbUser.username || authUser.username || `user_${currentFid}`,
+          displayName: dbUser.display_name || authUser.displayName || "Daily Writer",
+          pfpUrl: dbUser.pfp_url || authUser.pfpUrl || "/icon.png",
           streak: dbUser.current_streak,
           totalCoins: dbUser.total_coins,
           totalWords: dbUser.total_words,
@@ -96,29 +94,12 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       }
     } catch (error) {
       console.error("Failed to load user data:", error)
-      // Fallback to mock data if database fails
-      setUser({
-        fid: currentFid,
-        username: authUser?.username || "writer",
-        displayName: authUser?.displayName || "Daily Writer",
-        pfpUrl: authUser?.pfpUrl || "/placeholder.svg?height=40&width=40",
-        streak: 0,
-        totalCoins: 0,
-        totalWords: 0,
-      })
-      setStats({
-        streak: 0,
-        totalCoins: 0,
-        totalWords: 0,
-        recentCoins: [],
-        tradingVolume: 0,
-      })
     } finally {
       setIsLoading(false)
     }
-  }, [currentFid, authUser])
+  }, [isAuthenticated, authUser])
 
-  // Load user data when auth state or FID changes
+  // Load user data when auth state changes
   useEffect(() => {
     loadUserData()
   }, [loadUserData])
@@ -228,11 +209,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         // Optional sharing - run in background, don't block coin creation
         setTimeout(async () => {
           try {
-            if (actions?.openUrl) {
-              const shareText = `I just wrote ${wordCount} words and minted $${result.symbol} on @111words! 🚀\n\nDay ${streakDay} of my writing streak. Join me in building a daily writing habit!\n\n✍️ Write. 🪙 Mint. 📈 Trade.\n\nhttps://111words.vercel.app`
-              
-              await actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
-            }
+            const shareText = `I just wrote ${wordCount} words and minted $${result.symbol} on @111words! 🚀\n\nDay ${streakDay} of my writing streak. Join me in building a daily writing habit!\n\n✍️ Write. 🪙 Mint. 📈 Trade.\n\nhttps://111words.vercel.app`
+            
+            await sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
           } catch (shareError) {
             console.log("Sharing not available:", shareError)
           }
