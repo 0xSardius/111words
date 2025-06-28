@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   other: {
     "fc:frame": JSON.stringify({
       "version": "next",
-      "imageUrl": "https://111words.vercel.app/icon.png",
+      "imageUrl": "https://111words.vercel.app/logo.png",
       "button": {
         "title": "Start Writing",
         "action": {
