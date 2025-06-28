@@ -6,8 +6,18 @@ import { Providers } from "~/app/providers";
 import { APP_NAME, APP_DESCRIPTION } from "~/lib/constants";
 
 export const metadata: Metadata = {
-  title: APP_NAME,
-  description: APP_DESCRIPTION,
+  title: "111words",
+  description: "Write daily and mint your words as ERC-20 coins on Base. Build streaks, earn rewards, and share your creativity with the world.",
+  other: {
+    "fc:frame": "vNext",
+    "fc:frame:name": "111words",
+    "fc:frame:icon": "https://111words.vercel.app/icon.png",
+    "fc:frame:home_url": "https://111words.vercel.app",
+    "fc:frame:image": "https://111words.vercel.app/api/opengraph-image",
+    "fc:frame:button:1": "Start Writing",
+    "fc:frame:button:1:action": "link",
+    "fc:frame:button:1:target": "https://111words.vercel.app",
+  },
 };
 
 export default async function RootLayout({
