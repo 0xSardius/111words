@@ -15,6 +15,8 @@ const CoinParamsSchema = z.object({
   streakDay: z.number().min(1, "Streak day must be at least 1"),
   userFid: z.number().min(1, "User FID must be valid"),
   userAddress: z.string().min(1, "User address is required"),
+  username: z.string().min(1, "Username is required"),
+  totalCoins: z.number().min(0, "Total coins must be non-negative"),
 });
 
 export type CoinParams = z.infer<typeof CoinParamsSchema>;
@@ -25,6 +27,8 @@ export interface CoinCreationParams {
   streakDay: number;
   userFid: number;
   userAddress: string;
+  username: string;
+  totalCoins: number;
   prompt?: string;
 }
 
@@ -58,21 +62,24 @@ export function validateCoinParams(params: CoinParams): boolean {
   }
 }
 
-// Generate coin symbol based on user and day
-export function generateCoinSymbol(userFid: number, streakDay: number): string {
-  // Create a unique symbol: USER + DAY (e.g., "12345D1", "12345D2")
-  return `${userFid}D${streakDay}`;
+// Generate coin symbol based on username and total coins (always unique)
+export function generateCoinSymbol(username: string, totalCoins: number): string {
+  // Clean username: remove @ symbol, convert to uppercase, limit length
+  const cleanUsername = username.replace('@', '').toUpperCase().substring(0, 8);
+  const coinNumber = totalCoins + 1; // Next coin number
+  return `${cleanUsername}${coinNumber}`;
 }
 
-// Generate coin name based on user and day
-export function generateCoinName(userFid: number, streakDay: number): string {
-  return `Day ${streakDay} Creation by User ${userFid}`;
+// Generate coin name based on username and total coins
+export function generateCoinName(username: string, totalCoins: number, streakDay: number): string {
+  const coinNumber = totalCoins + 1;
+  return `@${username} Creation #${coinNumber} (Day ${streakDay})`;
 }
 
 // Create coin metadata for Zora Coins v4
 export function createCoinMetadata(params: CoinParams) {
-  const symbol = generateCoinSymbol(params.userFid, params.streakDay);
-  const name = generateCoinName(params.userFid, params.streakDay);
+  const symbol = generateCoinSymbol(params.username, params.totalCoins);
+  const name = generateCoinName(params.username, params.totalCoins, params.streakDay);
   
   return {
     name,
@@ -92,6 +99,14 @@ export function createCoinMetadata(params: CoinParams) {
       {
         trait_type: "Creator FID",
         value: params.userFid.toString()
+      },
+      {
+        trait_type: "Creator Username",
+        value: params.username
+      },
+      {
+        trait_type: "Coin Number",
+        value: (params.totalCoins + 1).toString()
       },
       {
         trait_type: "Content Preview",
@@ -117,8 +132,8 @@ export async function createWritingCoin(
     }
 
     // Generate coin details
-    const symbol = generateCoinSymbol(params.userFid, params.streakDay);
-    const name = generateCoinName(params.userFid, params.streakDay);
+    const symbol = generateCoinSymbol(params.username, params.totalCoins);
+    const name = generateCoinName(params.username, params.totalCoins, params.streakDay);
     
     // Create metadata URI (for now, we'll use a placeholder)
     // In production, you'd upload metadata to IPFS
@@ -178,7 +193,7 @@ export async function createWritingCoinFallback(params: CoinParams): Promise<Coi
     }
 
     // Generate coin details
-    const symbol = generateCoinSymbol(params.userFid, params.streakDay);
+    const symbol = generateCoinSymbol(params.username, params.totalCoins);
     const coinAddress = `0x${Math.random().toString(16).substring(2, 42)}`; // Mock address
     const txHash = `0x${Math.random().toString(16).substring(2, 66)}`; // Mock transaction hash
 
@@ -190,7 +205,8 @@ export async function createWritingCoinFallback(params: CoinParams): Promise<Coi
       coinAddress,
       txHash,
       wordCount: params.wordCount,
-      streakDay: params.streakDay
+      streakDay: params.streakDay,
+      totalCoins: params.totalCoins
     });
 
     return {

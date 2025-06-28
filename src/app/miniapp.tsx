@@ -148,6 +148,8 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         streakDay,
         userFid: user.fid,
         userAddress: "0x0000000000000000000000000000000000000000", // Will be replaced by hook
+        username: user.username,
+        totalCoins: user.totalCoins,
       }
 
       if (!validateCoinParams(coinParams)) {
@@ -155,7 +157,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       }
 
       // Create coin using our new hook
-      const result = await createCoin(content, wordCount, streakDay, user.fid)
+      const result = await createCoin(content, wordCount, streakDay, user.fid, user.username, user.totalCoins)
 
       if (!result.success) {
         throw new Error(result.error || "Failed to create coin")

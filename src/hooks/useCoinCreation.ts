@@ -12,7 +12,9 @@ export function useCoinCreation() {
     content: string,
     wordCount: number,
     streakDay: number,
-    userFid: number
+    userFid: number,
+    username: string,
+    totalCoins: number
   ): Promise<CoinCreationResult> => {
     if (!address) {
       return {
@@ -27,6 +29,8 @@ export function useCoinCreation() {
       streakDay,
       userFid,
       userAddress: address,
+      username,
+      totalCoins,
     };
 
     // If we have wallet and public clients, use real SDK
