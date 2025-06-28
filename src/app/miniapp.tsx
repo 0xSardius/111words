@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useMiniApp } from "@neynar/react"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { QuickSignInButton } from "../components/ui/QuickSignInButton"
@@ -25,6 +26,7 @@ interface MiniAppProps {
 }
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
+  const { actions } = useMiniApp()
   const { isAuthenticated, user: authUser, getUserFid } = useQuickAuth()
   const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const [user, setUser] = useState<User | null>(null)
@@ -214,6 +216,17 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
             dayNumber: streakDay,
             content,
           })
+        }
+
+        // Implement sharing using official Farcaster SDK
+        try {
+          const shareText = `I just wrote ${wordCount} words and minted $${result.symbol} on @111words! 🚀\n\nDay ${streakDay} of my writing streak. Join me in building a daily writing habit!\n\n✍️ Write. 🪙 Mint. 📈 Trade.\n\nhttps://111words.vercel.app`
+          
+          // Use Neynar's SDK wrapper to open sharing URL
+          await actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
+        } catch (shareError) {
+          console.log("Sharing not available or failed:", shareError)
+          // Sharing is optional, don't break the flow
         }
       }
     } catch (error) {
