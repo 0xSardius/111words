@@ -218,16 +218,18 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
           })
         }
 
-        // Implement sharing using official Farcaster SDK
-        try {
-          const shareText = `I just wrote ${wordCount} words and minted $${result.symbol} on @111words! 🚀\n\nDay ${streakDay} of my writing streak. Join me in building a daily writing habit!\n\n✍️ Write. 🪙 Mint. 📈 Trade.\n\nhttps://111words.vercel.app`
-          
-          // Use Neynar's SDK wrapper to open sharing URL
-          await actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
-        } catch (shareError) {
-          console.log("Sharing not available or failed:", shareError)
-          // Sharing is optional, don't break the flow
-        }
+        // Optional sharing - run in background, don't block coin creation
+        setTimeout(async () => {
+          try {
+            if (actions?.openUrl) {
+              const shareText = `I just wrote ${wordCount} words and minted $${result.symbol} on @111words! 🚀\n\nDay ${streakDay} of my writing streak. Join me in building a daily writing habit!\n\n✍️ Write. 🪙 Mint. 📈 Trade.\n\nhttps://111words.vercel.app`
+              
+              await actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
+            }
+          } catch (shareError) {
+            console.log("Sharing not available:", shareError)
+          }
+        }, 100) // Small delay to ensure coin creation completes first
       }
     } catch (error) {
       console.error("Failed to create coin:", error)
