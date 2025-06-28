@@ -34,6 +34,13 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Signal to Farcaster that the MiniApp is ready
+  useEffect(() => {
+    if (actions?.ready) {
+      actions.ready()
+    }
+  }, [actions])
+
   // Get current FID - prioritize authenticated user, fall back to mock
   const currentFid = getUserFid() || MOCK_FID
 
@@ -243,7 +250,13 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     return (
       <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
         <div className="text-center">
+          <img 
+            src="/icon.png" 
+            alt="111words" 
+            className="w-16 h-16 mx-auto mb-4 rounded-xl border-2 border-black"
+          />
           <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h1 className="text-2xl font-black mb-2">111WORDS</h1>
           <p className="text-lg font-bold">Loading your writing streak...</p>
         </div>
       </div>
