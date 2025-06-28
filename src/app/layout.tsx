@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getSession } from "~/auth"
 import "~/app/globals.css";
 import { Providers } from "~/app/providers";
-import { APP_NAME, APP_DESCRIPTION } from "~/lib/constants";
+
 
 export const metadata: Metadata = {
   title: "111words",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     "fc:frame:name": "111words",
     "fc:frame:icon": "https://111words.vercel.app/icon.png",
     "fc:frame:home_url": "https://111words.vercel.app",
-    "fc:frame:image": "https://111words.vercel.app/api/opengraph-image",
+    "fc:frame:image": "https://111words.vercel.app/icon.png",
     "fc:frame:button:1": "Start Writing",
     "fc:frame:button:1:action": "link",
     "fc:frame:button:1:target": "https://111words.vercel.app",
