@@ -2,10 +2,10 @@
   "frame": {
     "version": "1",
     "name": "111words",
-    "iconUrl": "https://111words.vercel.app/icon.jpg",
+    "iconUrl": "https://111words.vercel.app/icon.png",
     "homeUrl": "https://111words.vercel.app",
-    "imageUrl": "https://111words.vercel.app/icon.jpg",
-    "splashImageUrl": "https://111words.vercel.app/splash.jpg",
+    "imageUrl": "https://111words.vercel.app/icon.png",
+    "splashImageUrl": "https://111words.vercel.app/splash.png",
     "buttonTitle": "Start Writing",
     "splashBackgroundColor": "#f7f7f7",
     "subtitle": "Daily writing as ERC-20 coins",
@@ -25,10 +25,10 @@
       "actions.signIn",
       "wallet.getEthereumProvider"
     ],
-    "heroImageUrl": "https://111words.vercel.app/icon.jpg",
+    "heroImageUrl": "https://111words.vercel.app/icon.png",
     "tagline": "Daily writing as ERC-20 coins",
     "ogTitle": "111words",
     "ogDescription": "Write daily and mint your words as ERC-20 coins on Base",
-    "ogImageUrl": "https://111words.vercel.app/icon.jpg"
+    "ogImageUrl": "https://111words.vercel.app/icon.png"
   }
 } 
