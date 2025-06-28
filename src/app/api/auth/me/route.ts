@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     // TODO: Replace with proper JWT validation using @farcaster/quick-auth
     // For now, we'll mock the response to get the flow working
     // This is just for development - you MUST implement proper validation for production
+    console.log('Token received:', token.substring(0, 20) + '...');
     
     // Mock user data - in production this would come from JWT payload
     const mockUser = {

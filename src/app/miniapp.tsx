@@ -18,15 +18,12 @@ import {
 } from "../lib/supabase"
 import type { User, UserStats } from "../types/index"
 
-// Mock FID for development - only used when not authenticated
-const MOCK_FID = 12345
-
 interface MiniAppProps {
   onCoinCreated?: (details: { symbol: string; address: string; wordCount: number; dayNumber: number; content: string }) => void
 }
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
-  const { isAuthenticated, user: authUser, getUserFid } = useQuickAuth()
+  const { isAuthenticated, user: authUser } = useQuickAuth()
   const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
