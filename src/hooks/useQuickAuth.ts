@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { sdk } from '@farcaster/frame-sdk';
+import { useMiniApp } from '@neynar/react';
 
 interface QuickAuthUser {
   fid: number;
@@ -24,80 +24,67 @@ export function useQuickAuth() {
     error: null,
   });
 
-  // Initialize Quick Auth on mount
+  // Get MiniApp context
+  const { context } = useMiniApp();
+
+  // Initialize authentication with MiniApp context
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
         
-        // Use official Quick Auth to get user data with full URL
-        const baseUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://111words.vercel.app' 
-          : 'http://localhost:3000';
-        const res = await sdk.quickAuth.fetch(`${baseUrl}/api/auth/me`);
-        
-        if (res.ok) {
-          const userData = await res.json();
+        // Check if we have MiniApp context with user
+        if (context?.user) {
+          console.log('MiniApp context user:', context.user);
+          
           setAuthState({
             isAuthenticated: true,
             user: {
-              fid: userData.fid,
-              username: userData.username,
-              displayName: userData.displayName,
-              pfpUrl: userData.pfpUrl,
-              primaryAddress: userData.primaryAddress,
+              fid: context.user.fid,
+              username: context.user.username,
+              displayName: context.user.displayName,
+              pfpUrl: context.user.pfpUrl,
             },
             isLoading: false,
             error: null,
           });
-          
-          // Signal to Farcaster that the app is ready
-          sdk.actions.ready();
         } else {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.error || `Authentication failed: ${res.status}`);
-        }
-      } catch (error) {
-        console.error('Quick Auth initialization failed:', error);
-        
-        // Provide more specific error information
-        let errorMessage = 'Authentication failed';
-        if (error instanceof Error) {
-          errorMessage = error.message;
-          console.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
+          // No MiniApp context available
+          console.log('No MiniApp context available');
+          setAuthState({
+            isAuthenticated: false,
+            user: null,
+            isLoading: false,
+            error: 'Not running in MiniApp context',
           });
         }
-        
+      } catch (error) {
+        console.error('Auth initialization failed:', error);
         setAuthState({
           isAuthenticated: false,
           user: null,
           isLoading: false,
-          error: errorMessage,
+          error: error instanceof Error ? error.message : 'Authentication failed',
         });
       }
     };
 
     initializeAuth();
-  }, []);
+  }, [context]);
 
   const authenticate = useCallback(async () => {
-    // With Quick Auth, authentication is automatic
-    console.log('Quick Auth: Authentication is automatic');
+    console.log('Auth: Authentication handled by MiniApp context');
   }, []);
 
   const logout = useCallback(async () => {
-    // In MiniApp context, logout is handled by Farcaster client
-    console.log('Quick Auth: Logout handled by Farcaster client');
+    console.log('Auth: Logout handled by Farcaster client');
   }, []);
 
   return {
     ...authState,
     authenticate,
     logout,
-    isInMiniApp: true, // Quick Auth only works in MiniApp context
+    isInMiniApp: !!context,
     canCreateCoins: authState.isAuthenticated,
     getUserFid: () => authState.user?.fid || null,
   };

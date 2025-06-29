@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { sdk } from "@farcaster/frame-sdk"
+import { useMiniApp } from "@neynar/react"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { QuickSignInButton } from "../components/ui/QuickSignInButton"
@@ -23,6 +23,7 @@ interface MiniAppProps {
 }
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
+  const { actions } = useMiniApp()
   const { isAuthenticated, user: authUser } = useQuickAuth()
   const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const [user, setUser] = useState<User | null>(null)
@@ -30,8 +31,12 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Quick Auth handles the ready signal automatically
-  // No need for manual ready() call
+  // Signal ready when authenticated
+  useEffect(() => {
+    if (isAuthenticated && actions?.ready) {
+      actions.ready()
+    }
+  }, [isAuthenticated, actions])
 
   const loadUserData = useCallback(async () => {
     if (!isAuthenticated || !authUser) {
@@ -208,7 +213,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
           try {
             const shareText = `I just wrote ${wordCount} words and minted $${result.symbol} on @111words! 🚀\n\nDay ${streakDay} of my writing streak. Join me in building a daily writing habit!\n\n✍️ Write. 🪙 Mint. 📈 Trade.\n\nhttps://111words.vercel.app`
             
-            await sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
+            await actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
           } catch (shareError) {
             console.log("Sharing not available:", shareError)
           }
