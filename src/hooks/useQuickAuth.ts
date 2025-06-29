@@ -30,8 +30,11 @@ export function useQuickAuth() {
       try {
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
         
-        // Use official Quick Auth to get user data
-        const res = await sdk.quickAuth.fetch('/api/auth/me');
+        // Use official Quick Auth to get user data with full URL
+        const baseUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://111words.vercel.app' 
+          : 'http://localhost:3000';
+        const res = await sdk.quickAuth.fetch(`${baseUrl}/api/auth/me`);
         
         if (res.ok) {
           const userData = await res.json();
@@ -56,11 +59,23 @@ export function useQuickAuth() {
         }
       } catch (error) {
         console.error('Quick Auth initialization failed:', error);
+        
+        // Provide more specific error information
+        let errorMessage = 'Authentication failed';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
+        
         setAuthState({
           isAuthenticated: false,
           user: null,
           isLoading: false,
-          error: error instanceof Error ? error.message : 'Authentication failed',
+          error: errorMessage,
         });
       }
     };

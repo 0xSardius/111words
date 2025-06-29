@@ -51,9 +51,13 @@ export async function GET(request: NextRequest) {
     const token = authorization.split(' ')[1];
     
     // Validate JWT token using Quick Auth
+    const domain = process.env.NODE_ENV === 'production' 
+      ? 'https://111words.vercel.app' 
+      : 'localhost:3000';
+    
     const payload = await quickAuthClient.verifyJwt({
       token,
-      domain: process.env.NEXT_PUBLIC_URL || 'https://111words.vercel.app',
+      domain,
     });
     
     // Get FID from JWT payload
@@ -77,22 +81,34 @@ export async function GET(request: NextRequest) {
     
     // Provide specific error messages for debugging
     if (error instanceof Error) {
-      if (error.message.includes('Invalid token')) {
+      console.error('Detailed error:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      if (error.message.includes('Invalid token') || error.message.includes('token')) {
         return NextResponse.json(
-          { error: 'Invalid authentication token' },
+          { error: `Invalid authentication token: ${error.message}` },
           { status: 401 }
         );
       }
       if (error.message.includes('Neynar')) {
         return NextResponse.json(
-          { error: 'Failed to fetch user data' },
+          { error: `Failed to fetch user data: ${error.message}` },
           { status: 500 }
+        );
+      }
+      if (error.message.includes('domain')) {
+        return NextResponse.json(
+          { error: `Domain validation failed: ${error.message}` },
+          { status: 401 }
         );
       }
     }
     
     return NextResponse.json(
-      { error: 'Authentication failed' },
+      { error: `Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 401 }
     );
   }
