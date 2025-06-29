@@ -51,7 +51,8 @@ export function useQuickAuth() {
           // Signal to Farcaster that the app is ready
           sdk.actions.ready();
         } else {
-          throw new Error(`Authentication failed: ${res.status}`);
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `Authentication failed: ${res.status}`);
         }
       } catch (error) {
         console.error('Quick Auth initialization failed:', error);
@@ -69,7 +70,6 @@ export function useQuickAuth() {
 
   const authenticate = useCallback(async () => {
     // With Quick Auth, authentication is automatic
-    // This is just for compatibility with existing code
     console.log('Quick Auth: Authentication is automatic');
   }, []);
 
