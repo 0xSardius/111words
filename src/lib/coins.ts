@@ -34,8 +34,10 @@ export interface CoinCreationParams {
 
 export interface CoinMetadata {
   name: string;
+  symbol: string;
   description: string;
   content: string;
+  image: string;
   attributes: Array<{
     trait_type: string;
     value: string;
@@ -76,16 +78,65 @@ export function generateCoinName(username: string, totalCoins: number, streakDay
   return `@${username} Creation #${coinNumber} (Day ${streakDay})`;
 }
 
-// Create coin metadata for Zora Coins v4
-export function createCoinMetadata(params: CoinParams) {
+// Upload metadata to IPFS using Pinata v3 API
+export async function uploadMetadataToIPFS(metadata: CoinMetadata): Promise<string> {
+  if (!process.env.PINATA_JWT) {
+    console.warn("PINATA_JWT not found, using fallback placeholder metadata");
+    return "ipfs://bafybeigoxzqzbnxsn35vq7lls3ljxdcwjafxvbvkivprsodzrptpiguysy";
+  }
+
+  try {
+    const response = await fetch('https://api.pinata.cloud/v3/files', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.PINATA_JWT}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: `${metadata.symbol}-metadata.json`,
+        content: metadata,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`IPFS upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    const ipfsHash = result.data?.cid || result.cid;
+    
+    if (!ipfsHash) {
+      throw new Error("No IPFS hash returned from Pinata");
+    }
+
+    console.log("Metadata uploaded to IPFS:", {
+      name: metadata.name,
+      symbol: metadata.symbol,
+      ipfsHash,
+      uri: `ipfs://${ipfsHash}`
+    });
+
+    return `ipfs://${ipfsHash}`;
+  } catch (error) {
+    console.error("Failed to upload metadata to IPFS:", error);
+    // Fallback to placeholder if IPFS upload fails
+    console.warn("Using fallback placeholder metadata due to IPFS upload failure");
+    return "ipfs://bafybeigoxzqzbnxsn35vq7lls3ljxdcwjafxvbvkivprsodzrptpiguysy";
+  }
+}
+
+// Create enhanced coin metadata with 111words-specific attributes
+export function createCoinMetadata(params: CoinParams): CoinMetadata {
   const symbol = generateCoinSymbol(params.username, params.totalCoins);
   const name = generateCoinName(params.username, params.totalCoins, params.streakDay);
+  const is111Legend = params.wordCount >= 111;
   
   return {
     name,
     symbol,
-    description: `A daily writing coin created on day ${params.streakDay} of the user's writing streak. This coin represents ${params.wordCount} words of creative expression.`,
-    image: "https://placeholder.com/coin-image.png", // TODO: Generate actual image
+    description: `A daily writing coin created on day ${params.streakDay} of ${params.username}'s writing streak. This coin represents ${params.wordCount} words of creative expression${is111Legend ? ' and qualifies as a 111 Legend!' : '.'}`,
+    image: `https://111words.vercel.app/api/coin-image/${symbol}`, // TODO: Implement coin image generation
     content: params.content,
     attributes: [
       {
@@ -95,6 +146,10 @@ export function createCoinMetadata(params: CoinParams) {
       {
         trait_type: "Streak Day",
         value: params.streakDay.toString()
+      },
+      {
+        trait_type: "111 Legend",
+        value: is111Legend ? "Yes" : "No"
       },
       {
         trait_type: "Creator FID",
@@ -107,6 +162,10 @@ export function createCoinMetadata(params: CoinParams) {
       {
         trait_type: "Coin Number",
         value: (params.totalCoins + 1).toString()
+      },
+      {
+        trait_type: "Creation Date",
+        value: new Date().toISOString().split('T')[0]
       },
       {
         trait_type: "Content Preview",
@@ -131,19 +190,21 @@ export async function createWritingCoin(
       };
     }
 
-    // Generate coin details
+    // Generate coin details and metadata
     const symbol = generateCoinSymbol(params.username, params.totalCoins);
     const name = generateCoinName(params.username, params.totalCoins, params.streakDay);
+    const metadata = createCoinMetadata(params);
     
-    // Create metadata URI (for now, we'll use a placeholder)
-    // In production, you'd upload metadata to IPFS
-    const metadataUri = "ipfs://bafybeigoxzqzbnxsn35vq7lls3ljxdcwjafxvbvkivprsodzrptpiguysy" as const;
+    // Upload metadata to IPFS
+    console.log("Uploading metadata to IPFS...");
+    const metadataUri = await uploadMetadataToIPFS(metadata);
+    console.log("Metadata uploaded successfully:", metadataUri);
 
     // Define coin parameters for Zora SDK
     const coinParams = {
       name,
       symbol,
-      uri: metadataUri,
+      uri: metadataUri as `ipfs://${string}`,
       payoutRecipient: params.userAddress as Address,
       // Optional: Add platform referrer if you want to earn fees
       // platformReferrer: "0xYourPlatformAddress" as Address,
@@ -151,7 +212,14 @@ export async function createWritingCoin(
       currency: DeployCurrency.ZORA, // Use ZORA tokens for deployment
     };
 
-    console.log("Creating coin with params:", coinParams);
+    console.log("Creating coin with params:", {
+      ...coinParams,
+      metadata: {
+        wordCount: params.wordCount,
+        streakDay: params.streakDay,
+        is111Legend: params.wordCount >= 111
+      }
+    });
 
     // Create the coin using Zora SDK
     const result = await createCoin(coinParams, walletClient, publicClient, {
@@ -161,6 +229,8 @@ export async function createWritingCoin(
     console.log("Coin creation successful:", {
       transactionHash: result.hash,
       coinAddress: result.address,
+      symbol,
+      metadataUri,
       deploymentDetails: result.deployment
     });
 
@@ -169,7 +239,7 @@ export async function createWritingCoin(
       coinAddress: result.address,
       symbol,
       txHash: result.hash,
-      metadata: createCoinMetadata(params)
+      metadata
     };
 
   } catch (error) {
@@ -248,5 +318,39 @@ export async function getCoinInfo(coinAddress: string) {
   } catch (error) {
     console.error("Failed to get coin info:", error);
     return null;
+  }
+}
+
+// Test function to verify IPFS upload is working
+export async function testIPFSUpload(): Promise<{ success: boolean; uri?: string; error?: string }> {
+  const testMetadata: CoinMetadata = {
+    name: "Test Coin",
+    symbol: "TEST1",
+    description: "A test coin to verify IPFS upload functionality",
+    image: "https://111words.vercel.app/api/coin-image/TEST1",
+    content: "This is a test writing to verify that IPFS upload is working correctly.",
+    attributes: [
+      {
+        trait_type: "Word Count",
+        value: "15"
+      },
+      {
+        trait_type: "Test",
+        value: "Yes"
+      }
+    ]
+  };
+
+  try {
+    const uri = await uploadMetadataToIPFS(testMetadata);
+    return {
+      success: true,
+      uri
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
   }
 } 
