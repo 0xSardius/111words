@@ -84,7 +84,7 @@ export default function TestIPFS() {
                 <li>✅ Create Pinata account at pinata.cloud</li>
                 <li>✅ Generate API key with Files: CREATE, READ permissions</li>
                 <li>✅ Add PINATA_JWT to your .env.local file</li>
-                <li>✅ Run this test to verify it's working</li>
+                <li>✅ Run this test to verify its working</li>
               </ul>
             </div>
           </div>
