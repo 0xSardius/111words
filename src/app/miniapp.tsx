@@ -208,22 +208,16 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
           })
         }
 
-        // Optional sharing - run in background, don't block coin creation
-        setTimeout(async () => {
-          try {
-            const shareText = `I just wrote ${wordCount} words and minted $${result.symbol} on @111words! 🚀\n\nDay ${streakDay} of my writing streak. Join me in building a daily writing habit!\n\n✍️ Write. 🪙 Mint. 📈 Trade.\n\nhttps://111words.vercel.app`
-            
-            await actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`)
-          } catch (shareError) {
-            console.log("Sharing not available:", shareError)
-          }
-        }, 100) // Small delay to ensure coin creation completes first
+        // Skip automatic sharing - let user choose via success screen
+        console.log("Coin created successfully, showing success screen")
       }
     } catch (error) {
       console.error("Failed to create coin:", error)
       alert(`❌ Failed to create coin: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
+      // Always reset the creating state, even if there's an error
       setIsCreating(false)
+      console.log("Coin creation process completed, resetting loading state")
     }
   }
 
