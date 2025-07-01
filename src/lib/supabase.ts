@@ -171,4 +171,49 @@ export async function checkUserWroteToday(fid: number): Promise<boolean> {
 export async function getCurrentStreak(fid: number): Promise<number> {
   const user = await getUserByFid(fid)
   return user?.current_streak || 0
+}
+
+export async function getWritingByCoinAddress(coinAddress: string): Promise<{
+  content: string
+  word_count: number
+  created_at: string
+  user: {
+    username: string
+    display_name: string
+  }
+} | null> {
+  const { data, error } = await supabase
+    .from('writings')
+    .select(`
+      content,
+      word_count,
+      created_at,
+      users!inner (
+        username,
+        display_name
+      )
+    `)
+    .eq('coin_address', coinAddress)
+    .single()
+
+  if (error) {
+    console.error('Error fetching writing by coin address:', error)
+    return null
+  }
+
+  if (!data || !data.users || !Array.isArray(data.users) || data.users.length === 0) {
+    return null
+  }
+
+  const user = data.users[0]
+
+  return {
+    content: data.content,
+    word_count: data.word_count,
+    created_at: data.created_at,
+    user: {
+      username: user.username || '',
+      display_name: user.display_name || 'Anonymous Writer'
+    }
+  }
 } 

@@ -28,10 +28,16 @@ export default function MiniAppWithSuccess() {
   }
 
   const handleShare = (details: CoinDetails) => {
-    // Integrate with Farcaster sharing
-    const shareText = `Just created $${details.symbol} with ${details.wordCount} words! Day ${details.dayNumber} of my writing streak on 111words 🔥`
+    // Create enhanced share text with link to our custom share page
+    const sharePageUrl = `${window.location.origin}/share/${details.address}`
+    const shareText = `Just minted "${details.symbol}" with ${details.wordCount} words! 💎\n\nDay ${details.dayNumber} of my writing streak on 111words 🔥\n\n📖 Read & Buy: ${sharePageUrl}`
 
-    // This would integrate with Farcaster's sharing API
+    // Open Farcaster compose with the share text
+    if (typeof window !== 'undefined') {
+      const farcasterUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`
+      window.open(farcasterUrl, '_blank')
+    }
+    
     console.log("Sharing to Farcaster:", shareText)
   }
 

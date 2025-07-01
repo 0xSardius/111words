@@ -65,11 +65,18 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
             <p>and minted your {coinDetails.dayNumber} coin!</p>
           </div>
           <div className="space-y-2">
-            <Button onClick={handleShare} className="w-full">
+            <Button onClick={handleShare} className="w-full bg-blue-500">
               🚀 Share to Farcaster
             </Button>
+            <Button 
+              onClick={() => window.open(`/share/${coinDetails.address}`, '_blank')} 
+              variant="outline" 
+              className="w-full"
+            >
+              👀 View Coin Details
+            </Button>
             <Button onClick={onComplete} variant="outline" className="w-full">
-              Continue Writing
+              ✍️ Continue Writing
             </Button>
           </div>
         </div>

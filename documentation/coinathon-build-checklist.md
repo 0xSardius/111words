@@ -74,13 +74,24 @@
 - [ ] Add IPFS metadata upload
 
 ### **1.6 Farcaster Sharing Integration** 📱
+- [x] Add share button to success screen
+- [x] Generate share text with coin details and trading link
 - [ ] Create share service (`src/lib/sharing.ts`)
 - [ ] Implement Farcaster cast composition with coin embed
-- [ ] Add share button to success screen
-- [ ] Generate share text with coin details and trading link
 - [ ] Create share preview images for social media
 - [ ] Test sharing flow in Warpcast
 - [ ] Add share analytics tracking
+
+### **1.8 In-App Trading (Optional Enhancement)** 🪙💭
+- [ ] **DISCUSSION NEEDED**: Direct wallet trading vs Zora redirect
+- [ ] **Options Considered**:
+  - ✅ **Current**: Direct users to Zora for trading (simple, reliable)
+  - 🤔 **Alternative**: Integrate Zora SDK `tradeCoin()` for in-app trading
+  - 🤔 **Hybrid**: Quick buy buttons + Zora link for advanced trading
+- [ ] **Decision**: Waiting for Zora SDK trading functions availability
+- [ ] **Status**: Zora SDK v0.2.4 doesn't include `tradeCoin()` yet
+- [ ] **Note**: Documentation shows trading functions, but not in current release
+- [ ] **Recommendation**: Keep current Zora redirect approach for Coinathon
 
 ### **1.7 Coin Naming Enhancement** ✏️
 - [ ] Implement default coin naming: "@username's Day X Creation"
@@ -213,6 +224,8 @@
 - ✅ **Real User Data**: Proper usernames and profile pictures throughout app
 - ✅ **MiniApp Integration**: Proper ready signaling and context handling
 - ✅ **Code Cleanup**: Removed complex/unused authentication code
+- ✅ **IPFS Integration**: Working metadata upload with Pinata v3 API
+- ✅ **Trading Discussion**: Analyzed options, documented approach for future consideration
 
 ### **Current Blockers - RESOLVED!**
 - ~~Auth errors~~ ✅ **FIXED!**
