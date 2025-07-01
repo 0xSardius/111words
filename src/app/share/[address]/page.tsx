@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk"
 
 // Set up Zora API key
-if (process.env.NEXT_PUBLIC_ZORA_API_KEY) {
-  setApiKey(process.env.NEXT_PUBLIC_ZORA_API_KEY)
+if (process.env.ZORA_API_KEY) {
+  setApiKey(process.env.ZORA_API_KEY)
 }
 import { getWritingByCoinAddress } from "../../../lib/supabase"
 import { Button } from "../../../components/ui/Button"
