@@ -33,7 +33,8 @@ interface WritingData {
   }
 }
 
-export default function SharePage({ params }: { params: { address: string } }) {
+export default async function SharePage({ params }: { params: Promise<{ address: string }> }) {
+  const { address } = await params
   const [coinData, setCoinData] = useState<CoinData | null>(null)
   const [writingData, setWritingData] = useState<WritingData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -42,13 +43,13 @@ export default function SharePage({ params }: { params: { address: string } }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (!isAddress(params.address)) {
+        if (!isAddress(address)) {
           throw new Error("Invalid coin address")
         }
 
         // Fetch coin data from Zora
         const coinResponse = await getCoin({
-          address: params.address,
+          address: address,
           chain: 8453 // Base
         })
 
@@ -68,7 +69,7 @@ export default function SharePage({ params }: { params: { address: string } }) {
         }
 
         // Fetch writing data from database
-        const writing = await getWritingByCoinAddress(params.address)
+        const writing = await getWritingByCoinAddress(address)
         if (writing) {
           setWritingData(writing)
         }
@@ -81,7 +82,7 @@ export default function SharePage({ params }: { params: { address: string } }) {
     }
 
     fetchData()
-  }, [params.address])
+  }, [address])
 
   if (loading) {
     return (
@@ -184,7 +185,7 @@ export default function SharePage({ params }: { params: { address: string } }) {
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
           <div className="space-y-3">
             <Button 
-              onClick={() => window.open(`https://zora.co/collect/base:${params.address}`, '_blank')}
+              onClick={() => window.open(`https://zora.co/collect/base:${address}`, '_blank')}
               className="w-full bg-green-500"
             >
               💰 Buy on Zora
