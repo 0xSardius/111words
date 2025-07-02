@@ -17,6 +17,7 @@ export default function MiniAppWithSuccess() {
   const [coinDetails, setCoinDetails] = useState<CoinDetails | null>(null)
 
   const handleCoinCreated = (details: CoinDetails) => {
+    console.log("🎉 Success callback triggered with details:", details)
     setCoinDetails(details)
     setShowSuccess(true)
   }
@@ -41,7 +42,10 @@ export default function MiniAppWithSuccess() {
     console.log("Sharing to Farcaster:", shareText)
   }
 
+  console.log("🔍 Render state:", { showSuccess, coinDetails })
+
   if (showSuccess && coinDetails) {
+    console.log("✅ Rendering success flow")
     return (
       <SuccessFlow
         coinDetails={coinDetails}
@@ -51,5 +55,6 @@ export default function MiniAppWithSuccess() {
     )
   }
 
+  console.log("📝 Rendering main app")
   return <MiniApp onCoinCreated={handleCoinCreated} />
 }

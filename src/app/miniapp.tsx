@@ -144,13 +144,16 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       }
 
       // Create coin using our new hook
+      console.log("🪙 Creating coin with params:", { content: content.substring(0, 50) + "...", wordCount, streakDay, userFid: user.fid })
       const result = await createCoin(content, wordCount, streakDay, user.fid, user.username, user.totalCoins)
+      console.log("🪙 Coin creation result:", result)
 
       if (!result.success) {
         throw new Error(result.error || "Failed to create coin")
       }
 
       // Save to database using our atomic function
+      console.log("💾 Saving to database with params:", { fid: user.fid, wordCount, streakDay, coinAddress: result.coinAddress })
       const dbResult = await createWritingAndUpdateUser({
         fid: user.fid,
         content,
@@ -161,6 +164,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         tx_hash: result.txHash,
         coin_symbol: result.symbol,
       })
+      console.log("💾 Database result:", dbResult)
 
       if (dbResult) {
         // Update local state with new data
@@ -193,14 +197,19 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         setStats(updatedStats)
 
         // Call the success callback if provided
+        console.log("🔥 About to call success callback:", { hasCallback: !!onCoinCreated, coinAddress: result.coinAddress, symbol: result.symbol })
         if (onCoinCreated && result.coinAddress && result.symbol) {
-          onCoinCreated({
+          const callbackData = {
             symbol: result.symbol,
             address: result.coinAddress,
             wordCount,
             dayNumber: streakDay,
             content,
-          })
+          }
+          console.log("🚀 Calling onCoinCreated with:", callbackData)
+          onCoinCreated(callbackData)
+        } else {
+          console.log("❌ Not calling callback - missing data:", { hasCallback: !!onCoinCreated, coinAddress: result.coinAddress, symbol: result.symbol })
         }
 
         // Skip automatic sharing - let user choose via success screen
