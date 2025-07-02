@@ -192,12 +192,65 @@
 
 ---
 
+## 🚀 **Stage 2: Future Enhancement Options**
+
+### **2.5 UX/Engagement Improvements** 🎯
+- [ ] **Auto-share vs Optional Share**: 
+  - Current: User-controlled sharing via success screen options
+  - Option A: Automatic sharing after coin creation (higher engagement)
+  - Option B: Smart sharing prompts based on user behavior
+  - Option C: One-click share with preview before posting
+- [ ] **Zora Discovery Enhancement**:
+  - Custom share pages with live market data (✅ IMPLEMENTED)
+  - Enhanced Farcaster compose integration with rich previews
+  - Social proof elements (holder count, volume, etc.)
+  - Community discovery features
+
+### **2.6 Advanced Trading Features** 💹
+- [ ] **In-App Trading Interface**:
+  - Direct wallet integration for quick buys
+  - Price charts and market data visualization
+  - Portfolio tracking for coin creators
+  - Trading notifications and alerts
+- [ ] **Social Trading Features**:
+  - Friend/follower coin recommendations
+  - Trending coins feed
+  - Creator leaderboards
+  - Social trading signals
+
+### **2.7 Content & Gamification** 🎮
+- [ ] **Daily Limits & Restrictions**:
+  - Current: No restrictions (optimal for hackathon/demos)
+  - Option A: One coin per day (original plan)
+  - Option B: Streak-based limits (more coins as streak grows)
+  - Option C: Quality-based limits (word count/engagement thresholds)
+- [ ] **Advanced Writing Features**:
+  - Writing prompts and themes
+  - Collaborative writing challenges
+  - AI-powered writing suggestions
+  - Rich text formatting options
+
+### **2.8 Monetization & Rewards** 💰
+- [ ] **Creator Economics**:
+  - Revenue sharing from coin trading fees
+  - Creator royalties on secondary sales
+  - Subscription tiers for advanced features
+  - NFT rewards for consistent creators
+- [ ] **Community Features**:
+  - Writing contests and competitions
+  - Community voting on best writings
+  - Collaborative coin creation
+  - Cross-platform content syndication
+
+---
+
 ## 🎯 **Success Metrics for Coinathon**
 
 - ✅ **Coin Creation**: Users can mint real ERC-20 coins
 - ✅ **Authentication**: Seamless Farcaster login with real user data
 - 🔄 **Frame Functionality**: Works seamlessly in Warpcast
 - ✅ **Data Persistence**: User data and streaks are saved
+- ✅ **No Restrictions**: Unlimited coin creation for demos and testing
 - 🔄 **Social Sharing**: Users can share their coins
 - ✅ **Production Ready**: Live and accessible
 

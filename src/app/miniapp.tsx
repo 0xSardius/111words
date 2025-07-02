@@ -127,11 +127,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       const streakDay = user.streak + 1
       const is111Legend = wordCount >= 111
 
-      // Check if user already wrote today
-      const alreadyWroteToday = await checkUserWroteToday(user.fid)
-      if (alreadyWroteToday) {
-        throw new Error("You've already created a coin today! Come back tomorrow.")
-      }
+      // No daily limits - users can create multiple coins per day for hackathon demo
 
       // Validate coin creation parameters
       const coinParams = {
