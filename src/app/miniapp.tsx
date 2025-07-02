@@ -13,7 +13,6 @@ import {
   createUser, 
   createWritingAndUpdateUser, 
   getUserWritings,
-  checkUserWroteToday,
   type Writing
 } from "../lib/supabase"
 import type { User, UserStats } from "../types/index"
