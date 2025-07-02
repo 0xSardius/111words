@@ -1,4 +1,4 @@
-import { setApiKey, createCoin, DeployCurrency } from "@zoralabs/coins-sdk";
+import { setApiKey, createCoin, DeployCurrency} from "@zoralabs/coins-sdk";
 import { z } from "zod";
 import { Address, type WalletClient, type PublicClient } from "viem";
 import { base } from "viem/chains";

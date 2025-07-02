@@ -65,7 +65,9 @@ export default async function SharePage({ params }: { params: Promise<{ address:
     }
 
     // Fetch writing data from database
+    console.log("🔍 Fetching writing data for address:", address)
     writingData = await getWritingByCoinAddress(address)
+    console.log("📝 Writing data result:", writingData)
 
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load coin data"

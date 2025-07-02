@@ -127,7 +127,18 @@ function SharePageClient({
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
           <div className="space-y-3">
             <Button 
-              onClick={() => window.open(`https://zora.co/collect/base:${address}`, '_blank')}
+              onClick={() => {
+                // Try multiple Zora URL formats
+                const urls = [
+                  `https://zora.co/collect/base/${address}`,
+                  `https://zora.co/coins/${address}`,
+                  `https://zora.co/collect/base:${address}`,
+                  `https://zora.co/collect/8453:${address}`
+                ]
+                console.log("🔗 Trying Zora URLs:", urls)
+                // For now, try the first format
+                window.open(urls[0], '_blank')
+              }}
               className="w-full bg-green-500"
             >
               💰 Buy on Zora

@@ -30,8 +30,8 @@ CREATE TABLE writings (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   write_date DATE NOT NULL DEFAULT CURRENT_DATE,
   
-  -- Ensure one writing per user per day
-  UNIQUE(fid, write_date)
+  -- Allow multiple writings per user per day for hackathon demos
+  -- UNIQUE(fid, write_date) -- Removed for unlimited coin creation
 );
 
 -- Indexes for performance
@@ -85,9 +85,13 @@ BEGIN
     p_is_111_legend, p_coin_address, p_tx_hash, p_coin_symbol, p_write_date
   ) RETURNING * INTO v_writing;
   
-  -- Update user stats
+  -- Update user stats (increment for each writing, streak only updates once per day)
   UPDATE users SET
-    current_streak = p_streak_day,
+    current_streak = CASE 
+      WHEN last_write_date = p_write_date THEN current_streak  -- Same day, keep streak
+      WHEN last_write_date = p_write_date - INTERVAL '1 day' THEN p_streak_day  -- Next day, update streak
+      ELSE p_streak_day  -- Reset or new streak
+    END,
     longest_streak = GREATEST(longest_streak, p_streak_day),
     total_coins = total_coins + 1,
     total_words = total_words + p_word_count,
