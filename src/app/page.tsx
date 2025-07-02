@@ -1,5 +1,5 @@
-import MiniApp from "./miniapp"
+import MiniAppWithSuccess from "./miniapp-with-success"
 
 export default function Page() {
-  return <MiniApp />
+  return <MiniAppWithSuccess />
 }
