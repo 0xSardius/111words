@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "./ui/Button"
+import { useCoinTrading } from "../hooks/useCoinTrading"
 
 interface CoinDetails {
   symbol: string
@@ -18,7 +19,9 @@ interface SuccessFlowProps {
 }
 
 export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowProps) {
-  const [currentStep, setCurrentStep] = useState<'minting' | 'success' | 'share'>('minting')
+  const [currentStep, setCurrentStep] = useState<'minting' | 'success' | 'share' | 'trade'>('minting')
+  const [tradeAmount, setTradeAmount] = useState("0.001")
+  const { buyCoins, isTrading, canTrade } = useCoinTrading()
 
   // Simulate minting process
   useState(() => {
@@ -75,6 +78,13 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
             >
               👀 View Coin Details
             </Button>
+            <Button 
+              onClick={() => setCurrentStep('trade')} 
+              variant="outline" 
+              className="w-full bg-green-100"
+            >
+              💰 Trade Coins
+            </Button>
             <Button onClick={onComplete} variant="outline" className="w-full">
               ✍️ Continue Writing
             </Button>
@@ -103,6 +113,63 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
           <Button onClick={onComplete} className="w-full">
             🎯 Keep Writing
           </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (currentStep === 'trade') {
+    return (
+      <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
+        <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 text-center">
+          <div className="text-6xl mb-4">💰</div>
+          <h2 className="text-2xl font-black mb-2">Trade ${coinDetails.symbol}</h2>
+          <div className="bg-yellow-200 border-2 border-black p-3 mb-4">
+            <div className="text-sm font-bold">Buy your own coin!</div>
+            <div className="text-xs text-gray-600">
+              Support your writing and increase its value
+            </div>
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-bold mb-2">Amount (ETH)</label>
+            <input
+              type="number"
+              step="0.001"
+              min="0.001"
+              value={tradeAmount}
+              onChange={(e) => setTradeAmount(e.target.value)}
+              className="w-full p-2 border-2 border-black text-center font-bold"
+              placeholder="0.001"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Button 
+              onClick={async () => {
+                try {
+                  await buyCoins({ 
+                    coinAddress: coinDetails.address, 
+                    amountInEth: tradeAmount 
+                  })
+                  alert(`✅ Bought ${coinDetails.symbol} coins!`)
+                } catch (error) {
+                  alert(`❌ Trade failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+                }
+              }}
+              disabled={!canTrade || isTrading}
+              className="w-full bg-green-500"
+            >
+              {isTrading ? "Trading..." : `💰 Buy ${coinDetails.symbol}`}
+            </Button>
+            <Button 
+              onClick={() => setCurrentStep('success')} 
+              variant="outline" 
+              className="w-full"
+            >
+              ← Back to Options
+            </Button>
+          </div>
         </div>
       </div>
     )
