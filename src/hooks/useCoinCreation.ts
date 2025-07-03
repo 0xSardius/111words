@@ -33,6 +33,12 @@ export function useCoinCreation() {
       totalCoins,
     };
 
+    // Wait a moment for wallet clients to be ready if connected but clients not available
+    if (isConnected && (!walletClient || !publicClient)) {
+      console.log("Wallet connected but clients not ready, waiting...");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
     // If we have wallet and public clients, use real SDK
     if (walletClient && publicClient && isConnected) {
       console.log("Using real Zora Coins SDK for coin creation");

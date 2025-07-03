@@ -24,7 +24,7 @@ interface MiniAppProps {
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const { actions } = useMiniApp()
   const { isAuthenticated, user: authUser } = useQuickAuth()
-  const { createCoin } = useCoinCreation()
+  const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
