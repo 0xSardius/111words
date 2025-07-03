@@ -30,7 +30,6 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showAddPrompt, setShowAddPrompt] = useState(false)
-  const [initializationComplete, setInitializationComplete] = useState(false)
 
   // Signal ready when authenticated
   useEffect(() => {
@@ -39,41 +38,8 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     }
   }, [isAuthenticated, actions])
 
-  // Check if everything is ready for coin creation
-  useEffect(() => {
-    const checkInitialization = () => {
-      const authReady = isAuthenticated && user
-      const walletReady = isConnected && canCreateCoin
-      const dataReady = user && stats
-      
-      console.log("🔍 Initialization check:", { 
-        authReady, 
-        walletReady, 
-        dataReady,
-        isAuthenticated,
-        isConnected,
-        canCreateCoin,
-        hasUser: !!user,
-        hasStats: !!stats
-      })
-      
-      if (authReady && walletReady && dataReady && !initializationComplete) {
-        console.log("✅ Initialization complete!")
-        setInitializationComplete(true)
-        setIsLoading(false)
-      } else if (!authReady || !dataReady) {
-        // Still loading auth or data
-        setIsLoading(true)
-        setInitializationComplete(false)
-      }
-    }
-
-    checkInitialization()
-  }, [isAuthenticated, user, stats, isConnected, canCreateCoin, initializationComplete])
-
   const loadUserData = useCallback(async () => {
     if (!isAuthenticated || !authUser) {
-      setIsLoading(false)
       return
     }
 
@@ -130,8 +96,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     } catch (error) {
       console.error("Failed to load user data:", error)
     } finally {
-      // Don't set isLoading false here - let the initialization check handle it
-      console.log("📊 User data loading completed")
+      setIsLoading(false)
     }
   }, [isAuthenticated, authUser])
 
@@ -142,17 +107,6 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
 
   const handleCreateCoin = async (content: string) => {
     if (!user) return
-
-    // Check if user is connected and can create coins
-    if (!isConnected) {
-      alert("❌ Please connect your wallet to create coins")
-      return
-    }
-
-    if (!canCreateCoin) {
-      alert("❌ Wallet not ready for coin creation. Please try again.")
-      return
-    }
 
     setIsCreating(true)
 
@@ -265,15 +219,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     }
   }
 
-  if (isLoading || !initializationComplete) {
-    const getLoadingMessage = () => {
-      if (!isAuthenticated) return "Connecting to Farcaster..."
-      if (!user) return "Loading your profile..."
-      if (!isConnected) return "Connecting wallet..."
-      if (!canCreateCoin) return "Preparing coin creation..."
-      return "Almost ready..."
-    }
-
+  if (isLoading || !user || !stats) {
     return (
       <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
         <div className="text-center">
@@ -284,28 +230,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
           />
           <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <h1 className="text-2xl font-black mb-2">111WORDS</h1>
-          <p className="text-lg font-bold">{getLoadingMessage()}</p>
-          <div className="mt-2 text-xs text-gray-700">
-            Auth: {isAuthenticated ? "✅" : "⏳"} | 
-            Wallet: {isConnected ? "✅" : "⏳"} | 
-            Ready: {canCreateCoin ? "✅" : "⏳"}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user || !stats) {
-    return (
-      <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg font-bold text-red-600">Failed to load user data</p>
-          <button 
-            onClick={loadUserData}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            Retry
-          </button>
+          <p className="text-lg font-bold">Loading...</p>
         </div>
       </div>
     )
