@@ -2,11 +2,10 @@
 
 import { useState } from "react"
 import { useAccount, useWalletClient, usePublicClient } from "wagmi"
-import { parseEther } from "viem"
+import { parseEther, type Address } from "viem"
 
 // Import tradeCoin from Zora SDK
-// Note: We'll add this import once we confirm the SDK version supports it
-// import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk"
+import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk"
 
 interface TradeParams {
   coinAddress: string
@@ -31,24 +30,12 @@ export function useCoinTrading() {
     setTradeError(null)
 
     try {
-      // TODO: Implement with actual tradeCoin function
-      // For now, return a mock success to test the UI
       console.log("🔄 Trading ETH for coins:", { coinAddress, amountInEth, slippage })
       
-      // Simulate trading delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      return {
-        success: true,
-        txHash: "0x123...",
-        amountReceived: "1000"
-      }
-
-      /* 
-      // Real implementation when SDK is confirmed working:
+      // Real implementation with Zora SDK
       const tradeParameters: TradeParameters = {
         sell: { type: "eth" },
-        buy: { type: "erc20", address: coinAddress },
+        buy: { type: "erc20", address: coinAddress as Address },
         amountIn: parseEther(amountInEth),
         slippage,
         sender: address,
@@ -61,12 +48,13 @@ export function useCoinTrading() {
         publicClient,
       })
 
+      console.log("✅ Trade successful:", receipt)
+
       return {
         success: true,
         txHash: receipt.transactionHash,
-        amountReceived: "calculated from receipt"
+        amountReceived: "Trade completed successfully"
       }
-      */
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Trading failed"
