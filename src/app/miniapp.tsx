@@ -29,6 +29,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [showAddPrompt, setShowAddPrompt] = useState(false)
 
   // Signal ready when authenticated
   useEffect(() => {
@@ -208,6 +209,11 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
           }
           console.log("🚀 Calling onCoinCreated with:", callbackData)
           onCoinCreated(callbackData)
+          
+          // Show add prompt after first coin creation
+          if (user.totalCoins === 0) {
+            setShowAddPrompt(true)
+          }
         } else {
           console.log("❌ Not calling callback - missing data:", { hasCallback: !!onCoinCreated, coinAddress: result.coinAddress, symbol: result.symbol })
         }
@@ -287,6 +293,35 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
 
         {/* Quick Sign In Button */}
         <QuickSignInButton />
+
+        {/* Add Mini App Prompt */}
+        {showAddPrompt && actions?.addMiniApp && (
+          <div className="bg-blue-100 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-black">📱 Add 111words</h3>
+                <p className="text-sm text-gray-600">Save this app for quick access!</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    actions.addMiniApp()
+                    setShowAddPrompt(false)
+                  }}
+                  className="bg-green-500 text-white px-3 py-1 border-2 border-black font-bold text-sm"
+                >
+                  Add
+                </button>
+                <button
+                  onClick={() => setShowAddPrompt(false)}
+                  className="bg-gray-300 px-3 py-1 border-2 border-black font-bold text-sm"
+                >
+                  Later
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Writing Interface */}
         <WritingInterface onCreateCoin={handleCreateCoin} isCreating={isCreating} />
