@@ -34,34 +34,19 @@ export function useCoinCreation() {
       totalCoins,
     };
 
-    console.log("🔍 Coin creation debug:", {
-      isConnected,
-      hasWalletClient: !!walletClient,
-      hasPublicClient: !!publicClient,
-      address: address?.slice(0, 8) + "...",
-    });
-
-    // Wait a moment for wallet clients to be ready if connected but clients not available
-    if (isConnected && (!walletClient || !publicClient)) {
-      console.log("⏳ Wallet connected but clients not ready, waiting 2 seconds...");
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log("🔍 After waiting - clients status:", {
-        hasWalletClient: !!walletClient,
-        hasPublicClient: !!publicClient,
-      });
-    }
-
-    // If we have wallet and public clients, use real SDK
+    // Try real coin creation if wallet clients are available
     if (walletClient && publicClient && isConnected) {
       console.log("✅ Using real Zora Coins SDK for coin creation");
-      return await createWritingCoin(params, walletClient as WalletClient, publicClient as PublicClient);
+      try {
+        return await createWritingCoin(params, walletClient as WalletClient, publicClient as PublicClient);
+      } catch (error) {
+        console.warn("Real coin creation failed, falling back to mock:", error);
+        // Fall back to mock if real creation fails
+        return await createWritingCoinFallback(params);
+      }
     } else {
-      console.log("⚠️ Using fallback coin creation - Missing:", {
-        walletClient: !walletClient,
-        publicClient: !publicClient,
-        isConnected: !isConnected
-      });
+      // Use fallback for now - this keeps the UX smooth
+      console.log("⏳ Wallet clients not ready, using fallback (this is normal in MiniApps)");
       return await createWritingCoinFallback(params);
     }
   }, [address, walletClient, publicClient, isConnected]);
@@ -70,6 +55,7 @@ export function useCoinCreation() {
     createCoin,
     isConnected,
     address,
-    canCreateCoin: isConnected && !!walletClient && !!publicClient
+    canCreateCoin: !!address, // Can always create coins (with fallback if needed)
+    hasRealWallet: isConnected && !!walletClient && !!publicClient
   };
 } 

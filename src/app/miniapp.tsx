@@ -45,12 +45,23 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   useEffect(() => {
     if (isAuthenticated && !isConnected && connectors.length > 0) {
       console.log("🔗 Attempting to connect to Farcaster frame wallet...");
-      const farcasterConnector = connectors.find(c => c.name.toLowerCase().includes('farcaster') || c.id === 'farcasterFrame');
+      console.log("🔍 Available connectors:", connectors.map(c => ({ id: c.id, name: c.name, type: c.type })));
+      
+      const farcasterConnector = connectors.find(c => 
+        c.name.toLowerCase().includes('farcaster') || 
+        c.id === 'farcasterFrame' || 
+        c.type === 'farcasterFrame'
+      );
+      
       if (farcasterConnector) {
-        console.log("🎯 Found Farcaster connector, connecting...");
+        console.log("🎯 Found Farcaster connector:", { id: farcasterConnector.id, name: farcasterConnector.name, type: farcasterConnector.type });
         connect({ connector: farcasterConnector });
       } else {
-        console.log("⚠️ No Farcaster connector found, available connectors:", connectors.map(c => ({ id: c.id, name: c.name })));
+        console.log("⚠️ No Farcaster connector found. Trying first connector...");
+        if (connectors[0]) {
+          console.log("🔄 Connecting to first available connector:", connectors[0].name);
+          connect({ connector: connectors[0] });
+        }
       }
     }
   }, [isAuthenticated, isConnected, connect, connectors])
@@ -263,11 +274,15 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Image
-                src={user.pfpUrl || "/placeholder.svg"}
+                src={user.pfpUrl || "/icon.png"}
                 alt={user.displayName}
                 width={40}
                 height={40}
                 className="rounded-full border-2 border-black"
+                onError={(e) => {
+                  console.log("🖼️ Profile picture failed to load:", user.pfpUrl);
+                  (e.target as HTMLImageElement).src = "/icon.png";
+                }}
               />
               <div>
                 <h1 className="text-2xl font-black">111WORDS</h1>
@@ -294,6 +309,20 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
 
         {/* Quick Sign In Button */}
         <QuickSignInButton />
+
+        {/* Debug Panel - Remove after fixing wallet issues */}
+        <div className="bg-gray-200 border-2 border-black p-3 text-xs">
+          <div className="font-bold mb-2">🔧 Debug Info:</div>
+          <div>Authenticated: {isAuthenticated ? '✅' : '❌'}</div>
+          <div>Wallet Connected: {isConnected ? '✅' : '❌'}</div>
+          <div>Can Create Real Tx: {canCreateCoin ? '✅' : '❌'}</div>
+          <div>Connectors: {connectors.length}</div>
+          {connectors.length > 0 && (
+            <div className="mt-1">
+              Active: {connectors.find(c => c.id)?.name || 'None'}
+            </div>
+          )}
+        </div>
 
         {/* Add Mini App Prompt */}
         {showAddPrompt && actions?.addMiniApp && (

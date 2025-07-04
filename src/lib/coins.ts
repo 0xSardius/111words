@@ -264,7 +264,8 @@ export async function createWritingCoinFallback(params: CoinParams): Promise<Coi
 
     // Generate coin details
     const symbol = generateCoinSymbol(params.username, params.totalCoins);
-    const coinAddress = `0x${Math.random().toString(16).substring(2, 42)}`; // Mock address
+    // Use a more realistic-looking mock address for testing (but clearly marked as mock)
+    const coinAddress = `0x1111${Math.random().toString(16).substring(2, 38)}`; // Mock address starting with 0x1111
     const txHash = `0x${Math.random().toString(16).substring(2, 66)}`; // Mock transaction hash
 
     // Simulate network delay
