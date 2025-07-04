@@ -280,11 +280,14 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
                 height={40}
                 className="rounded-full border-2 border-black"
                 onError={(e) => {
-                  console.log("🖼️ Profile picture failed to load, using fallback");
                   const img = e.target as HTMLImageElement;
-                  if (img.src !== "/icon.png") {
+                  // Prevent infinite loops by only setting fallback once
+                  if (!img.src.endsWith('/icon.png')) {
                     img.src = "/icon.png";
                   }
+                }}
+                onLoad={() => {
+                  // Successfully loaded - no action needed
                 }}
               />
               <div>

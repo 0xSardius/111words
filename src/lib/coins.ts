@@ -175,12 +175,21 @@ export function createCoinMetadata(params: CoinParams): CoinMetadata {
   };
 }
 
-// Real coin creation function using Zora Coins SDK
+// Simplified coin creation function following Zora SDK docs exactly
 export async function createWritingCoin(
   params: CoinParams,
   walletClient: WalletClient,
   publicClient: PublicClient
 ): Promise<CoinCreationResult> {
+  console.log("🔍 Starting coin creation with clients:", {
+    hasWalletClient: !!walletClient,
+    hasPublicClient: !!publicClient,
+    walletClientType: walletClient?.constructor?.name,
+    publicClientType: publicClient?.constructor?.name,
+    userAddress: params.userAddress,
+    chainId: base.id
+  });
+
   try {
     // Validate parameters
     if (!validateCoinParams(params)) {
@@ -196,42 +205,32 @@ export async function createWritingCoin(
     const metadata = createCoinMetadata(params);
     
     // Upload metadata to IPFS
-    console.log("Uploading metadata to IPFS...");
+    console.log("📁 Uploading metadata to IPFS...");
     const metadataUri = await uploadMetadataToIPFS(metadata);
-    console.log("Metadata uploaded successfully:", metadataUri);
+    console.log("✅ Metadata uploaded:", metadataUri);
 
-    // Define coin parameters for Zora SDK
+    // Define coin parameters exactly as per Zora SDK docs
     const coinParams = {
       name,
       symbol,
       uri: metadataUri as `ipfs://${string}`,
       payoutRecipient: params.userAddress as Address,
-      // Optional: Add platform referrer if you want to earn fees
-      // platformReferrer: "0xYourPlatformAddress" as Address,
       chainId: base.id,
-      currency: DeployCurrency.ZORA, // Use ZORA tokens for deployment
+      currency: DeployCurrency.ZORA,
     };
 
-    console.log("Creating coin with params:", {
-      ...coinParams,
-      metadata: {
-        wordCount: params.wordCount,
-        streakDay: params.streakDay,
-        is111Legend: params.wordCount >= 111
-      }
-    });
+    console.log("🪙 Creating coin with Zora SDK params:", coinParams);
 
-    // Create the coin using Zora SDK
+    // Create the coin using Zora SDK - EXACT pattern from docs
     const result = await createCoin(coinParams, walletClient, publicClient, {
-      gasMultiplier: 120, // Add 20% buffer to gas
+      gasMultiplier: 120,
     });
     
-    console.log("Coin creation successful:", {
+    console.log("🎉 Coin creation successful:", {
       transactionHash: result.hash,
       coinAddress: result.address,
       symbol,
-      metadataUri,
-      deploymentDetails: result.deployment
+      metadataUri
     });
 
     return {
@@ -243,7 +242,17 @@ export async function createWritingCoin(
     };
 
   } catch (error) {
-    console.error("Coin creation failed:", error);
+    console.error("❌ Coin creation failed:", error);
+    
+    // Log more detailed error information
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    }
+    
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred"
@@ -271,7 +280,7 @@ export async function createWritingCoinFallback(params: CoinParams): Promise<Coi
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    console.log("Fallback coin creation (simulated):", {
+    console.log("🔄 Fallback coin creation (simulated):", {
       symbol,
       coinAddress,
       txHash,
