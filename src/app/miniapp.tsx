@@ -280,8 +280,11 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
                 height={40}
                 className="rounded-full border-2 border-black"
                 onError={(e) => {
-                  console.log("🖼️ Profile picture failed to load:", user.pfpUrl);
-                  (e.target as HTMLImageElement).src = "/icon.png";
+                  console.log("🖼️ Profile picture failed to load, using fallback");
+                  const img = e.target as HTMLImageElement;
+                  if (img.src !== "/icon.png") {
+                    img.src = "/icon.png";
+                  }
                 }}
               />
               <div>
@@ -309,20 +312,6 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
 
         {/* Quick Sign In Button */}
         <QuickSignInButton />
-
-        {/* Debug Panel - Remove after fixing wallet issues */}
-        <div className="bg-gray-200 border-2 border-black p-3 text-xs">
-          <div className="font-bold mb-2">🔧 Debug Info:</div>
-          <div>Authenticated: {isAuthenticated ? '✅' : '❌'}</div>
-          <div>Wallet Connected: {isConnected ? '✅' : '❌'}</div>
-          <div>Can Create Real Tx: {canCreateCoin ? '✅' : '❌'}</div>
-          <div>Connectors: {connectors.length}</div>
-          {connectors.length > 0 && (
-            <div className="mt-1">
-              Active: {connectors.find(c => c.id)?.name || 'None'}
-            </div>
-          )}
-        </div>
 
         {/* Add Mini App Prompt */}
         {showAddPrompt && actions?.addMiniApp && (

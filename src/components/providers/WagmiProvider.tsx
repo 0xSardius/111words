@@ -8,6 +8,25 @@ import { useEffect, useState } from "react";
 import { useConnect, useAccount } from "wagmi";
 import React from "react";
 
+// Custom hook for Farcaster Frame auto-connection
+function useFarcasterFrameAutoConnect() {
+  const { connect, connectors } = useConnect();
+  const { isConnected } = useAccount();
+
+  useEffect(() => {
+    // Auto-connect to Farcaster Frame if in MiniApp context and not already connected
+    if (!isConnected && typeof window !== 'undefined') {
+      const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
+      if (farcasterConnector) {
+        console.log("🔗 Auto-connecting to Farcaster Frame connector");
+        connect({ connector: farcasterConnector });
+      }
+    }
+  }, [isConnected, connect, connectors]);
+
+  return null;
+}
+
 // Custom hook for Coinbase Wallet detection and auto-connection
 function useCoinbaseWalletAutoConnect() {
   const [isCoinbaseWallet, setIsCoinbaseWallet] = useState(false);
@@ -33,8 +52,13 @@ function useCoinbaseWalletAutoConnect() {
 
   useEffect(() => {
     // Auto-connect if in Coinbase Wallet and not already connected
+    // Only if not in Farcaster MiniApp context
     if (isCoinbaseWallet && !isConnected) {
-      connect({ connector: connectors[1] }); // Coinbase Wallet connector
+      const coinbaseConnector = connectors.find(c => c.id === 'coinbaseWalletSDK');
+      if (coinbaseConnector) {
+        console.log("🔗 Auto-connecting to Coinbase Wallet");
+        connect({ connector: coinbaseConnector });
+      }
     }
   }, [isCoinbaseWallet, isConnected, connect, connectors]);
 
@@ -69,8 +93,9 @@ export const config = createConfig({
 
 const queryClient = new QueryClient();
 
-// Wrapper component that provides Coinbase Wallet auto-connection
-function CoinbaseWalletAutoConnect({ children }: { children: React.ReactNode }) {
+// Wrapper component that provides auto-connection
+function AutoConnect({ children }: { children: React.ReactNode }) {
+  useFarcasterFrameAutoConnect();
   useCoinbaseWalletAutoConnect();
   return <>{children}</>;
 }
@@ -79,9 +104,9 @@ export default function Provider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <CoinbaseWalletAutoConnect>
+        <AutoConnect>
           {children}
-        </CoinbaseWalletAutoConnect>
+        </AutoConnect>
       </QueryClientProvider>
     </WagmiProvider>
   );

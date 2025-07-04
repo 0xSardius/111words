@@ -354,4 +354,40 @@ export async function testIPFSUpload(): Promise<{ success: boolean; uri?: string
       error: error instanceof Error ? error.message : "Unknown error"
     };
   }
+}
+
+// Diagnostic function to help debug coin creation issues
+export async function diagnoseCoinCreation(): Promise<{
+  environment: {
+    zoraApiKey: boolean;
+    pinataJwt: boolean;
+  };
+  ipfsTest: {
+    success: boolean;
+    uri?: string;
+    error?: string;
+  };
+}> {
+  console.log("🔍 Starting coin creation diagnostics...");
+  
+  // Check environment variables
+  const hasZoraApiKey = !!process.env.ZORA_API_KEY;
+  const hasPinataJwt = !!process.env.PINATA_JWT;
+  
+  console.log("🔧 Environment check:", {
+    ZORA_API_KEY: hasZoraApiKey,
+    PINATA_JWT: hasPinataJwt
+  });
+  
+  // Test IPFS upload
+  const ipfsTest = await testIPFSUpload();
+  console.log("📁 IPFS test result:", ipfsTest);
+  
+  return {
+    environment: {
+      zoraApiKey: hasZoraApiKey,
+      pinataJwt: hasPinataJwt
+    },
+    ipfsTest
+  };
 } 
