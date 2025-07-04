@@ -1,12 +1,31 @@
 "use client"
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { testIPFSUpload, diagnoseCoinCreation } from '../../lib/coins'
+
+interface IPFSTestResult {
+  success: boolean;
+  uri?: string;
+  error?: string;
+}
+
+interface DiagnosticsResult {
+  environment: {
+    zoraApiKey: boolean;
+    pinataJwt: boolean;
+  };
+  ipfsTest: {
+    success: boolean;
+    uri?: string;
+    error?: string;
+  };
+}
 
 export default function TestIPFS() {
   const [isLoading, setIsLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
-  const [diagnostics, setDiagnostics] = useState<any>(null)
+  const [result, setResult] = useState<IPFSTestResult | null>(null)
+  const [diagnostics, setDiagnostics] = useState<DiagnosticsResult | null>(null)
 
   const handleTest = async () => {
     setIsLoading(true)
@@ -34,7 +53,11 @@ export default function TestIPFS() {
     } catch (error) {
       console.error('Diagnostics failed:', error)
       setDiagnostics({ 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        environment: { zoraApiKey: false, pinataJwt: false },
+        ipfsTest: { 
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        }
       })
     } finally {
       setIsLoading(false)
@@ -118,12 +141,12 @@ export default function TestIPFS() {
 
         {/* Back to App */}
         <div className="text-center">
-          <a
+          <Link
             href="/"
             className="bg-purple-500 text-white px-6 py-3 border-2 border-black font-bold inline-block hover:bg-purple-600"
           >
             ← Back to App
-          </a>
+          </Link>
         </div>
       </div>
     </div>
