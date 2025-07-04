@@ -72,14 +72,14 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
               🚀 Share to Farcaster
             </Button>
             <Button 
-              onClick={() => window.open(`/share/${coinDetails.address}`, '_blank')} 
+              onClick={() => window.open(`/coin/${coinDetails.address}`, '_blank')} 
               variant="outline" 
               className="w-full"
             >
               👀 View Coin Details
             </Button>
             <Button 
-              onClick={() => setCurrentStep('trade')} 
+              onClick={() => window.open(`/coin/${coinDetails.address}`, '_blank')} 
               variant="outline" 
               className="w-full bg-green-100"
             >

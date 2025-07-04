@@ -74,16 +74,30 @@ export function useCoinTrading() {
     setTradeError(null)
 
     try {
-      // TODO: Implement with actual tradeCoin function
       console.log("🔄 Trading coins for ETH:", { coinAddress, amountInEth, slippage })
       
-      // Simulate trading delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
+      // Real implementation with Zora SDK
+      const tradeParameters: TradeParameters = {
+        sell: { type: "erc20", address: coinAddress as Address },
+        buy: { type: "eth" },
+        amountIn: parseEther(amountInEth), // Amount of coins to sell
+        slippage,
+        sender: address,
+      }
+
+      const receipt = await tradeCoin({
+        tradeParameters,
+        walletClient,
+        account: { address, type: "json-rpc" },
+        publicClient,
+      })
+
+      console.log("✅ Sell trade successful:", receipt)
+
       return {
         success: true,
-        txHash: "0x456...",
-        amountReceived: amountInEth
+        txHash: receipt.transactionHash,
+        amountReceived: "Trade completed successfully"
       }
 
     } catch (error) {

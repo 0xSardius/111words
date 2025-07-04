@@ -34,19 +34,46 @@ export function useCoinCreation() {
       totalCoins,
     };
 
+    console.log("🔍 Wallet state check:", {
+      isConnected,
+      hasWalletClient: !!walletClient,
+      hasPublicClient: !!publicClient,
+      address: address?.slice(0, 8) + "...",
+    });
+
+    // Wait for wallet clients to be ready (common in Farcaster MiniApps)
+    if (isConnected && (!walletClient || !publicClient)) {
+      console.log("⏳ Connected but clients not ready, waiting...");
+      
+      // Wait up to 5 seconds for clients to become available
+      let attempts = 0;
+      const maxAttempts = 25; // 5 seconds with 200ms intervals
+      
+      while (attempts < maxAttempts && (!walletClient || !publicClient)) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        attempts++;
+        
+        // Log progress every second
+        if (attempts % 5 === 0) {
+          console.log(`⏳ Still waiting for clients... (${attempts * 200}ms)`);
+        }
+      }
+    }
+
     // Try real coin creation if wallet clients are available
     if (walletClient && publicClient && isConnected) {
       console.log("✅ Using real Zora Coins SDK for coin creation");
       try {
         return await createWritingCoin(params, walletClient as WalletClient, publicClient as PublicClient);
       } catch (error) {
-        console.warn("Real coin creation failed, falling back to mock:", error);
+        console.warn("❌ Real coin creation failed, falling back to mock:", error);
         // Fall back to mock if real creation fails
         return await createWritingCoinFallback(params);
       }
     } else {
-      // Use fallback for now - this keeps the UX smooth
-      console.log("⏳ Wallet clients not ready, using fallback (this is normal in MiniApps)");
+      // Use fallback - wallet clients still not ready after waiting
+      console.log("🔄 Wallet clients not ready after waiting, using fallback");
+      console.log("💡 Try reloading the page if you want real transactions");
       return await createWritingCoinFallback(params);
     }
   }, [address, walletClient, publicClient, isConnected]);

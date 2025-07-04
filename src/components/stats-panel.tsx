@@ -18,8 +18,8 @@ export function StatsPanel({ stats, userFid }: StatsPanelProps) {
 
   const handleCoinClick = (coinAddress: string | undefined) => {
     if (coinAddress) {
-      // Open the share page in a new tab to read the full writing
-      window.open(`/share/${coinAddress}`, '_blank')
+      // Open the coin detail page for trading and reading
+      window.open(`/coin/${coinAddress}`, '_blank')
     }
   }
 
@@ -134,7 +134,7 @@ export function StatsPanel({ stats, userFid }: StatsPanelProps) {
                       </div>
                       {coin.coinAddress && (
                         <div className="text-xs text-blue-600 font-bold mt-1">
-                          👆 Click to read full writing
+                          👆 Click to read & trade
                         </div>
                       )}
                     </div>
@@ -194,7 +194,7 @@ export function StatsPanel({ stats, userFid }: StatsPanelProps) {
                         </div>
                         {writing.coin_address && (
                           <div className="text-xs text-blue-600 font-bold mt-1">
-                            👆 Click to read full writing
+                            👆 Click to read & trade
                           </div>
                         )}
                       </div>
