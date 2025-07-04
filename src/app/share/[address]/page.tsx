@@ -30,6 +30,28 @@ interface WritingData {
   }
 }
 
+// Fetch metadata from IPFS
+async function fetchIPFSMetadata(ipfsUri: string) {
+  try {
+    // Convert IPFS URI to HTTP URL
+    const httpUrl = ipfsUri.replace('ipfs://', 'https://ipfs.io/ipfs/')
+    console.log("🔍 Fetching IPFS metadata from:", httpUrl)
+    
+    const response = await fetch(httpUrl)
+    if (!response.ok) {
+      throw new Error(`IPFS fetch failed: ${response.status}`)
+    }
+    
+    const metadata = await response.json()
+    console.log("📝 IPFS metadata fetched:", { hasContent: !!metadata.content, wordCount: metadata.content?.split(' ').length })
+    
+    return metadata
+  } catch (error) {
+    console.error("Failed to fetch IPFS metadata:", error)
+    return null
+  }
+}
+
 export default async function SharePage({ params }: { params: Promise<{ address: string }> }) {
   const { address } = await params
 
@@ -62,12 +84,36 @@ export default async function SharePage({ params }: { params: Promise<{ address:
         creatorAddress: coin.creatorAddress || "",
         createdAt: coin.createdAt || ""
       }
-    }
 
-    // Fetch writing data from database
-    console.log("🔍 Fetching writing data for address:", address)
-    writingData = await getWritingByCoinAddress(address)
-    console.log("📝 Writing data result:", writingData)
+      // Try to fetch writing data from database first
+      console.log("🔍 Fetching writing data for address:", address)
+      writingData = await getWritingByCoinAddress(address)
+      console.log("📝 Database writing data result:", writingData)
+
+      // If no writing data from database, try IPFS metadata
+      const metadataUri = (coin as any).uri || (coin as any).metadataUri || (coin as any).tokenURI
+      if (!writingData && metadataUri) {
+        console.log("🔍 No database data, trying IPFS metadata from:", metadataUri)
+        const metadata = await fetchIPFSMetadata(metadataUri)
+        
+        if (metadata && metadata.content) {
+          // Extract username from metadata attributes
+          const usernameAttr = metadata.attributes?.find((attr: any) => attr.trait_type === "Creator Username")
+          const wordCountAttr = metadata.attributes?.find((attr: any) => attr.trait_type === "Word Count")
+          
+          writingData = {
+            content: metadata.content,
+            word_count: wordCountAttr ? parseInt(wordCountAttr.value) : metadata.content.split(' ').length,
+            created_at: coin.createdAt || new Date().toISOString(),
+            user: {
+              username: usernameAttr?.value || "anonymous",
+              display_name: usernameAttr?.value || "Anonymous Writer"
+            }
+          }
+          console.log("✅ Successfully fetched writing from IPFS metadata")
+        }
+      }
+    }
 
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load coin data"

@@ -31,7 +31,11 @@ export default function MiniAppWithSuccess() {
   const handleShare = (details: CoinDetails) => {
     // Create enhanced share text with link to our custom share page
     const sharePageUrl = `${window.location.origin}/share/${details.address}`
-    const shareText = `Just minted "${details.symbol}" with ${details.wordCount} words! 💎\n\nDay ${details.dayNumber} of my writing streak on 111words 🔥\n\n📖 Read & Buy: ${sharePageUrl}`
+    const contentPreview = details.content.length > 100 
+      ? `${details.content.substring(0, 100)}...` 
+      : details.content
+    
+    const shareText = `Just minted "${details.symbol}" with ${details.wordCount} words! 💎\n\n"${contentPreview}"\n\nDay ${details.dayNumber} of my writing streak on 111words 🔥\n\n📖 Read full & Buy: ${sharePageUrl}`
 
     // Open Farcaster compose with the share text
     if (typeof window !== 'undefined') {

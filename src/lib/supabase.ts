@@ -150,6 +150,42 @@ export async function getUserWritings(fid: number, limit = 10): Promise<Writing[
   return data || []
 }
 
+export async function getAllUserWritings(fid: number, offset = 0, limit = 20): Promise<{
+  writings: Writing[]
+  hasMore: boolean
+  total: number
+}> {
+  // Get total count
+  const { count, error: countError } = await supabase
+    .from('writings')
+    .select('*', { count: 'exact', head: true })
+    .eq('fid', fid)
+
+  if (countError) {
+    console.error('Error counting user writings:', countError)
+    return { writings: [], hasMore: false, total: 0 }
+  }
+
+  // Get paginated writings
+  const { data, error } = await supabase
+    .from('writings')
+    .select('*')
+    .eq('fid', fid)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) {
+    console.error('Error fetching all user writings:', error)
+    return { writings: [], hasMore: false, total: count || 0 }
+  }
+
+  return {
+    writings: data || [],
+    hasMore: (offset + limit) < (count || 0),
+    total: count || 0
+  }
+}
+
 export async function checkUserWroteToday(fid: number): Promise<boolean> {
   const today = new Date().toISOString().split('T')[0]
   

@@ -128,20 +128,14 @@ function SharePageClient({
           <div className="space-y-3">
             <Button 
               onClick={() => {
-                // Try multiple Zora URL formats
-                const urls = [
-                  `https://zora.co/collect/base/${address}`,
-                  `https://zora.co/coins/${address}`,
-                  `https://zora.co/collect/base:${address}`,
-                  `https://zora.co/collect/8453:${address}`
-                ]
-                console.log("🔗 Trying Zora URLs:", urls)
-                // For now, try the first format
-                window.open(urls[0], '_blank')
+                // Primary Zora URL for coin trading
+                const zoraUrl = `https://zora.co/collect/base:${address}`
+                console.log("🔗 Opening Zora trading page:", zoraUrl)
+                window.open(zoraUrl, '_blank')
               }}
-              className="w-full bg-green-500"
+              className="w-full bg-green-500 text-white font-black text-lg py-3"
             >
-              💰 Buy on Zora
+              💰 Buy This Writing Coin
             </Button>
             <Button 
               onClick={() => {
