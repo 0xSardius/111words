@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useMiniApp } from "@neynar/react"
+import { useConnect } from "wagmi"
 import Image from "next/image"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
@@ -25,7 +26,8 @@ interface MiniAppProps {
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const { actions } = useMiniApp()
   const { isAuthenticated, user: authUser } = useQuickAuth()
-  const { createCoin } = useCoinCreation()
+  const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
+  const { connect, connectors } = useConnect()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -38,6 +40,20 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       actions.ready()
     }
   }, [isAuthenticated, actions])
+
+  // Auto-connect to Farcaster frame wallet when authenticated but not connected
+  useEffect(() => {
+    if (isAuthenticated && !isConnected && connectors.length > 0) {
+      console.log("🔗 Attempting to connect to Farcaster frame wallet...");
+      const farcasterConnector = connectors.find(c => c.name.toLowerCase().includes('farcaster') || c.id === 'farcasterFrame');
+      if (farcasterConnector) {
+        console.log("🎯 Found Farcaster connector, connecting...");
+        connect({ connector: farcasterConnector });
+      } else {
+        console.log("⚠️ No Farcaster connector found, available connectors:", connectors.map(c => ({ id: c.id, name: c.name })));
+      }
+    }
+  }, [isAuthenticated, isConnected, connect, connectors])
 
   const loadUserData = useCallback(async () => {
     if (!isAuthenticated || !authUser) {
@@ -259,6 +275,14 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
                 {isAuthenticated && (
                   <p className="text-xs text-green-600 font-bold">✅ Authenticated</p>
                 )}
+                {isConnected ? (
+                  <p className="text-xs text-blue-600 font-bold">🔗 Wallet Connected</p>
+                ) : (
+                  <p className="text-xs text-orange-600 font-bold">⚠️ Wallet Disconnected</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Real tx: {canCreateCoin ? '✅' : '❌'}
+                </p>
               </div>
             </div>
             <div className="bg-orange-300 border-2 border-black px-3 py-1">
@@ -304,7 +328,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         <WritingInterface onCreateCoin={handleCreateCoin} isCreating={isCreating} />
 
         {/* Stats Panel */}
-        <StatsPanel stats={stats} />
+        <StatsPanel stats={stats} userFid={user.fid} />
 
         {/* Footer */}
         <div className="bg-black text-white p-3 text-center border-4 border-black">
