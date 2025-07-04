@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import type { UserStats } from "../types"
 import { getAllUserWritings } from "../lib/supabase"
 import type { Writing } from "../lib/supabase"
@@ -23,7 +23,7 @@ export function StatsPanel({ stats, userFid }: StatsPanelProps) {
     }
   }
 
-  const loadAllWritings = async () => {
+  const loadAllWritings = useCallback(async () => {
     if (!userFid || isLoading) return
     
     setIsLoading(true)
@@ -36,14 +36,14 @@ export function StatsPanel({ stats, userFid }: StatsPanelProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [userFid, isLoading])
 
   // Load all writings when switching to "all" tab
   useEffect(() => {
     if (activeTab === 'all' && allWritings.length === 0) {
       loadAllWritings()
     }
-  }, [activeTab])
+  }, [activeTab, allWritings.length, loadAllWritings])
 
   return (
     <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">

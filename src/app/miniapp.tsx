@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useMiniApp } from "@neynar/react"
+import Image from "next/image"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { QuickSignInButton } from "../components/ui/QuickSignInButton"
@@ -223,10 +224,12 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     return (
       <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
         <div className="text-center">
-          <img 
+          <Image 
             src="/icon.png" 
             alt="111words" 
-            className="w-16 h-16 mx-auto mb-4 rounded-xl border-2 border-black"
+            width={64}
+            height={64}
+            className="mx-auto mb-4 rounded-xl border-2 border-black"
           />
           <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <h1 className="text-2xl font-black mb-2">111WORDS</h1>
@@ -243,10 +246,12 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src={user.pfpUrl || "/placeholder.svg"}
                 alt={user.displayName}
-                className="w-10 h-10 rounded-full border-2 border-black"
+                width={40}
+                height={40}
+                className="rounded-full border-2 border-black"
               />
               <div>
                 <h1 className="text-2xl font-black">111WORDS</h1>

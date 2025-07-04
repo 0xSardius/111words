@@ -91,15 +91,15 @@ export default async function SharePage({ params }: { params: Promise<{ address:
       console.log("📝 Database writing data result:", writingData)
 
       // If no writing data from database, try IPFS metadata
-      const metadataUri = (coin as any).uri || (coin as any).metadataUri || (coin as any).tokenURI
+      const metadataUri = (coin as Record<string, unknown>).uri || (coin as Record<string, unknown>).metadataUri || (coin as Record<string, unknown>).tokenURI
       if (!writingData && metadataUri) {
         console.log("🔍 No database data, trying IPFS metadata from:", metadataUri)
-        const metadata = await fetchIPFSMetadata(metadataUri)
+        const metadata = await fetchIPFSMetadata(metadataUri as string)
         
         if (metadata && metadata.content) {
           // Extract username from metadata attributes
-          const usernameAttr = metadata.attributes?.find((attr: any) => attr.trait_type === "Creator Username")
-          const wordCountAttr = metadata.attributes?.find((attr: any) => attr.trait_type === "Word Count")
+          const usernameAttr = metadata.attributes?.find((attr: { trait_type: string; value: string }) => attr.trait_type === "Creator Username")
+          const wordCountAttr = metadata.attributes?.find((attr: { trait_type: string; value: string }) => attr.trait_type === "Word Count")
           
           writingData = {
             content: metadata.content,

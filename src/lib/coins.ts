@@ -309,7 +309,7 @@ export async function getCoinTradingData() {
 export async function getCoinInfo(coinAddress: string) {
   try {
     // This would use the SDK's query functions
-    // For now, return basic info
+fi    // For now, return basic info with the provided address
     return {
       address: coinAddress,
       symbol: "DAY",
