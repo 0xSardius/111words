@@ -151,14 +151,13 @@ function SharePageClient({
             </Button>
             <Button 
               onClick={() => {
-                // Secondary link to Zora for those who want to trade externally
-                const zoraUrl = `https://zora.co/collect/base:${address}`
-                window.open(zoraUrl, '_blank')
+                // Link to our internal coin detail page with better trading experience
+                window.location.href = `/coin/${address}`
               }}
               variant="outline"
               className="w-full text-xs"
             >
-              🔗 View on Zora
+              📊 View Coin Details
             </Button>
           </div>
         </div>
