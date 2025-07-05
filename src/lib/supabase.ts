@@ -221,7 +221,7 @@ export async function getWritingByCoinAddress(coinAddress: string): Promise<{
   console.log('🔍 getWritingByCoinAddress called with:', { coinAddress, addressLength: coinAddress?.length })
   
   // First, let's check what coin addresses we have in the database
-  const { data: allWritings, error: allError } = await supabase
+  const { data: allWritings } = await supabase
     .from('writings')
     .select('coin_address, content, word_count, created_at')
     .order('created_at', { ascending: false })

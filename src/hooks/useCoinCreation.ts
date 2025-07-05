@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
-import { createWritingCoin, createWritingCoinFallback, CoinParams, CoinCreationResult } from '../lib/coins';
+import { createWritingCoin, CoinParams, CoinCreationResult } from '../lib/coins';
 import type { WalletClient, PublicClient } from 'viem';
 
 export function useCoinCreation() {
