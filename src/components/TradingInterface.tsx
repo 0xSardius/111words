@@ -18,7 +18,7 @@ export function TradingInterface({ coinAddress, coinSymbol, className = "" }: Tr
   const [tradeStatus, setTradeStatus] = useState<"idle" | "success" | "error">("idle")
   
   // Get wallet connection info
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   
   // Trading hooks
   const { buyCoins, sellCoins, isTrading, tradeError, canTrade } = useCoinTrading()

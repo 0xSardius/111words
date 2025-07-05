@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { getCoin } from "@zoralabs/coins-sdk"
 import { Button } from "../../../components/ui/Button"
 import { TradingInterface } from "../../../components/TradingInterface"
@@ -47,7 +47,7 @@ export function CoinDetailClient({
   const [error, setError] = useState(initialError)
 
   // Fetch coin data from Zora SDK
-  const fetchCoinData = async () => {
+  const fetchCoinData = useCallback(async () => {
     if (!address) return
     
     setIsLoading(true)
@@ -91,14 +91,14 @@ export function CoinDetailClient({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [address])
 
   // Fetch coin data on mount if we don't have it
   useEffect(() => {
     if (!coinData && !error) {
       fetchCoinData()
     }
-  }, [address, coinData, error])
+  }, [address, coinData, error, fetchCoinData])
   
   if (error || (!coinData && !isLoading)) {
     return (
