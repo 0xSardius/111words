@@ -56,6 +56,14 @@ export function CoinDetailClient({
     error: initialError
   })
 
+  // Additional debug for writing data
+  console.log("📝 Writing data details:", {
+    writingData: writingData,
+    hasContent: !!writingData?.content,
+    contentLength: writingData?.content?.length,
+    userInfo: writingData?.user
+  })
+
   // Fetch coin data from Zora SDK
   const fetchCoinData = useCallback(async () => {
     if (!address) return
@@ -181,7 +189,7 @@ export function CoinDetailClient({
         />
 
         {/* Writing Content - Now with proper expand/collapse */}
-        {writingData && (
+        {writingData ? (
           <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
             <div className="bg-blue-200 border-2 border-black p-3 mb-4">
               <h2 className="text-lg font-black">📝 The Writing</h2>
@@ -223,6 +231,21 @@ export function CoinDetailClient({
               )}
             </div>
           </div>
+        ) : (
+          <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
+            <div className="bg-red-200 border-2 border-black p-3 mb-4">
+              <h2 className="text-lg font-black">❓ Writing Not Found</h2>
+              <p className="text-xs">Unable to load the writing content for this coin</p>
+            </div>
+            <div className="text-sm text-gray-600">
+              This could happen if:
+              <ul className="list-disc list-inside mt-2">
+                <li>The writing wasn't properly saved to the database</li>
+                <li>There's a mismatch between the coin address and writing record</li>
+                <li>The database lookup failed</li>
+              </ul>
+            </div>
+          </div>
         )}
 
         {/* Market Data - Condensed */}
@@ -252,19 +275,11 @@ export function CoinDetailClient({
             <Button 
               onClick={() => {
                 const text = `Check out "${coinData?.name}" 💎\n\n${window.location.href}`
-                if (navigator.share) {
-                  navigator.share({
-                    title: `${coinData?.name} - 111words`,
-                    text: text,
-                    url: window.location.href
-                  })
-                } else {
-                  window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
-                }
+                window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
               }}
               className="w-full bg-purple-500 text-white font-black text-lg py-3"
             >
-              🚀 Share This Writing
+              🚀 Share on Farcaster
             </Button>
             <Button 
               onClick={() => window.location.href = "/"}
