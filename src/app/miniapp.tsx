@@ -25,21 +25,23 @@ interface MiniAppProps {
 
 export default function MiniApp({ onCoinCreated }: MiniAppProps) {
   const { actions } = useMiniApp()
-  const { isAuthenticated, user: authUser } = useQuickAuth()
+  const { isAuthenticated, user: authUser, isLoading: authLoading } = useQuickAuth()
   const { createCoin, isConnected, canCreateCoin } = useCoinCreation()
   const { connect, connectors } = useConnect()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isCreating, setIsCreating] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingUserData, setIsLoadingUserData] = useState(false)
+  const [userDataError, setUserDataError] = useState<string | null>(null)
   const [showAddPrompt, setShowAddPrompt] = useState(false)
 
-  // Signal ready when authenticated
+  // Signal ready only when app is fully loaded and ready to display
   useEffect(() => {
-    if (isAuthenticated && actions?.ready) {
+    if (isAuthenticated && user && stats && !isLoadingUserData && !authLoading && actions?.ready) {
+      console.log("🚀 App fully loaded - calling actions.ready() to hide splash screen")
       actions.ready()
     }
-  }, [isAuthenticated, actions])
+  }, [isAuthenticated, user, stats, isLoadingUserData, authLoading, actions])
 
   // Auto-connect to Farcaster frame wallet when authenticated but not connected
   useEffect(() => {
@@ -72,7 +74,8 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     }
 
     try {
-      setIsLoading(true)
+      setIsLoadingUserData(true)
+      setUserDataError(null)
       const currentFid = authUser.fid
       
       // Try to get existing user
@@ -123,8 +126,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       }
     } catch (error) {
       console.error("Failed to load user data:", error)
+      setUserDataError(error instanceof Error ? error.message : "Failed to load user data")
     } finally {
-      setIsLoading(false)
+      setIsLoadingUserData(false)
     }
   }, [isAuthenticated, authUser])
 
@@ -247,7 +251,9 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     }
   }
 
-  if (isLoading || !user || !stats) {
+  // Let Farcaster's splash screen handle initial loading
+  // Only show custom screens for specific error/retry scenarios
+  if (userDataError) {
     return (
       <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
         <div className="text-center">
@@ -258,12 +264,22 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
             height={64}
             className="mx-auto mb-4 rounded-xl border-2 border-black"
           />
-          <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <h1 className="text-2xl font-black mb-2">111WORDS</h1>
-          <p className="text-lg font-bold">Loading...</p>
+          <p className="text-lg font-bold text-red-600">{userDataError}</p>
+          <button 
+            onClick={loadUserData}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white border-2 border-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     )
+  }
+
+  // Don't render anything while loading - let Farcaster splash screen show
+  if (authLoading || isLoadingUserData || !isAuthenticated || !user || !stats) {
+    return null
   }
 
   return (
@@ -293,17 +309,7 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
               <div>
                 <h1 className="text-2xl font-black">111WORDS</h1>
                 <p className="text-sm font-bold text-gray-600">@{user.username}</p>
-                {isAuthenticated && (
-                  <p className="text-xs text-green-600 font-bold">✅ Authenticated</p>
-                )}
-                {isConnected ? (
-                  <p className="text-xs text-blue-600 font-bold">🔗 Wallet Connected</p>
-                ) : (
-                  <p className="text-xs text-orange-600 font-bold">⚠️ Wallet Disconnected</p>
-                )}
-                <p className="text-xs text-gray-500">
-                  Real tx: {canCreateCoin ? '✅' : '❌'}
-                </p>
+                <p className="text-xs text-gray-500">Daily writing • Mint coins</p>
               </div>
             </div>
             <div className="bg-orange-300 border-2 border-black px-3 py-1">
