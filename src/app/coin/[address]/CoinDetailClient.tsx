@@ -240,8 +240,8 @@ export function CoinDetailClient({
             <div className="text-sm text-gray-600">
               This could happen if:
               <ul className="list-disc list-inside mt-2">
-                <li>The writing wasn't properly saved to the database</li>
-                <li>There's a mismatch between the coin address and writing record</li>
+                <li>The writing wasn&apos;t properly saved to the database</li>
+                <li>There&apos;s a mismatch between the coin address and writing record</li>
                 <li>The database lookup failed</li>
               </ul>
             </div>
