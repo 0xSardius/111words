@@ -7,7 +7,7 @@ import { MiniAppProvider } from "@neynar/react";
 import { SafeFarcasterSolanaProvider } from "~/components/providers/SafeFarcasterSolanaProvider";
 
 const WagmiProvider = dynamic(
-  () => import("~/components/providers/WagmiProvider"),
+  () => import("~/components/providers/WagmiProvider").then(mod => ({ default: mod.AppWagmiProvider })),
   {
     ssr: false,
   }
