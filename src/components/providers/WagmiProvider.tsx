@@ -8,105 +8,136 @@ import { useEffect, useState } from "react";
 import { useConnect, useAccount } from "wagmi";
 import React from "react";
 
-// Custom hook for MiniApp auto-connection
-function useMiniAppAutoConnect() {
-  const { connect, connectors } = useConnect();
-  const { isConnected } = useAccount();
-
-  useEffect(() => {
-    // Auto-connect to MiniApp connector if in MiniApp context and not already connected
-    if (!isConnected && typeof window !== 'undefined') {
-      const miniAppConnector = connectors.find(c => c.id === 'farcasterMiniApp');
-      if (miniAppConnector) {
-        console.log("🔗 Auto-connecting to Farcaster MiniApp connector");
-        connect({ connector: miniAppConnector });
-      }
-    }
-  }, [isConnected, connect, connectors]);
-
-  return null;
+// Check if we're in a MiniApp context
+function isInMiniApp(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  // Check for MiniApp specific properties
+  const isMiniApp = (
+    // Check for Farcaster MiniApp user agent
+    navigator.userAgent.includes('Farcaster') ||
+    // Check for MiniApp specific window properties
+    (window as any).farcasterMiniApp ||
+    // Check for parent frame context
+    window.parent !== window ||
+    // Check for specific URL patterns
+    window.location.hostname.includes('miniapps.farcaster.xyz') ||
+    window.location.hostname.includes('farcaster.xyz')
+  );
+  
+  console.log("🔍 MiniApp detection:", {
+    userAgent: navigator.userAgent,
+    hasFrameContext: window.parent !== window,
+    hostname: window.location.hostname,
+    isMiniApp
+  });
+  
+  return isMiniApp;
 }
 
-// Custom hook for Coinbase Wallet detection and auto-connection
-function useCoinbaseWalletAutoConnect() {
-  const [isCoinbaseWallet, setIsCoinbaseWallet] = useState(false);
-  const { connect, connectors } = useConnect();
-  const { isConnected } = useAccount();
-
-  useEffect(() => {
-    // Check if we're running in Coinbase Wallet
-    const checkCoinbaseWallet = () => {
-      const isInCoinbaseWallet = window.ethereum?.isCoinbaseWallet || 
-        window.ethereum?.isCoinbaseWalletExtension ||
-        window.ethereum?.isCoinbaseWalletBrowser;
-      setIsCoinbaseWallet(!!isInCoinbaseWallet);
-    };
-    
-    checkCoinbaseWallet();
-    window.addEventListener('ethereum#initialized', checkCoinbaseWallet);
-    
-    return () => {
-      window.removeEventListener('ethereum#initialized', checkCoinbaseWallet);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Auto-connect if in Coinbase Wallet and not already connected
-    // Only if not in Farcaster MiniApp context
-    if (isCoinbaseWallet && !isConnected) {
-      const coinbaseConnector = connectors.find(c => c.id === 'coinbaseWalletSDK');
-      if (coinbaseConnector) {
-        console.log("🔗 Auto-connecting to Coinbase Wallet");
-        connect({ connector: coinbaseConnector });
-      }
-    }
-  }, [isCoinbaseWallet, isConnected, connect, connectors]);
-
-  return isCoinbaseWallet;
-}
-
-export const config = createConfig({
-  chains: [base, optimism, mainnet, degen, unichain, celo],
-  transports: {
-    [base.id]: http(),
-    [optimism.id]: http(),
-    [mainnet.id]: http(),
-    [degen.id]: http(),
-    [unichain.id]: http(),
-    [celo.id]: http(),
-  },
-  connectors: [
+// Create connectors based on environment
+const createConnectors = () => {
+  const connectors = [
+    // Always add MiniApp connector (it will auto-detect compatibility)
     farcasterMiniApp(),
+    // Add other connectors as fallbacks
     coinbaseWallet({
       appName: APP_NAME,
       appLogoUrl: APP_ICON_URL,
-      preference: 'all',
     }),
     metaMask({
       dappMetadata: {
         name: APP_NAME,
         url: APP_URL,
+        iconUrl: APP_ICON_URL,
       },
-    }),
-  ],
+    })
+  ];
+  
+  console.log("🔧 Created connectors:", connectors.length, "connectors");
+  return connectors;
+};
+
+// Create Wagmi config
+const config = createConfig({
+  chains: [base, mainnet, optimism, degen, unichain, celo],
+  connectors: createConnectors(),
+  transports: {
+    [base.id]: http(),
+    [mainnet.id]: http(),
+    [optimism.id]: http(),
+    [degen.id]: http(),
+    [unichain.id]: http(),
+    [celo.id]: http(),
+  },
+  ssr: true,
 });
 
-const queryClient = new QueryClient();
+// Custom hook for MiniApp auto-connection
+function useMiniAppAutoConnect() {
+  const { connect, connectors, isSuccess, isError, error } = useConnect();
+  const { isConnected, address } = useAccount();
 
-// Wrapper component that provides auto-connection
-function AutoConnect({ children }: { children: React.ReactNode }) {
-  useMiniAppAutoConnect();
-  useCoinbaseWalletAutoConnect();
-  return <>{children}</>;
+  useEffect(() => {
+    console.log("🔍 Auto-connect check:", {
+      isConnected,
+      hasWindow: typeof window !== 'undefined',
+      connectorsCount: connectors.length,
+      connectorIds: connectors.map(c => c.id),
+      isSuccess,
+      isError,
+      error: error?.message,
+      isInMiniApp: isInMiniApp()
+    });
+
+    // Auto-connect to MiniApp connector if in MiniApp context and not already connected
+    if (!isConnected && typeof window !== 'undefined' && connectors.length > 0) {
+      const miniAppConnector = connectors.find(c => c.id === 'farcasterMiniApp');
+      console.log("🔗 MiniApp connector found:", !!miniAppConnector, miniAppConnector?.name);
+      
+      if (miniAppConnector && isInMiniApp()) {
+        console.log("🎯 Auto-connecting to Farcaster MiniApp connector");
+        try {
+          connect({ connector: miniAppConnector });
+          console.log("✅ Auto-connection initiated");
+        } catch (err) {
+          console.error("❌ Auto-connection failed:", err);
+        }
+      } else {
+        console.log("⚠️ No MiniApp connector available or not in MiniApp context, available connectors:", 
+          connectors.map(c => ({ id: c.id, name: c.name, type: c.type }))
+        );
+      }
+    } else if (isConnected && address) {
+      console.log("✅ Already connected:", address.slice(0, 6) + "..." + address.slice(-4));
+    }
+  }, [isConnected, connect, connectors, isSuccess, isError, error, address]);
+
+  return null;
 }
 
-export default function Provider({ children }: { children: React.ReactNode }) {
+// Component to handle auto-connection
+function AutoConnectHandler() {
+  useMiniAppAutoConnect();
+  return null;
+}
+
+// React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute
+      retry: 1,
+    },
+  },
+});
+
+export function AppWagmiProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <AutoConnect>
-          {children}
-        </AutoConnect>
+        <AutoConnectHandler />
+        {children}
       </QueryClientProvider>
     </WagmiProvider>
   );
