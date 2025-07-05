@@ -142,3 +142,6 @@ export function AppWagmiProvider({ children }: { children: React.ReactNode }) {
     </WagmiProvider>
   );
 }
+
+// Export config for other components that need it
+export { config };
