@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useAccount } from "wagmi"
 import { useCoinTrading } from "../hooks/useCoinTrading"
 import { Button } from "./ui/Button"
 
