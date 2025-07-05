@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { getCoin } from "@zoralabs/coins-sdk"
 import { Button } from "../../../components/ui/Button"
 import { TradingInterface } from "../../../components/TradingInterface"
 
@@ -38,17 +40,93 @@ export function CoinDetailClient({
   initialWritingData, 
   initialError 
 }: CoinDetailClientProps) {
+  const [showFullContent, setShowFullContent] = useState(false)
+  const [coinData, setCoinData] = useState(initialCoinData)
+  const [writingData, setWritingData] = useState(initialWritingData)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(initialError)
+
+  // Fetch coin data from Zora SDK
+  const fetchCoinData = async () => {
+    if (!address) return
+    
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log("🔍 Fetching coin data for:", address)
+      const result = await getCoin({ address: address as `0x${string}` })
+      console.log("📊 Coin data result:", result)
+      
+      if (result && result.data && result.data.zora20Token) {
+        const coin = result.data.zora20Token
+        setCoinData({
+          name: coin.name || "Unknown",
+          symbol: coin.symbol || "UNKNOWN",
+          description: coin.description || "",
+          totalSupply: coin.totalSupply || "0",
+          marketCap: coin.marketCap || "0",
+          volume24h: coin.volume24h || "0",
+          uniqueHolders: coin.uniqueHolders || 0,
+          creatorAddress: coin.creatorAddress || "",
+          createdAt: coin.createdAt || ""
+        })
+        
+        // The actual writing content should be in the coin description
+        if (coin.description) {
+          setWritingData({
+            content: coin.description,
+            word_count: coin.description.split(' ').length,
+            created_at: coin.createdAt || "",
+            user: {
+              username: coin.creatorAddress || "",
+              display_name: coin.creatorAddress || ""
+            }
+          })
+        }
+      }
+    } catch (err) {
+      console.error("❌ Error fetching coin data:", err)
+      setError(`Failed to fetch coin data: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Fetch coin data on mount if we don't have it
+  useEffect(() => {
+    if (!coinData && !error) {
+      fetchCoinData()
+    }
+  }, [address, coinData, error])
   
-  if (initialError || !initialCoinData) {
+  if (error || (!coinData && !isLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 text-center max-w-md">
           <div className="text-6xl mb-4">😵</div>
           <h2 className="text-2xl font-black mb-2">Coin Not Found</h2>
-          <p className="text-sm text-gray-600 mb-4">{initialError || "This coin doesn't exist"}</p>
-          <Button onClick={() => window.location.href = "/"} className="w-full">
-            🏠 Go Home
-          </Button>
+          <p className="text-sm text-gray-600 mb-4">{error || "This coin doesn't exist"}</p>
+          <div className="space-y-2">
+            <Button onClick={fetchCoinData} className="w-full bg-blue-500 text-white">
+              🔄 Try Again
+            </Button>
+            <Button onClick={() => window.location.href = "/"} className="w-full">
+              🏠 Go Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
+        <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 text-center max-w-md">
+          <div className="text-6xl mb-4">🔄</div>
+          <h2 className="text-2xl font-black mb-2">Loading Coin...</h2>
+          <p className="text-sm text-gray-600">Fetching writing content</p>
         </div>
       </div>
     )
@@ -73,20 +151,20 @@ export function CoinDetailClient({
         {/* Header */}
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
           <div className="text-center mb-4">
-            <h1 className="text-3xl font-black mb-2">${initialCoinData.symbol}</h1>
+            <h1 className="text-3xl font-black mb-2">${coinData?.symbol}</h1>
             <div className="bg-yellow-200 border-2 border-black p-2 inline-block">
-              <span className="text-sm font-bold">💎 {initialCoinData.name}</span>
+              <span className="text-sm font-bold">💎 {coinData?.name}</span>
             </div>
           </div>
           
           {/* Quick stats */}
           <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="bg-gray-100 border-2 border-black p-2 text-center">
-              <div className="text-lg font-black">{initialCoinData.uniqueHolders}</div>
+              <div className="text-lg font-black">{coinData?.uniqueHolders || 0}</div>
               <div className="text-xs font-bold text-gray-600">HOLDERS</div>
             </div>
             <div className="bg-gray-100 border-2 border-black p-2 text-center">
-              <div className="text-lg font-black">{formatNumber(initialCoinData.totalSupply)}</div>
+              <div className="text-lg font-black">{formatNumber(coinData?.totalSupply || "0")}</div>
               <div className="text-xs font-bold text-gray-600">SUPPLY</div>
             </div>
           </div>
@@ -95,28 +173,28 @@ export function CoinDetailClient({
         {/* Trading Interface - Prominently displayed */}
         <TradingInterface 
           coinAddress={address}
-          coinSymbol={initialCoinData.symbol}
+          coinSymbol={coinData?.symbol || "UNKNOWN"}
         />
 
-        {/* Writing Content - Condensed */}
-        {initialWritingData && (
+        {/* Writing Content - Now with proper expand/collapse */}
+        {writingData && (
           <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
             <div className="bg-blue-200 border-2 border-black p-3 mb-4">
               <h2 className="text-lg font-black">📝 The Writing</h2>
               <p className="text-xs">
-                By {initialWritingData.user.display_name} • {initialWritingData.word_count} words
+                By {writingData.user.display_name} • {writingData.word_count} words
               </p>
             </div>
             
-            {/* Show preview with expand option */}
+            {/* Full content with expand/collapse */}
             <div className="text-sm leading-relaxed">
-              {initialWritingData.content.length > 300 ? (
+              {writingData.content.length > 300 && !showFullContent ? (
                 <div>
                   <div className="whitespace-pre-wrap">
-                    {initialWritingData.content.substring(0, 300)}...
+                    {writingData.content.substring(0, 300)}...
                   </div>
                   <Button 
-                    onClick={() => window.open(`/share/${address}`, '_blank')}
+                    onClick={() => setShowFullContent(true)}
                     variant="outline"
                     className="mt-3 text-xs"
                   >
@@ -124,8 +202,19 @@ export function CoinDetailClient({
                   </Button>
                 </div>
               ) : (
-                <div className="whitespace-pre-wrap">
-                  {initialWritingData.content}
+                <div>
+                  <div className="whitespace-pre-wrap">
+                    {writingData.content}
+                  </div>
+                  {writingData.content.length > 300 && (
+                    <Button 
+                      onClick={() => setShowFullContent(false)}
+                      variant="outline"
+                      className="mt-3 text-xs"
+                    >
+                      📖 Show Less
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -138,16 +227,16 @@ export function CoinDetailClient({
             <h2 className="text-lg font-black">📊 Market Data</h2>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            {initialCoinData.marketCap !== "0" && (
+            {coinData?.marketCap !== "0" && (
               <div className="bg-gray-100 border-2 border-black p-2">
                 <div className="text-xs font-bold text-gray-600">MARKET CAP</div>
-                <div className="text-sm font-black">{formatEth(initialCoinData.marketCap)} ETH</div>
+                <div className="text-sm font-black">{formatEth(coinData?.marketCap || "0")} ETH</div>
               </div>
             )}
-            {initialCoinData.volume24h !== "0" && (
+            {coinData?.volume24h !== "0" && (
               <div className="bg-gray-100 border-2 border-black p-2">
                 <div className="text-xs font-bold text-gray-600">24H VOLUME</div>
-                <div className="text-sm font-black">{formatEth(initialCoinData.volume24h)} ETH</div>
+                <div className="text-sm font-black">{formatEth(coinData?.volume24h || "0")} ETH</div>
               </div>
             )}
           </div>
@@ -157,20 +246,21 @@ export function CoinDetailClient({
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
           <div className="space-y-3">
             <Button 
-              onClick={() => window.open(`/share/${address}`, '_blank')}
-              className="w-full bg-blue-500 text-white font-black text-lg py-3"
-            >
-              📖 Read Full Writing
-            </Button>
-            <Button 
               onClick={() => {
-                const text = `Check out "${initialCoinData.name}" by ${initialWritingData?.user.display_name} 💎\n\n${window.location.href}`
-                window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
+                const text = `Check out "${coinData?.name}" 💎\n\n${window.location.href}`
+                if (navigator.share) {
+                  navigator.share({
+                    title: `${coinData?.name} - 111words`,
+                    text: text,
+                    url: window.location.href
+                  })
+                } else {
+                  window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
+                }
               }}
-              variant="outline"
-              className="w-full"
+              className="w-full bg-purple-500 text-white font-black text-lg py-3"
             >
-              🚀 Share on Farcaster
+              🚀 Share This Writing
             </Button>
             <Button 
               onClick={() => window.location.href = "/"}

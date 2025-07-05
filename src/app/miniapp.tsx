@@ -288,14 +288,25 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {user.pfpUrl && (
+              {user.pfpUrl ? (
                 <Image 
                   src={user.pfpUrl} 
                   alt="Profile" 
                   width={40}
                   height={40}
                   className="rounded-full border-2 border-black"
+                  onError={(e) => {
+                    console.log("Profile picture failed to load:", user.pfpUrl);
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                  unoptimized={true}
                 />
+              ) : (
+                <div className="w-10 h-10 bg-gray-300 rounded-full border-2 border-black flex items-center justify-center">
+                  <span className="text-lg font-black">
+                    {user.username?.charAt(0)?.toUpperCase() || '?'}
+                  </span>
+                </div>
               )}
               <div>
                 <h1 className="text-2xl font-black">111WORDS</h1>
