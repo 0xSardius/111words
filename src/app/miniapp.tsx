@@ -7,6 +7,7 @@ import Image from "next/image"
 import { WritingInterface } from "../components/writing-interface"
 import { StatsPanel } from "../components/stats-panel"
 import { QuickSignInButton } from "../components/ui/QuickSignInButton"
+
 import { validateCoinParams } from "../lib/coins"
 import { useCoinCreation } from "../hooks/useCoinCreation"
 import { useQuickAuth } from "../hooks/useQuickAuth"
@@ -287,23 +288,15 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Image
-                src={user.pfpUrl || "/icon.png"}
-                alt={user.displayName}
-                width={40}
-                height={40}
-                className="rounded-full border-2 border-black"
-                onError={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  // Prevent infinite loops by only setting fallback once
-                  if (!img.src.endsWith('/icon.png')) {
-                    img.src = "/icon.png";
-                  }
-                }}
-                onLoad={() => {
-                  // Successfully loaded - no action needed
-                }}
-              />
+              {user.pfpUrl && (
+                <Image 
+                  src={user.pfpUrl} 
+                  alt="Profile" 
+                  width={40}
+                  height={40}
+                  className="rounded-full border-2 border-black"
+                />
+              )}
               <div>
                 <h1 className="text-2xl font-black">111WORDS</h1>
                 <p className="text-sm font-bold text-gray-600">@{user.username}</p>
