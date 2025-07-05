@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 import { coinbaseWallet, metaMask } from 'wagmi/connectors';
 import { APP_NAME, APP_ICON_URL, APP_URL } from "~/lib/constants";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useConnect, useAccount } from "wagmi";
 import React from "react";
 
@@ -17,7 +17,7 @@ function isInMiniApp(): boolean {
     // Check for Farcaster MiniApp user agent
     navigator.userAgent.includes('Farcaster') ||
     // Check for MiniApp specific window properties
-    (window as any).farcasterMiniApp ||
+    typeof (window as Window & { farcasterMiniApp?: unknown }).farcasterMiniApp !== 'undefined' ||
     // Check for parent frame context
     window.parent !== window ||
     // Check for specific URL patterns
