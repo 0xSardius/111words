@@ -280,13 +280,14 @@ export async function createWritingCoinFallback(params: CoinParams): Promise<Coi
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    console.log("🔄 Fallback coin creation (simulated):", {
+    console.log("🔄 FALLBACK COIN CREATION (MOCK/TESTING ONLY):", {
       symbol,
       coinAddress,
       txHash,
       wordCount: params.wordCount,
       streakDay: params.streakDay,
-      totalCoins: params.totalCoins
+      totalCoins: params.totalCoins,
+      WARNING: "THIS IS A MOCK COIN - NOT REAL BLOCKCHAIN TRANSACTION"
     });
 
     return {

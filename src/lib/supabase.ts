@@ -218,13 +218,29 @@ export async function getWritingByCoinAddress(coinAddress: string): Promise<{
     display_name: string
   }
 } | null> {
+  console.log('🔍 getWritingByCoinAddress called with:', { coinAddress, addressLength: coinAddress?.length })
+  
+  // First, let's check what coin addresses we have in the database
+  const { data: allWritings, error: allError } = await supabase
+    .from('writings')
+    .select('coin_address, content, word_count, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  console.log('📝 Recent writings in database:', allWritings?.map(w => ({ 
+    coin_address: w.coin_address, 
+    hasContent: !!w.content,
+    contentLength: w.content?.length,
+    created_at: w.created_at
+  })))
+
   const { data, error } = await supabase
     .from('writings')
     .select(`
       content,
       word_count,
       created_at,
-      users!inner (
+      users (
         username,
         display_name
       )
@@ -232,16 +248,31 @@ export async function getWritingByCoinAddress(coinAddress: string): Promise<{
     .eq('coin_address', coinAddress)
     .single()
 
+  console.log('🔍 Query result:', { 
+    hasData: !!data, 
+    hasError: !!error, 
+    errorCode: error?.code,
+    errorMessage: error?.message 
+  })
+
   if (error) {
     console.error('Error fetching writing by coin address:', error)
     return null
   }
 
   if (!data || !data.users || !Array.isArray(data.users) || data.users.length === 0) {
+    console.log('❌ No data or users found for coin address:', coinAddress)
     return null
   }
 
   const user = data.users[0]
+
+  console.log('✅ Successfully found writing for coin address:', { 
+    coinAddress, 
+    hasContent: !!data.content,
+    contentLength: data.content?.length,
+    username: user.username 
+  })
 
   return {
     content: data.content,

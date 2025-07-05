@@ -63,18 +63,14 @@ export function useCoinCreation() {
     // Try real coin creation if wallet clients are available
     if (walletClient && publicClient && isConnected) {
       console.log("✅ Using real Zora Coins SDK for coin creation");
-      try {
-        return await createWritingCoin(params, walletClient as WalletClient, publicClient as PublicClient);
-      } catch (error) {
-        console.warn("❌ Real coin creation failed, falling back to mock:", error);
-        // Fall back to mock if real creation fails
-        return await createWritingCoinFallback(params);
-      }
+      return await createWritingCoin(params, walletClient as WalletClient, publicClient as PublicClient);
     } else {
-      // Use fallback - wallet clients still not ready after waiting
-      console.log("🔄 Wallet clients not ready after waiting, using fallback");
-      console.log("💡 Try reloading the page if you want real transactions");
-      return await createWritingCoinFallback(params);
+      // PRODUCTION MODE: Fail instead of creating mock coins
+      console.log("❌ Wallet clients not ready - failing instead of creating mock coins");
+      return {
+        success: false,
+        error: "Wallet not ready. Please try reloading the page or check your wallet connection."
+      };
     }
   }, [address, walletClient, publicClient, isConnected]);
 
