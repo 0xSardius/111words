@@ -134,9 +134,19 @@ function SharePageClient({
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
           <div className="space-y-3">
             <Button 
-              onClick={() => {
+              onClick={async () => {
                 const text = `Check out "${initialCoinData.name}" by ${initialWritingData?.user.display_name} 💎\n\n${window.location.href}`
-                window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
+                try {
+                  const { sdk } = await import('@farcaster/miniapp-sdk')
+                  await sdk.actions.composeCast({
+                    text: text,
+                    embeds: [window.location.href]
+                  })
+                } catch (error) {
+                  console.error('Error sharing via MiniApp SDK:', error)
+                  // Fallback for non-MiniApp contexts
+                  window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
+                }
               }}
               className="w-full bg-blue-500 text-white font-black text-lg py-3"
             >

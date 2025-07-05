@@ -234,53 +234,60 @@ export async function getWritingByCoinAddress(coinAddress: string): Promise<{
     created_at: w.created_at
   })))
 
-  const { data, error } = await supabase
+  // First get the writing
+  const { data: writingData, error: writingError } = await supabase
     .from('writings')
-    .select(`
-      content,
-      word_count,
-      created_at,
-      users (
-        username,
-        display_name
-      )
-    `)
+    .select('content, word_count, created_at, fid')
     .eq('coin_address', coinAddress)
     .single()
 
-  console.log('🔍 Query result:', { 
-    hasData: !!data, 
-    hasError: !!error, 
-    errorCode: error?.code,
-    errorMessage: error?.message 
+  console.log('🔍 Writing query result:', { 
+    hasData: !!writingData, 
+    hasError: !!writingError, 
+    errorCode: writingError?.code,
+    errorMessage: writingError?.message,
+    fid: writingData?.fid
   })
 
-  if (error) {
-    console.error('Error fetching writing by coin address:', error)
+  if (writingError || !writingData) {
+    console.error('Error fetching writing by coin address:', writingError)
     return null
   }
 
-  if (!data || !data.users || !Array.isArray(data.users) || data.users.length === 0) {
-    console.log('❌ No data or users found for coin address:', coinAddress)
+  // Then get the user data
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('username, display_name')
+    .eq('fid', writingData.fid)
+    .single()
+
+  console.log('🔍 User query result:', { 
+    hasData: !!userData, 
+    hasError: !!userError, 
+    errorCode: userError?.code,
+    errorMessage: userError?.message,
+    username: userData?.username
+  })
+
+  if (userError || !userData) {
+    console.error('Error fetching user by fid:', userError)
     return null
   }
-
-  const user = data.users[0]
 
   console.log('✅ Successfully found writing for coin address:', { 
     coinAddress, 
-    hasContent: !!data.content,
-    contentLength: data.content?.length,
-    username: user.username 
+    hasContent: !!writingData.content,
+    contentLength: writingData.content?.length,
+    username: userData.username 
   })
 
   return {
-    content: data.content,
-    word_count: data.word_count,
-    created_at: data.created_at,
+    content: writingData.content,
+    word_count: writingData.word_count,
+    created_at: writingData.created_at,
     user: {
-      username: user.username || '',
-      display_name: user.display_name || 'Anonymous Writer'
+      username: userData.username || '',
+      display_name: userData.display_name || 'Anonymous Writer'
     }
   }
 } 
