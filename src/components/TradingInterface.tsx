@@ -23,7 +23,7 @@ export function TradingInterface({ coinAddress, coinSymbol, className = "" }: Tr
   const handleTrade = async () => {
     if (!canTrade) {
       setTradeStatus("error")
-      setTradeMessage("Please connect your wallet first")
+      setTradeMessage("Wallet not ready for trading yet")
       return
     }
 
@@ -130,12 +130,12 @@ export function TradingInterface({ coinAddress, coinSymbol, className = "" }: Tr
         }
       </Button>
 
-      {/* Connection Status */}
-      {!isConnected && (
-        <div className="mt-3 p-2 bg-yellow-100 border-2 border-black text-xs">
-          <span className="font-bold">⚠️ Wallet not connected</span>
+      {/* Status - Only show if there's an issue */}
+      {!canTrade && !isTrading && (
+        <div className="mt-3 p-2 bg-blue-100 border-2 border-black text-xs">
+          <span className="font-bold">🔄 Getting ready...</span>
           <br />
-          Connect your wallet to start trading
+          Trading will be available shortly
         </div>
       )}
 

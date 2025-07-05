@@ -43,11 +43,10 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     }
   }, [isAuthenticated, user, stats, isLoadingUserData, authLoading, actions])
 
-  // Auto-connect to Farcaster frame wallet when authenticated but not connected
+  // Auto-connect to Farcaster frame wallet when authenticated
   useEffect(() => {
-    if (isAuthenticated && !isConnected && connectors.length > 0) {
-      console.log("🔗 Attempting to connect to Farcaster frame wallet...");
-      console.log("🔍 Available connectors:", connectors.map(c => ({ id: c.id, name: c.name, type: c.type })));
+    if (isAuthenticated && connectors.length > 0) {
+      console.log("🔗 MiniApp authenticated - ensuring wallet connection...");
       
       const farcasterConnector = connectors.find(c => 
         c.name.toLowerCase().includes('farcaster') || 
@@ -55,15 +54,14 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
         c.type === 'farcasterFrame'
       );
       
-      if (farcasterConnector) {
-        console.log("🎯 Found Farcaster connector:", { id: farcasterConnector.id, name: farcasterConnector.name, type: farcasterConnector.type });
+      if (farcasterConnector && !isConnected) {
+        console.log("🎯 Connecting to Farcaster frame wallet:", farcasterConnector.name);
         connect({ connector: farcasterConnector });
-      } else {
-        console.log("⚠️ No Farcaster connector found. Trying first connector...");
-        if (connectors[0]) {
-          console.log("🔄 Connecting to first available connector:", connectors[0].name);
-          connect({ connector: connectors[0] });
-        }
+      } else if (!farcasterConnector && !isConnected && connectors[0]) {
+        console.log("🔄 No Farcaster connector found, using first available:", connectors[0].name);
+        connect({ connector: connectors[0] });
+      } else if (isConnected) {
+        console.log("✅ Wallet already connected in MiniApp context");
       }
     }
   }, [isAuthenticated, isConnected, connect, connectors])

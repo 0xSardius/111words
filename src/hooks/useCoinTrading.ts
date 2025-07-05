@@ -22,8 +22,26 @@ export function useCoinTrading() {
   const publicClient = usePublicClient()
 
   const buyCoins = async ({ coinAddress, amountInEth, slippage = 0.05 }: TradeParams) => {
-    if (!address || !walletClient || !publicClient) {
-      throw new Error("Wallet not connected")
+    if (!address) {
+      throw new Error("No wallet address available")
+    }
+
+    // Wait for wallet clients to be ready (common in Farcaster MiniApps)
+    if (!walletClient || !publicClient) {
+      console.log("⏳ Waiting for wallet clients to be ready for trading...");
+      
+      // Wait up to 3 seconds for clients to become available
+      let attempts = 0;
+      const maxAttempts = 15; // 3 seconds with 200ms intervals
+      
+      while (attempts < maxAttempts && (!walletClient || !publicClient)) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        attempts++;
+      }
+
+      if (!walletClient || !publicClient) {
+        throw new Error("Trading not available - wallet clients not ready")
+      }
     }
 
     setIsTrading(true)
@@ -66,8 +84,26 @@ export function useCoinTrading() {
   }
 
   const sellCoins = async ({ coinAddress, amountInEth, slippage = 0.15 }: TradeParams) => {
-    if (!address || !walletClient || !publicClient) {
-      throw new Error("Wallet not connected")
+    if (!address) {
+      throw new Error("No wallet address available")
+    }
+
+    // Wait for wallet clients to be ready (common in Farcaster MiniApps)
+    if (!walletClient || !publicClient) {
+      console.log("⏳ Waiting for wallet clients to be ready for trading...");
+      
+      // Wait up to 3 seconds for clients to become available
+      let attempts = 0;
+      const maxAttempts = 15; // 3 seconds with 200ms intervals
+      
+      while (attempts < maxAttempts && (!walletClient || !publicClient)) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        attempts++;
+      }
+
+      if (!walletClient || !publicClient) {
+        throw new Error("Trading not available - wallet clients not ready")
+      }
     }
 
     setIsTrading(true)
@@ -114,6 +150,6 @@ export function useCoinTrading() {
     sellCoins,
     isTrading,
     tradeError,
-    canTrade: !!address && !!walletClient
+    canTrade: !!address // Can attempt trade if we have an address, clients will be waited for
   }
 } 
