@@ -17,7 +17,7 @@ export function TradingInterface({ coinAddress, coinSymbol, className = "" }: Tr
   const [tradeMessage, setTradeMessage] = useState("")
   const [tradeStatus, setTradeStatus] = useState<"idle" | "success" | "error">("idle")
   
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const { buyCoins, sellCoins, isTrading, tradeError, canTrade } = useCoinTrading()
 
   const handleTrade = async () => {
