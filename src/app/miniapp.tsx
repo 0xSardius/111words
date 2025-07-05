@@ -51,8 +51,8 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
       
       const farcasterConnector = connectors.find(c => 
         c.name.toLowerCase().includes('farcaster') || 
-        c.id === 'farcasterFrame' || 
-        c.type === 'farcasterFrame'
+        c.id === 'farcasterMiniApp' || 
+        c.type === 'farcasterMiniApp'
       );
       
       if (farcasterConnector && !isConnected) {

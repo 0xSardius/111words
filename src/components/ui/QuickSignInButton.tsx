@@ -25,8 +25,8 @@ export function QuickSignInButton() {
       const autoConnectWallet = async () => {
         setIsConnecting(true)
         try {
-          // Try Farcaster Frame connector first
-          const farcasterConnector = connectors.find(c => c.name.includes('Farcaster') || c.name.includes('Frame'))
+          // Try Farcaster MiniApp connector first
+          const farcasterConnector = connectors.find(c => c.name.includes('Farcaster') || c.id === 'farcasterMiniApp')
           const targetConnector = farcasterConnector || connectors[0]
           
           if (targetConnector?.ready) {

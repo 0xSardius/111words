@@ -1,25 +1,25 @@
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { base, degen, mainnet, optimism, unichain, celo } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 import { coinbaseWallet, metaMask } from 'wagmi/connectors';
 import { APP_NAME, APP_ICON_URL, APP_URL } from "~/lib/constants";
 import { useEffect, useState } from "react";
 import { useConnect, useAccount } from "wagmi";
 import React from "react";
 
-// Custom hook for Farcaster Frame auto-connection
-function useFarcasterFrameAutoConnect() {
+// Custom hook for MiniApp auto-connection
+function useMiniAppAutoConnect() {
   const { connect, connectors } = useConnect();
   const { isConnected } = useAccount();
 
   useEffect(() => {
-    // Auto-connect to Farcaster Frame if in MiniApp context and not already connected
+    // Auto-connect to MiniApp connector if in MiniApp context and not already connected
     if (!isConnected && typeof window !== 'undefined') {
-      const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
-      if (farcasterConnector) {
-        console.log("🔗 Auto-connecting to Farcaster Frame connector");
-        connect({ connector: farcasterConnector });
+      const miniAppConnector = connectors.find(c => c.id === 'farcasterMiniApp');
+      if (miniAppConnector) {
+        console.log("🔗 Auto-connecting to Farcaster MiniApp connector");
+        connect({ connector: miniAppConnector });
       }
     }
   }, [isConnected, connect, connectors]);
@@ -76,7 +76,7 @@ export const config = createConfig({
     [celo.id]: http(),
   },
   connectors: [
-    farcasterFrame(),
+    farcasterMiniApp(),
     coinbaseWallet({
       appName: APP_NAME,
       appLogoUrl: APP_ICON_URL,
@@ -95,7 +95,7 @@ const queryClient = new QueryClient();
 
 // Wrapper component that provides auto-connection
 function AutoConnect({ children }: { children: React.ReactNode }) {
-  useFarcasterFrameAutoConnect();
+  useMiniAppAutoConnect();
   useCoinbaseWalletAutoConnect();
   return <>{children}</>;
 }

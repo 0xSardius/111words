@@ -32,7 +32,7 @@ interface CoinDetailClientProps {
   initialError: string | null
 }
 
-export default function CoinDetailClient({ 
+export function CoinDetailClient({ 
   address, 
   initialCoinData, 
   initialWritingData, 
@@ -186,3 +186,5 @@ export default function CoinDetailClient({
     </div>
   )
 } 
+
+export default CoinDetailClient
