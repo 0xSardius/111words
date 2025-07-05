@@ -42,6 +42,7 @@ export function CoinDetailClient({
 }: CoinDetailClientProps) {
   const [showFullContent, setShowFullContent] = useState(false)
   const [coinData, setCoinData] = useState(initialCoinData)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [writingData, setWritingData] = useState(initialWritingData)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(initialError)
