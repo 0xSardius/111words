@@ -46,6 +46,15 @@ export function CoinDetailClient({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(initialError)
 
+  // Debug logging to see what data we're getting
+  console.log("🔍 CoinDetailClient initialized with:", {
+    address,
+    hasCoinData: !!initialCoinData,
+    hasWritingData: !!initialWritingData,
+    writingContent: initialWritingData?.content?.substring(0, 100) + "...",
+    error: initialError
+  })
+
   // Fetch coin data from Zora SDK
   const fetchCoinData = useCallback(async () => {
     if (!address) return
@@ -72,18 +81,9 @@ export function CoinDetailClient({
           createdAt: coin.createdAt || ""
         })
         
-        // The actual writing content should be in the coin description
-        if (coin.description) {
-          setWritingData({
-            content: coin.description,
-            word_count: coin.description.split(' ').length,
-            created_at: coin.createdAt || "",
-            user: {
-              username: coin.creatorAddress || "",
-              display_name: coin.creatorAddress || ""
-            }
-          })
-        }
+        // DON'T override writing data - keep the data from database
+        // Writing content comes from Supabase, not from Zora SDK
+        console.log("✅ Using writing data from database, not overriding with Zora data")
       }
     } catch (err) {
       console.error("❌ Error fetching coin data:", err)
@@ -96,7 +96,10 @@ export function CoinDetailClient({
   // Fetch coin data on mount if we don't have it
   useEffect(() => {
     if (!coinData && !error) {
+      console.log("🔄 No initial coin data, fetching from Zora SDK")
       fetchCoinData()
+    } else {
+      console.log("✅ Using initial coin data from server")
     }
   }, [address, coinData, error, fetchCoinData])
   

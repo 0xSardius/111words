@@ -65,7 +65,20 @@ export default async function CoinDetailPage({ params }: { params: Promise<{ add
 
       // Fetch writing data from database
       console.log("🔍 Fetching writing data for address:", address)
-      writingData = await getWritingByCoinAddress(address)
+      const dbWritingData = await getWritingByCoinAddress(address)
+      console.log("📝 Database writing result:", {
+        found: !!dbWritingData,
+        contentLength: dbWritingData?.content?.length || 0,
+        wordCount: dbWritingData?.word_count,
+        username: dbWritingData?.user?.username
+      })
+      
+      if (dbWritingData) {
+        writingData = dbWritingData
+        console.log("✅ Successfully fetched writing data from database")
+      } else {
+        console.log("⚠️ No writing data found in database for address:", address)
+      }
     }
 
   } catch (err) {
