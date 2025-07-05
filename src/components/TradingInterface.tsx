@@ -17,7 +17,7 @@ export function TradingInterface({ coinAddress, coinSymbol, className = "" }: Tr
   const [tradeMessage, setTradeMessage] = useState("")
   const [tradeStatus, setTradeStatus] = useState<"idle" | "success" | "error">("idle")
   
-  const { isConnected } = useAccount()
+  // Wallet connection handled automatically in MiniApp context
   const { buyCoins, sellCoins, isTrading, tradeError, canTrade } = useCoinTrading()
 
   const handleTrade = async () => {
