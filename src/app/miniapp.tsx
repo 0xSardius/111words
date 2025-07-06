@@ -44,6 +44,26 @@ export default function MiniApp({ onCoinCreated }: MiniAppProps) {
     }
   }, [isAuthenticated, user, stats, isLoadingUserData, authLoading, actions])
 
+  // Prompt user to add app to their collection when first opening
+  useEffect(() => {
+    let hasPrompted = false;
+    
+    if (isAuthenticated && user && !hasPrompted && actions?.addMiniApp) {
+      hasPrompted = true;
+      console.log("📱 Prompting user to add 111words to their apps collection");
+      
+      // Add slight delay to ensure app is fully loaded
+      setTimeout(async () => {
+        try {
+          await actions.addMiniApp();
+          console.log("✅ Successfully prompted user to add app");
+        } catch (error) {
+          console.log("ℹ️ User may have declined or already has the app:", error);
+        }
+      }, 2000);
+    }
+  }, [isAuthenticated, user, actions])
+
   // Auto-connect to Farcaster frame wallet when authenticated
   useEffect(() => {
     if (isAuthenticated && connectors.length > 0) {
