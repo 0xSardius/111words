@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { getCoin, setApiKey } from "@zoralabs/coins-sdk"
+import { setApiKey } from "@zoralabs/coins-sdk"
 import { TradingInterface } from "../../../components/TradingInterface"
 import { Button } from "../../../components/ui/Button"
 import { ShareButton } from "../../../components/ui/Share"
