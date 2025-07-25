@@ -16,10 +16,9 @@ interface CoinDetails {
 interface SuccessFlowProps {
   coinDetails: CoinDetails
   onComplete: () => void
-  onShare: (details: CoinDetails) => void
 }
 
-export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowProps) {
+export function SuccessFlow({ coinDetails, onComplete }: SuccessFlowProps) {
   const [currentStep, setCurrentStep] = useState<'minting' | 'success' | 'share' | 'trade'>('minting')
   const [tradeAmount, setTradeAmount] = useState("0.001")
   const { buyCoins, isTrading, canTrade } = useCoinTrading()

@@ -28,12 +28,6 @@ export default function MiniAppWithSuccess() {
     // Could redirect back to main app or reset state
   }
 
-  const handleShare = (details: CoinDetails) => {
-    // This function is now handled by the ShareButton component in SuccessFlow
-    // No need to implement sharing logic here - it's handled by the MiniApp SDK
-    console.log("Sharing initiated for:", details.symbol)
-  }
-
   console.log("🔍 Render state:", { showSuccess, coinDetails })
 
   if (showSuccess && coinDetails) {
@@ -42,7 +36,6 @@ export default function MiniAppWithSuccess() {
       <SuccessFlow
         coinDetails={coinDetails}
         onComplete={handleSuccessComplete}
-        onShare={handleShare}
       />
     )
   }

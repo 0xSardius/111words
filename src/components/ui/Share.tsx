@@ -109,7 +109,7 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
     } finally {
       setIsProcessing(false);
     }
-  }, [cast, bestFriends, context?.user?.fid, actions]);
+  }, [cast, bestFriends, context?.user?.fid, actions, onSuccess]);
 
   return (
     <Button

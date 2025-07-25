@@ -26,21 +26,21 @@ export async function GET(
     })
 
     let coinSymbol = "UNKNOWN"
-    let coinName = "Writing Coin"
-    let writingContent = "Discover this writing coin on 111words"
-    let authorName = "Anonymous"
+    let writingContent = "Writing coin on 111words"
+    let writerName = "Anonymous Writer"
     let wordCount = 0
 
     if (coinResponse.data?.zora20Token) {
       const coin = coinResponse.data.zora20Token
-      coinSymbol = coin.symbol
-      coinName = coin.name
+      coinSymbol = coin.symbol || "UNKNOWN"
 
-      // Try to get writing content
+      // Try to get writing data
       const writingData = await getWritingByCoinAddress(address)
       if (writingData) {
-        writingContent = writingData.content.substring(0, 150) + (writingData.content.length > 150 ? '...' : '')
-        authorName = writingData.user.display_name
+        writingContent = writingData.content.length > 100 
+          ? `${writingData.content.substring(0, 100)}...`
+          : writingData.content
+        writerName = writingData.user.display_name
         wordCount = writingData.word_count
       }
     }
@@ -49,101 +49,90 @@ export async function GET(
       (
         <div
           style={{
+            width: '1200px',
+            height: '800px',
             display: 'flex',
-            height: '100%',
-            width: '100%',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            backgroundImage: 'linear-gradient(45deg, #c084fc, #f472b6, #fbbf24)',
-            fontSize: 32,
-            fontWeight: 600,
+            background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #eab308 100%)',
+            padding: '40px',
           }}
         >
-          {/* Header */}
           <div
             style={{
+              width: '100%',
+              height: '100%',
+              background: 'white',
+              border: '8px solid black',
+              boxShadow: '12px 12px 0px 0px rgba(0,0,0,1)',
+              padding: '60px',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              backgroundColor: 'white',
-              border: '4px solid black',
-              borderRadius: '8px',
-              padding: '20px',
-              margin: '20px',
-              boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
-              width: '90%',
-              maxWidth: '700px',
+              justifyContent: 'space-between',
             }}
           >
-            {/* Coin Symbol */}
-            <div
-              style={{
-                fontSize: '48px',
-                fontWeight: 900,
-                color: 'black',
-                marginBottom: '10px',
-              }}
-            >
-              ${coinSymbol}
-            </div>
-
-            {/* Author & Word Count */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: '#fbbf24',
-                border: '2px solid black',
-                borderRadius: '4px',
-                padding: '8px 16px',
-                marginBottom: '20px',
-              }}
-            >
-              <span style={{ fontSize: '16px', fontWeight: 700, color: 'black' }}>
-                By {authorName} • {wordCount} words
-              </span>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  background: '#fbbf24',
+                  border: '6px solid black',
+                  padding: '20px 40px',
+                  transform: 'rotate(-2deg)',
+                }}
+              >
+                <h1 style={{ fontSize: '72px', fontWeight: 900, margin: 0, color: 'black' }}>
+                  ${coinSymbol}
+                </h1>
+              </div>
             </div>
 
             {/* Writing Preview */}
             <div
               style={{
-                fontSize: '18px',
-                lineHeight: '1.4',
-                color: '#374151',
-                textAlign: 'center',
-                marginBottom: '20px',
-                fontStyle: 'italic',
+                background: '#f3f4f6',
+                border: '4px solid black',
+                padding: '40px',
+                margin: '40px 0',
               }}
             >
-              "{writingContent}"
+              <div
+                style={{
+                  background: '#dbeafe',
+                  border: '3px solid black',
+                  padding: '20px',
+                  marginBottom: '20px',
+                }}
+              >
+                <p style={{ fontSize: '24px', fontWeight: 700, margin: 0, color: 'black' }}>
+                  📝 By {writerName} • {wordCount} words
+                </p>
+              </div>
+              <p style={{ fontSize: '32px', lineHeight: 1.4, margin: 0, color: 'black' }}>
+                &ldquo;{writingContent}&rdquo;
+              </p>
             </div>
 
-            {/* 111words Branding */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-            >
-              <span
+            {/* Footer */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ fontSize: '48px', fontWeight: 900, margin: 0, color: 'black' }}>
+                  111WORDS
+                </h2>
+                <p style={{ fontSize: '24px', fontWeight: 700, margin: 0, color: '#6b7280' }}>
+                  Daily Writing → Tradeable Coins
+                </p>
+              </div>
+              <div
                 style={{
-                  fontSize: '24px',
-                  fontWeight: 900,
-                  color: 'black',
+                  background: '#10b981',
+                  border: '4px solid black',
+                  padding: '20px',
+                  transform: 'rotate(2deg)',
                 }}
               >
-                111WORDS
-              </span>
-              <span
-                style={{
-                  fontSize: '16px',
-                  color: '#6b7280',
-                }}
-              >
-                Daily writing as ERC-20 coins
-              </span>
+                <p style={{ fontSize: '32px', fontWeight: 900, margin: 0, color: 'white' }}>
+                  💎 TRADE NOW
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -153,43 +142,37 @@ export async function GET(
         height: 800,
       }
     )
+
   } catch (error) {
-    console.error('Error generating OG image:', error)
+    console.error("Error generating OG image:", error)
     
     // Fallback image
     return new ImageResponse(
       (
         <div
           style={{
+            width: '1200px',
+            height: '800px',
             display: 'flex',
-            height: '100%',
-            width: '100%',
+            background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
             alignItems: 'center',
             justifyContent: 'center',
-            flexDirection: 'column',
-            backgroundImage: 'linear-gradient(45deg, #c084fc, #f472b6, #fbbf24)',
-            fontSize: 32,
-            fontWeight: 600,
           }}
         >
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              backgroundColor: 'white',
-              border: '4px solid black',
-              borderRadius: '8px',
-              padding: '40px',
-              boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
+              background: 'white',
+              border: '8px solid black',
+              padding: '60px',
+              textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '64px', fontWeight: 900, marginBottom: '20px' }}>
+            <h1 style={{ fontSize: '72px', fontWeight: 900, margin: 0, color: 'black' }}>
               111WORDS
-            </div>
-            <div style={{ fontSize: '24px', color: '#6b7280' }}>
-              Daily writing as ERC-20 coins
-            </div>
+            </h1>
+            <p style={{ fontSize: '32px', margin: '20px 0', color: 'black' }}>
+              Writing Coin Discovery
+            </p>
           </div>
         </div>
       ),

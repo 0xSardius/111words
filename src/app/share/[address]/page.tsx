@@ -31,8 +31,13 @@ interface WritingData {
   }
 }
 
+interface IPFSMetadata {
+  content: string
+  attributes?: Array<{ trait_type: string; value: string }>
+}
+
 // Fetch metadata from IPFS
-async function fetchIPFSMetadata(ipfsUri: string) {
+async function fetchIPFSMetadata(ipfsUri: string): Promise<IPFSMetadata | null> {
   try {
     // Convert IPFS URI to HTTP URL
     const httpUrl = ipfsUri.replace('ipfs://', 'https://ipfs.io/ipfs/')
@@ -43,9 +48,8 @@ async function fetchIPFSMetadata(ipfsUri: string) {
       throw new Error(`IPFS fetch failed: ${response.status}`)
     }
     
-    const metadata = await response.json()
-    console.log("📝 IPFS metadata fetched:", { hasContent: !!metadata.content, wordCount: metadata.content?.split(' ').length })
-    
+    const metadata = await response.json() as IPFSMetadata
+    console.log("✅ Successfully fetched IPFS metadata")
     return metadata
   } catch (error) {
     console.error("Failed to fetch IPFS metadata:", error)
@@ -68,8 +72,8 @@ export async function generateMetadata({ params }: { params: Promise<{ address: 
       chain: 8453 // Base
     })
 
-    let coinData: any = null
-    let writingData: any = null
+    let coinData: CoinData | null = null
+    let writingData: WritingData | null = null
 
     if (coinResponse.data?.zora20Token) {
       const coin = coinResponse.data.zora20Token
@@ -77,6 +81,12 @@ export async function generateMetadata({ params }: { params: Promise<{ address: 
         name: coin.name,
         symbol: coin.symbol,
         description: coin.description || "",
+        totalSupply: coin.totalSupply,
+        marketCap: coin.marketCap || "0",
+        volume24h: coin.volume24h || "0",
+        uniqueHolders: coin.uniqueHolders || 0,
+        creatorAddress: coin.creatorAddress || "",
+        createdAt: coin.createdAt || ""
       }
 
       // Try to get writing data
@@ -92,6 +102,7 @@ export async function generateMetadata({ params }: { params: Promise<{ address: 
             writingData = {
               content: metadata.content,
               word_count: metadata.content.split(' ').length,
+              created_at: coin.createdAt || new Date().toISOString(),
               user: {
                 username: usernameAttr?.value || "anonymous",
                 display_name: usernameAttr?.value || "Anonymous Writer"
@@ -156,8 +167,8 @@ export async function generateMetadata({ params }: { params: Promise<{ address: 
     }
 
     return {
-      title: "111words - Daily Writing as Coins",
-      description: "Transform your daily writing into tradeable ERC-20 coins on Base",
+      title: "111words",
+      description: "Daily writing as tradeable coins",
       other: {
         "fc:frame": JSON.stringify(fallbackFrame)
       }
