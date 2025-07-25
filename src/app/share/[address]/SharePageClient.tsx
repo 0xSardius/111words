@@ -1,7 +1,15 @@
 "use client"
 
-import { Button } from "../../../components/ui/Button"
+import { useState, useEffect } from "react"
+import { getCoin, setApiKey } from "@zoralabs/coins-sdk"
 import { TradingInterface } from "../../../components/TradingInterface"
+import { Button } from "../../../components/ui/Button"
+import { ShareButton } from "../../../components/ui/Share"
+
+// Set up Zora API key
+if (process.env.ZORA_API_KEY) {
+  setApiKey(process.env.ZORA_API_KEY)
+}
 
 interface CoinData {
   name: string
@@ -38,32 +46,43 @@ function SharePageClient({
   initialWritingData, 
   initialError 
 }: SharePageClientProps) {
-  
-  if (initialError || !initialCoinData) {
+
+  const formatNumber = (num: string | number) => {
+    const n = typeof num === 'string' ? parseFloat(num) : num
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+    return n.toString()
+  }
+
+  const formatEth = (wei: string | number) => {
+    const ethValue = typeof wei === 'string' ? parseFloat(wei) : wei
+    return (ethValue / 1e18).toFixed(4)
+  }
+
+  if (initialError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
-        <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 text-center max-w-md">
-          <div className="text-6xl mb-4">😵</div>
+        <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 text-center">
+          <div className="text-6xl mb-4">❌</div>
           <h2 className="text-2xl font-black mb-2">Coin Not Found</h2>
-          <p className="text-sm text-gray-600 mb-4">{initialError || "This coin doesn't exist"}</p>
-          <Button onClick={() => window.location.href = "/"} className="w-full">
-            🏠 Go Home
+          <p className="text-sm text-gray-600 mb-4">{initialError}</p>
+          <Button onClick={() => window.location.href = "/"}>
+            ← Back to 111words
           </Button>
         </div>
       </div>
     )
   }
 
-  const formatNumber = (num: string) => {
-    const n = parseFloat(num)
-    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
-    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
-    return n.toFixed(2)
-  }
-
-  const formatEth = (wei: string) => {
-    const eth = parseFloat(wei) / 1e18
-    return eth.toFixed(6)
+  if (!initialCoinData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
+        <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 text-center">
+          <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-sm text-gray-600">Loading coin data...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -133,25 +152,14 @@ function SharePageClient({
         {/* Actions */}
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
           <div className="space-y-3">
-            <Button 
-              onClick={async () => {
-                const text = `Check out "${initialCoinData.name}" by ${initialWritingData?.user.display_name} 💎\n\n${window.location.href}`
-                try {
-                  const { sdk } = await import('@farcaster/miniapp-sdk')
-                  await sdk.actions.composeCast({
-                    text: text,
-                    embeds: [window.location.href]
-                  })
-                } catch (error) {
-                  console.error('Error sharing via MiniApp SDK:', error)
-                  // Fallback for non-MiniApp contexts
-                window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
-                }
+            <ShareButton 
+              buttonText="🚀 Share on Farcaster"
+              cast={{
+                text: `Check out "${initialCoinData.name}" by ${initialWritingData?.user.display_name} 💎\n\nRead the full writing and trade this coin on 111words!`,
+                embeds: [window.location.href]
               }}
               className="w-full bg-blue-500 text-white font-black text-lg py-3"
-            >
-              🚀 Share on Farcaster
-            </Button>
+            />
             <Button 
               onClick={() => window.location.href = "/"}
               variant="outline"
@@ -161,7 +169,7 @@ function SharePageClient({
             </Button>
             <Button 
               onClick={() => {
-                // Link to our internal coin detail page with better trading experience
+                // Navigate to coin detail page within MiniApp
                 window.location.href = `/coin/${address}`
               }}
               variant="outline"

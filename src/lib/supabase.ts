@@ -209,6 +209,7 @@ export async function getCurrentStreak(fid: number): Promise<number> {
   return user?.current_streak || 0
 }
 
+// Get writing by coin address
 export async function getWritingByCoinAddress(coinAddress: string): Promise<{
   content: string
   word_count: number
@@ -218,76 +219,46 @@ export async function getWritingByCoinAddress(coinAddress: string): Promise<{
     display_name: string
   }
 } | null> {
-  console.log('🔍 getWritingByCoinAddress called with:', { coinAddress, addressLength: coinAddress?.length })
+  console.log('🔍 getWritingByCoinAddress called with:', coinAddress)
   
-  // First, let's check what coin addresses we have in the database
-  const { data: allWritings } = await supabase
+  const { data, error } = await supabase
     .from('writings')
-    .select('coin_address, content, word_count, created_at')
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  console.log('📝 Recent writings in database:', allWritings?.map(w => ({ 
-    coin_address: w.coin_address, 
-    hasContent: !!w.content,
-    contentLength: w.content?.length,
-    created_at: w.created_at
-  })))
-
-  // First get the writing
-  const { data: writingData, error: writingError } = await supabase
-    .from('writings')
-    .select('content, word_count, created_at, fid')
+    .select(`
+      content,
+      word_count,
+      created_at,
+      fid,
+      users (
+        username,
+        display_name
+      )
+    `)
     .eq('coin_address', coinAddress)
     .single()
 
-  console.log('🔍 Writing query result:', { 
-    hasData: !!writingData, 
-    hasError: !!writingError, 
-    errorCode: writingError?.code,
-    errorMessage: writingError?.message,
-    fid: writingData?.fid
-  })
-
-  if (writingError || !writingData) {
-    console.error('Error fetching writing by coin address:', writingError)
+  if (error) {
+    console.error('Error fetching writing by coin address:', error)
     return null
   }
 
-  // Then get the user data
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select('username, display_name')
-    .eq('fid', writingData.fid)
-    .single()
-
-  console.log('🔍 User query result:', { 
-    hasData: !!userData, 
-    hasError: !!userError, 
-    errorCode: userError?.code,
-    errorMessage: userError?.message,
-    username: userData?.username
-  })
-
-  if (userError || !userData) {
-    console.error('Error fetching user by fid:', userError)
+  if (!data) {
+    console.log('No writing found for coin address:', coinAddress)
     return null
   }
 
-  console.log('✅ Successfully found writing for coin address:', { 
-    coinAddress, 
-    hasContent: !!writingData.content,
-    contentLength: writingData.content?.length,
-    username: userData.username 
+  console.log('✅ Found writing for coin address:', {
+    hasContent: !!data.content,
+    wordCount: data.word_count,
+    userInfo: data.users
   })
 
   return {
-    content: writingData.content,
-    word_count: writingData.word_count,
-    created_at: writingData.created_at,
+    content: data.content,
+    word_count: data.word_count,
+    created_at: data.created_at,
     user: {
-      username: userData.username || '',
-      display_name: userData.display_name || 'Anonymous Writer'
+      username: data.users?.[0]?.username || 'anonymous',
+      display_name: data.users?.[0]?.display_name || 'Anonymous Writer'
     }
   }
 } 
