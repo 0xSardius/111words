@@ -2,7 +2,6 @@ import { getCoin, setApiKey } from "@zoralabs/coins-sdk"
 import { getWritingByCoinAddress } from "../../../lib/supabase"
 import { isAddress } from "viem"
 import { CoinDetailClient } from "./CoinDetailClient"
-import { Metadata } from "next"
 
 // Set up Zora API key
 if (process.env.ZORA_API_KEY) {
