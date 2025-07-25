@@ -72,18 +72,24 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
               🚀 Share to Farcaster
             </Button>
             <Button 
-              onClick={() => window.open(`/coin/${coinDetails.address}`, '_blank')} 
+              onClick={() => {
+                // Navigate within MiniApp instead of opening external window
+                window.location.href = `/coin/${coinDetails.address}`
+              }} 
               variant="outline" 
               className="w-full"
             >
               👀 View Coin Details
             </Button>
             <Button 
-              onClick={() => window.open(`/coin/${coinDetails.address}`, '_blank')} 
+              onClick={() => {
+                // Navigate to trading page within MiniApp
+                window.location.href = `/coin/${coinDetails.address}?action=trade`
+              }} 
               variant="outline" 
               className="w-full bg-green-100"
             >
-              💰 Trade Coins
+              💰 Trade This Coin
             </Button>
             <Button onClick={onComplete} variant="outline" className="w-full">
               ✍️ Continue Writing

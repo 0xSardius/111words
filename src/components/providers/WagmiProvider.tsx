@@ -137,7 +137,7 @@ export function AppWagmiProvider({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AutoConnectHandler />
-        {children}
+          {children}
       </QueryClientProvider>
     </WagmiProvider>
   );

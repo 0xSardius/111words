@@ -145,7 +145,7 @@ function SharePageClient({
                 } catch (error) {
                   console.error('Error sharing via MiniApp SDK:', error)
                   // Fallback for non-MiniApp contexts
-                  window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
+                window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank')
                 }
               }}
               className="w-full bg-blue-500 text-white font-black text-lg py-3"

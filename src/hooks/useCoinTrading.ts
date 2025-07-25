@@ -129,7 +129,7 @@ export function useCoinTrading() {
       })
 
       console.log("✅ Sell trade successful:", receipt)
-
+      
       return {
         success: true,
         txHash: receipt.transactionHash,
