@@ -21,9 +21,10 @@ interface ShareButtonProps {
   cast: CastConfig;
   className?: string;
   isLoading?: boolean;
+  onSuccess?: () => void;
 }
 
-export function ShareButton({ buttonText, cast, className = '', isLoading = false }: ShareButtonProps) {
+export function ShareButton({ buttonText, cast, className = '', isLoading = false, onSuccess }: ShareButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [bestFriends, setBestFriends] = useState<{ fid: number; username: string; }[] | null>(null);
   const [isLoadingBestFriends, setIsLoadingBestFriends] = useState(false);
@@ -98,6 +99,11 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
         channelKey: cast.channelKey,
         close: cast.close,
       }, 'share-button');
+      
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Failed to share:', error);
     } finally {

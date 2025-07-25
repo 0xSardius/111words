@@ -29,21 +29,9 @@ export default function MiniAppWithSuccess() {
   }
 
   const handleShare = (details: CoinDetails) => {
-    // Create enhanced share text with link to our custom share page
-    const sharePageUrl = `${window.location.origin}/share/${details.address}`
-    const contentPreview = details.content.length > 100 
-      ? `${details.content.substring(0, 100)}...` 
-      : details.content
-    
-    const shareText = `Just minted "${details.symbol}" with ${details.wordCount} words! 💎\n\n"${contentPreview}"\n\nDay ${details.dayNumber} of my writing streak on 111words 🔥\n\n📖 Read full & Buy: ${sharePageUrl}`
-
-    // Open Farcaster compose with the share text
-    if (typeof window !== 'undefined') {
-      const farcasterUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`
-      window.open(farcasterUrl, '_blank')
-    }
-    
-    console.log("Sharing to Farcaster:", shareText)
+    // This function is now handled by the ShareButton component in SuccessFlow
+    // No need to implement sharing logic here - it's handled by the MiniApp SDK
+    console.log("Sharing initiated for:", details.symbol)
   }
 
   console.log("🔍 Render state:", { showSuccess, coinDetails })

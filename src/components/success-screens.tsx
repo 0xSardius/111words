@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "./ui/Button"
+import { ShareButton } from "./ui/Share"
 import { useCoinTrading } from "../hooks/useCoinTrading"
 
 interface CoinDetails {
@@ -31,8 +32,7 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
     return () => clearTimeout(timer)
   })
 
-  const handleShare = () => {
-    onShare(coinDetails)
+  const handleShareComplete = () => {
     setCurrentStep('share')
   }
 
@@ -54,6 +54,14 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
   }
 
   if (currentStep === 'success') {
+    // Create share content for the ShareButton
+    const sharePageUrl = `${process.env.NEXT_PUBLIC_URL || 'https://111words.vercel.app'}/share/${coinDetails.address}`
+    const contentPreview = coinDetails.content.length > 100 
+      ? `${coinDetails.content.substring(0, 100)}...` 
+      : coinDetails.content
+    
+    const shareText = `Just minted "${coinDetails.symbol}" with ${coinDetails.wordCount} words! 💎\n\n"${contentPreview}"\n\nDay ${coinDetails.dayNumber} of my writing streak on 111words 🔥`
+
     return (
       <div className="w-full max-w-sm mx-auto h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 p-4 flex items-center justify-center">
         <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 text-center">
@@ -68,9 +76,15 @@ export function SuccessFlow({ coinDetails, onComplete, onShare }: SuccessFlowPro
             <p>and minted your {coinDetails.dayNumber} coin!</p>
           </div>
           <div className="space-y-2">
-            <Button onClick={handleShare} className="w-full bg-blue-500">
-              🚀 Share to Farcaster
-            </Button>
+            <ShareButton
+              buttonText="🚀 Share to Farcaster"
+              cast={{
+                text: shareText,
+                embeds: [sharePageUrl]
+              }}
+              className="w-full bg-blue-500"
+              onSuccess={handleShareComplete}
+            />
             <Button 
               onClick={() => {
                 // Navigate within MiniApp instead of opening external window
