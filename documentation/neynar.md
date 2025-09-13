@@ -1,13 +1,124 @@
+# Add a Verification
+Source: https://docs.neynar.com/docs/add-a-verification
+
+Walkthrough on how to add an ethereum or solana address as a verification to a user's farcaster profile
+
+<Tip>
+  * If you want to integrate Farcaster auth for your users, easiest way to start is [Sign in with Neynar](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) (Neynar pays all onchain fee)
+  * If you want dedicated signers for your user or bot, simplest to clone this [example app](https://github.com/neynarxyz/farcaster-examples/tree/main/managed-signers) for quickstart
+</Tip>
+
+This guide demonstrates adding an Ethereum address verification with the Neynar SDK.
+
+Check out this [Getting Started Guide](/docs/getting-started-with-neynar) to learn how to set up your environment and get an API key.
+
+First, initialize the client:
+
+<CodeGroup>
+  ```javascript Javascript
+  // npm i @neynar/nodejs-sdk
+  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
+
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const config = new Configuration({
+    apiKey:process.env.NEYNAR_API_KEY,
+  });
+
+  const client = new NeynarAPIClient(config);
+  const signer = process.env.NEYNAR_SIGNER;
+  ```
+</CodeGroup>
+
+Then like a cast:
+
+<CodeGroup>
+  ```javascript Javascript
+  const hash = "0x6932a9256f34e18892d498abb6d00ccf9f1c50d6";
+  client.publishReaction({ signerUuid: signer, reactionType: "like", target:hash });
+  ```
+</CodeGroup>
+
+Recasting works the same way, just replace "like" with "recast":
+
+<CodeGroup>
+  ```javascript Javascript
+  const hash = "0x6932a9256f34e18892d498abb6d00ccf9f1c50d6";
+  client.publishReaction({ signerUuid: signer, reactionType: "like", target:hash });
+  ```
+</CodeGroup>
+
+The end result should look like this:
+
+<CodeGroup>
+  ```javascript Javascript
+  {
+    success: true;
+  }
+  ```
+</CodeGroup>
+
+To verify that the reaction was published, you can fetch the cast's reactions:
+
+<CodeGroup>
+  ```javascript Javascript
+  const types = ReactionsType.All;
+  const reactions = await client.fetchCastReactions({ hash, types: [types] });
+  console.log(reactions);
+  ```
+</CodeGroup>
+
+Which would print out
+
+```json
+{
+  "result": {
+    "casts": [
+      {
+        "type": "like",
+        "hash": "0x691fabb3fc58bd4022d4358b2bc4f44469ad959a",
+        "reactor": {
+          "fid": "4640",
+          "username": "picture",
+          "displayName": "Picture",
+          "pfp": {
+            "url": "https://lh3.googleusercontent.com/erYudyT5dg9E_esk8I1kqB4bUJjWAmlNu4VRnv9iUuq_by7QjoDtZzj_mjPqel4NYQnvqYr1R54m9Oxp9moHQkierpY8KcYLxyIJ"
+          },
+          "followerCount": "45",
+          "followingCount": "57"
+        },
+        "timestamp": "2023-12-10T15:26:45.000Z",
+        "castHash": "0x6932a9256f34e18892d498abb6d00ccf9f1c50d6"
+      }
+    ],
+    "next": {
+      "cursor": null
+    }
+  }
+}
+```
+
+That's it! You can now like or recast any cast on Farcaster.
+
+PS - to learn more about how writes technically work on Farcaster, read [Write to Farcaster with Neynar Managed Signers](/docs/write-to-farcaster-with-neynar-managed-signers)
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
 # Address User Score Contract
 Source: https://docs.neynar.com/docs/address-user-score-contract
 
 Get user quality score for an address connected to a Farcaster profile.
 
 <Info>
-  Read prior context on user scores [here](/docs/neynar-user-quality-score)
+  Read prior context on user scores in [Neynar User Quality Score](/docs/neynar-user-quality-score)
 </Info>
 
-User scores are particularly useful if anonymous addresses are interacting with your contract and you want to restrict interaction to high quality addresses. Neynar already supports user quality scores offchain (read more [here](/docs/neynar-user-quality-score)), this brings them onchain and makes it available to smart contracts. Now, on the Base Mainnet and Sepolia testnet, smart contracts can query the fid linked to any ETH address and the quality score for that FID.
+User scores are particularly useful if anonymous addresses are interacting with your contract and you want to restrict interaction to high quality addresses. Neynar already supports user quality scores offchain (read more in [Neynar User Quality Score](/docs/neynar-user-quality-score)), this brings them onchain and makes it available to smart contracts. Now, on the Base Mainnet and Sepolia testnet, smart contracts can query the fid linked to any ETH address and the quality score for that FID.
 
 ## Contract
 
@@ -83,7 +194,7 @@ A simple example of a HelloWorld contract:
 
 ## Future
 
-This experiment will see what we can unlock by bringing more Farcaster data on-chain. If you build something using this, please [reach out](https://t.me/rishdoteth). We want to hear what you're building and see how we can make it easier.
+This experiment will see what we can unlock by bringing more Farcaster data on-chain. If you build something using this, please [reach out](https://neynar.com/slack). We want to hear what you're building and see how we can make it easier.
 
 ## Further reading
 
@@ -92,6 +203,239 @@ This experiment will see what we can unlock by bringing more Farcaster data on-c
 
   <Card title="Addresses ↔ Farcaster FIDs onchain" href="/docs/verifications-contract" icon="angle-right" iconType="solid" horizontal />
 </CardGroup>
+
+
+# Create Farcaster Frames Using Neynar & Frog
+Source: https://docs.neynar.com/docs/analytics-frame-neynar-frog
+
+In this guide, we’ll learn how to make a frame with the neynar SDK and Frog.fm, within a few minutes! For this demo, it will be a simple rock-paper-scissors game but it will give you an idea of how to create multi-page frames, interact with buttons, and get analytics for your frame with no extra effort.
+
+Before we begin, you can access the [complete source code](https://github.com/avneesh0612/rps-frames) for this guide on GitHub.
+
+Let's get started!
+
+## Creating a new frames project
+
+We will use vercel and [frog](https://frog.fm/) for building the frame in this guide, but feel free to use anything else as well!
+
+Enter this command in your terminal to create a new app:
+
+<CodeGroup>
+  ```powershell PowerShell
+  bunx create-frog -t vercel
+  ```
+</CodeGroup>
+
+Enter a name for your project and it will spin up a new project for you. Once the project is created install the dependencies:
+
+<CodeGroup>
+  ```powershell PowerShell
+  cd <project_name>
+  bun install
+  ```
+</CodeGroup>
+
+### Creating the frame home page
+
+Head over to the `api/index.ts` file. Here, you'll see a starter frame on the / route. But first, let's change the Frog configuration to use `/api` as the base path and use neynar for hubs like this:
+
+<CodeGroup>
+  ```typescript index.tsx
+  export const app = new Frog({
+    assetsPath: "/",
+    basePath: "/api",
+    hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
+  });
+  ```
+</CodeGroup>
+
+<Info>
+  ### Make sure to update the API key to your API key to get analytics
+</Info>
+
+You also need to import neynar from "frog/hubs":
+
+<CodeGroup>
+  ```typescript index.tsx
+  import { neynar } from "frog/hubs";
+  ```
+</CodeGroup>
+
+Now, change the frame on the `/` route to match this:
+
+<CodeGroup>
+  ```typescript index.tsx
+
+  app.frame("/", (c) => {
+    return c.res({
+      action: "/result",
+      image: (
+        <div
+          style={{
+            alignItems: "center",
+            background: "black",
+            backgroundSize: "100% 100%",
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "nowrap",
+            height: "100%",
+            justifyContent: "center",
+            textAlign: "center",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              color: "white",
+              fontSize: 60,
+              fontStyle: "normal",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.4,
+              marginTop: 30,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            Choose your weapon
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button value="rock">Rock</Button>,
+        <Button value="paper">Paper</Button>,
+        <Button value="scissors">Scissors</Button>,
+      ],
+    });
+  });
+  ```
+</CodeGroup>
+
+This will render an image saying choose your weapon and three buttons saying rock paper and scissors. When any of these buttons are clicked a request to the `/result` route is made which we define in the `action` parameter.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da59b22-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8e28d8babd6c2dcd81219c5ca34f8aff" alt="Frame home page" width="1134" height="756" data-path="images/docs/da59b22-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da59b22-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4681b1f93261083a95c911a79d8cc4da 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da59b22-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6190a93c526e611094e94ad005c42fd0 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da59b22-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0abd19670f2af28a053ed86173bfcc93 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da59b22-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d3f60567e155c3e95f51b2f71c203c5b 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da59b22-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=41040675fcbdecb582d4f9725f917e6b 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da59b22-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=140639e8041eace9ea96c24e02bbd70b 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+<Info>
+  ### Make sure that you sign in using your warpcast account, so that the requests can be validated
+</Info>
+
+Now, let's build the `/result` route like this:
+
+<CodeGroup>
+  ```typescript index.tsx
+  app.frame("/result", (c) => {
+    const rand = Math.floor(Math.random() * 3);
+    const choices = ["rock", "paper", "scissors"];
+    const userChoice = choices[(c.buttonIndex || 1) - 1];
+    const computerChoice = choices[rand];
+    let msg = "";
+
+    if (userChoice === computerChoice) {
+      msg = "draw";
+    }
+
+    if (
+      (userChoice === "rock" && computerChoice === "scissors") ||
+      (userChoice === "paper" && computerChoice === "rock") ||
+      (userChoice === "scissors" && computerChoice === "paper")
+    ) {
+      msg = "You win";
+    }
+
+    if (
+      (userChoice === "rock" && computerChoice === "paper") ||
+      (userChoice === "paper" && computerChoice === "scissors") ||
+      (userChoice === "scissors" && computerChoice === "rock")
+    ) {
+      msg = "You lose";
+    }
+
+    return c.res({
+      image: (
+        <div
+          style={{
+            alignItems: "center",
+            background: "black",
+            backgroundSize: "100% 100%",
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "nowrap",
+            height: "100%",
+            justifyContent: "center",
+            textAlign: "center",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              color: "white",
+              fontSize: 60,
+              fontStyle: "normal",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.4,
+              marginTop: 30,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+              display: "flex",
+            }}
+          >
+            {userChoice} vs {computerChoice}
+          </div>
+
+          <div
+            style={{
+              color: "white",
+              fontSize: 60,
+              fontStyle: "normal",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.4,
+              marginTop: 30,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {msg}
+          </div>
+        </div>
+      ),
+      intents: [<Button action="/">Play again</Button>],
+    });
+  });
+  ```
+</CodeGroup>
+
+Here, we first get the button index from the request and use it to get the user's choice. We have then added some logic for generating a random choice for the game. Then, in the image we display the two choices and the result of the game. We have also added a play again game which simply pushes the user to the `/` route.
+
+<Frame>
+  <img src="https://files.catbox.moe/qvr7pt.gif" alt="Frame result page" />
+</Frame>
+
+## Analytics
+
+Since we are using neynar hub with Frog, we also get analytics out of the box. Head over to the usage tab and click on the frame that you are currently using. It will provide you with various analytics like total interactors, interactions per cast, etc.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=da3d7ed1857d3ffc193a2c1a9870caf9" alt="Frame analytics" width="2712" height="1548" data-path="images/docs/713fe83-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d3edb2c3fa541221d74cdd7474798729 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=44233f30649ac573669b66e25035d104 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=af017201dbc47a7734002f87f4faa69b 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=481b9938eb8af2a40cef3e4a2ba92a87 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b51ddaea869218e5eeecc9afdaac0e41 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0eaf75f2c7c1f0d0fd4a2f9b04c8afcf 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Deployment
+
+You can deploy your frame using the [vercel CLI](https://vercel.com/docs/cli) like this:
+
+<CodeGroup>
+  ```powershell PowerShell
+  bun run deploy
+  ```
+</CodeGroup>
+
+Alternatively, you can also create a new GitHub repository and sync your vercel deployments.
+
+## Conclusion
+
+This guide taught us how to create a rock-paper-scissors game on Farcaster frames! If you want to look at the completed code, check out the [GitHub repository](https://github.com/avneesh0612/rps-frames).
+
+Lastly, make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # Mini App Hosts Notifications
@@ -127,6 +471,27 @@ In the following example we'll imagine
 
 An event sent to a mini-app webhook must be a signed JFS messages.  There are two supported signing approaches in this system.  Hostcaster can sign the message with a user's key if they have the ability to do so.  Or, if Hostcaster instead uses the Neynar-hosted signer system then they can provide their signer\_uuid when posting the unsigned event.
 
+### Neynar-signed route
+
+This approach requires only one API request:
+
+1. [POST /v2/farcaster/app\_host/user/event](/reference/app-host-post-event) with a valid signer\_uuid and the required event data
+
+<CodeGroup>
+  ```bash cURL
+  curl --request POST \
+    --url https://api.neynar.com/v2/farcaster/app_host/user/event \
+    --header 'Content-Type: application/json' \
+    --header 'x-api-key: YOUR_KEY' \
+    --data '{
+    "signer_uuid": "01973000-b000-ee00-e0e0-0ee0e00e00ee",
+    "app_domain": "cowclicker.gov",
+    "fid": 10101,
+    "event": "notifications_enabled"
+  }'
+  ```
+</CodeGroup>
+
 ### Self-sign route
 
 1. [GET /v2/farcaster/app\_host/user/event](/reference/app-host-get-event) to retrieve the message to be signed.  This is particularly important for `notification_enabled` events because this is when a notification token is generated by Neynar
@@ -156,33 +521,134 @@ An event sent to a mini-app webhook must be a signed JFS messages.  There are tw
   ```
 </CodeGroup>
 
-### Neynar-signed route
+## Notifications via Kafka
 
-This approach requires only one API request:
+To access your stream of notifications from a Kafka queue you'll need to work with a Neynar representative to obtain the necessary credentials.
+You will be granted access to a Kafka topic with a name like `app_host_notifications_Your_App_Name` which contains a message for each notification.
+If an app sends the same message to 100 users, you will see 100 messages in Kafka similar to the example below.
 
-1. [POST /v2/farcaster/app\_host/user/event](/reference/app-host-post-event) with a valid signer\_uuid and the required event data
+Sample message:
 
 <CodeGroup>
-  ```bash cURL
-  curl --request POST \
-    --url https://api.neynar.com/v2/farcaster/app_host/user/event \
-    --header 'Content-Type: application/json' \
-    --header 'x-api-key: YOUR_KEY' \
-    --data '{
-    "signer_uuid": "01973000-b000-ee00-e0e0-0ee0e00e00ee",
-    "app_domain": "cowclicker.gov",
-    "fid": 10101,
-    "event": "notifications_enabled"
-  }'
+  ```json JSON
+  {
+      "notification": {
+          "notification_id": "rate-test-1755216706-10",
+          "title": "Sample Notification Test 10",
+          "body": "This is notification message body",
+          "target_url": "https://test.com/notification/10"
+      },
+      "app_domain": "demo.neynar.com",
+      "notification_neynar_id": "0198ab11-7c61-xxxx-xxxx-0affb68fda66",
+      "fid": "18949",
+      "timestamp": "2025-08-15T00:11:46.657Z",
+      "app": {
+          "name": "Wownar",
+          "icon_url": "https://demo.neynar.com/logos/neynar.svg"
+      }
+  }
   ```
 </CodeGroup>
-
-### Examples
 
 ## Further Reading
 
 * [Sending Notifications](https://miniapps.farcaster.xyz/docs/guides/notifications#send-a-notification) from the Farcaster mini app guide
 * [JSON Farcaster Signatures](https://github.com/farcasterxyz/protocol/discussions/208)
+
+
+# Host Farcaster Mini Apps — Overview
+Source: https://docs.neynar.com/docs/app-host-overview
+
+A guide to hosting Farcaster Mini Apps: understand concepts, implement core features, and integrate with your Farcaster client.
+
+## What are Farcaster Mini Apps?
+
+Farcaster Mini Apps are web applications that render inside Farcaster clients, providing interactive experiences beyond traditional social media posts. Think of them as mini websites that users can interact with directly within their Farcaster feed.
+
+## What does it mean to host Mini Apps?
+
+As a Farcaster client developer, hosting Mini Apps means:
+
+* **Embedding Mini Apps** in your client interface (typically as webviews)
+* **Managing the app lifecycle** (launch, navigation, close)
+* **Providing wallet integration** so Mini Apps can access user's crypto wallets
+* **Implementing authentication** to verify user identity to Mini Apps
+* **Handling notifications** when Mini Apps want to alert users
+
+## Essential implementation areas
+
+Review and plan to implement each of these core host capabilities from the [Farcaster Mini Apps specification](https://miniapps.farcaster.xyz/docs/specification#actions):
+
+### 🔐 Authentication & Identity
+
+* **[Sign In with Farcaster (SIWF)](https://github.com/farcasterxyz/protocol/discussions/110)** - Let Mini Apps authenticate users
+  * Use [Sign In with Neynar (SIWN)](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) for rapid development without managing your own signers
+* **Auth address generation** - Create approved addresses for secure interactions ([Neynar tutorial](/docs/auth-address-signature-generation))
+* **[User context](https://miniapps.farcaster.xyz/docs/sdk/context)** - Provide user profile and social graph data
+
+### 💰 Wallet Integration
+
+* **[Ethereum provider injection](https://miniapps.farcaster.xyz/docs/sdk/wallet)** - EIP-1193 compatible wallet access ([EIP-1193 spec](https://eips.ethereum.org/EIPS/eip-1193))
+* **[Solana provider](https://miniapps.farcaster.xyz/docs/sdk/solana)** (experimental) - Multi-chain wallet support
+* **Transaction signing** - Secure transaction flows within Mini Apps
+
+### 🎨 Host UI & UX
+
+* **[App surface rendering](https://miniapps.farcaster.xyz/docs/specification#app-surface)** - Webview management with proper sizing (424x695px web, device dimensions mobile)
+* **Header display** - Show Mini App name and author
+* **Splash screens** - Loading states with custom branding
+* **Navigation controls** - Launch, close, and navigation between Mini Apps
+* **Official libraries**: [React Native](https://github.com/farcasterxyz/miniapps/tree/main/packages/frame-host-react-native) | [Web](https://github.com/farcasterxyz/miniapps/tree/main/packages/frame-host)
+
+### 🔔 Notification System
+
+* **Token management** - Generate and manage notification tokens per user ([Neynar implementation guide](/docs/app-host-notifications))
+* **Event handling** - Process Mini App lifecycle events (added, removed, notifications enabled/disabled) using the [Frame Notifications API](/reference/app-host-post-event)
+* **Push delivery** - Display notifications to users in your client
+
+### 📱 Mini App Discovery
+
+* **App catalog** - Browse available Mini Apps ([Frame Catalog API](/reference/fetch-frame-catalog))
+* **Search functionality** - Help users find relevant Mini Apps ([Search Frames API](/reference/search-frames))
+* **Installation flow** - Let users add Mini Apps to their client
+
+## Next steps
+
+1. **Start with authentication** - Implement [SIWF](https://github.com/farcasterxyz/protocol/discussions/110) or use [SIWN](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) for quick setup
+2. **Build the UI surface** - Create webview container with [proper sizing and navigation](https://miniapps.farcaster.xyz/docs/specification#app-surface)
+3. **Add wallet integration** - Inject [Ethereum provider](https://miniapps.farcaster.xyz/docs/sdk/wallet) for transaction support
+4. **Add discovery** - Integrate [catalog](/reference/fetch-frame-catalog) and [search APIs](/reference/search-frames) for Mini App browsing
+5. **Enable notifications** - Implement [token management and event handling](/docs/app-host-notifications)
+
+## Additional resources
+
+* **[Farcaster Mini Apps Specification](https://miniapps.farcaster.xyz/docs/specification)** - Complete technical specification including SDK details
+* **[Mini App SDK Documentation](https://miniapps.farcaster.xyz/docs/sdk/changelog)** - JavaScript SDK for Mini App developers
+* **[Examples Repository](https://github.com/farcasterxyz/miniapps/tree/main/examples)** - Reference implementations
+
+
+# Appendix
+Source: https://docs.neynar.com/docs/appendix
+
+Understanding the new user registration process
+
+Neynar simplifies the account creation process on Farcaster by pre-registering several new accounts and securely storing their credentials in a database. For detailed instructions on how to register or create an account on Farcaster, please refer to the [Farcaster account creation guide.](https://docs.farcaster.xyz/developers/guides/accounts/create-account#create-an-account)
+
+When a developer requests a new account—Step 1—Neynar provides the FID (Farcaster ID) of a pre-registered account to the developer.
+
+To transfer the pre-registered account to the end user, a specific process must be followed. This approach is chosen because Neynar does not store or manage the end user's account mnemonic for security reasons.
+
+The developer is required to generate a signature using the FID of the pre-registered account and the custody address of the end user. This can be achieved by utilizing the `signTransfer` method described in the script—Step 2.
+
+Upon making a `POST - /v2/farcaster/user` request, two significant actions are initiated:
+
+1. **Fname Transfer**
+
+   * This step is executed only when the fname is included in the request body. Developers have the option to collect the fname from the user during account creation.
+   * If the developer decides not to collect the fname initially, the transfer can be conducted at a later stage. For more information, consult the [guide on fname transfer](https://docs.farcaster.xyz/reference/fname/api#register-or-transfer-an-fname)
+
+2. **Account transfer**
+   * This step outlines the procedure for transferring the account to the end user. Detailed guidance on account transfer can be found in the [Farcaster account transfer documentation.](https://docs.farcaster.xyz/reference/contracts/reference/id-registry#transferfor)
 
 
 # Archive Casts
@@ -286,7 +752,7 @@ That's it! You now can save that in S3 or IPFS for long-term archival!
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -576,7 +1042,808 @@ yarn add viem
 
 Enjoy building! 🚀
 
-For additional help, [feel free to contact us](https://t.me/rishdoteth).
+For additional help, [feel free to contact us](https://neynar.com/slack).
+
+
+# Build Interactive Farcaster Frames with Neynar
+Source: https://docs.neynar.com/docs/building-frames
+
+Learn how to build interactive Farcaster frames 100x faster using Neynar's Frame Studio, no-code templates, and comprehensive Frame APIs. Create dynamic social experiences with validation, hosting, and embedding capabilities.
+
+Neynar supports building frames in a few different ways:
+
+* [Neynar Frame Studio](https://neynar.com/nfs): allows building frames with no code and pre-made templates
+
+* Frame APIs:
+
+  * [Validating frame actions](/reference/validate-frame-action), user and cast data in one API call
+  * [CRUD](/reference/publish-neynar-frame) for hosted frames
+  * Embedding frames in your client and [posting actions](/reference/post-frame-action)
+
+## Neynar Frame architecture
+
+### Pages for a frame
+
+A page represents the most basic unit of a frame. A frame consists of one or more pages.
+
+We've thoughtfully crafted a JSON format for a frames' page to abstract away building on the rapidly moving foundation of Farcaster Frames. *For context, Frames were launched a few weeks before writing this and have already seen 3-to 4 spec upgrades. We don't want Neynar developers to have to worry about handling those.*
+
+Here's an example of a single page with four buttons. You can create these in the Frame Studio with no code or quickly create frames using our REST APIs.
+
+<CodeGroup>
+  ```Text JSON
+  {
+    "uuid": "5ec484f5-efaf-4bda-9a3f-0579232a386a",
+    "image": "https://i.imgur.com/gpn83Gm.png",
+    "title": "Farcaster Dev Call",
+    "buttons": [
+      {
+        "title": "Notes",
+        "next_page": {
+          "redirect_url": "https://warpcast.notion.site/Feb-1st-934e190578144aba8273b2bbdc29e5ab"
+        },
+        "action_type": "post_redirect"
+      },
+      {
+        "title": "Calendar",
+        "next_page": {
+          "redirect_url": "https://calendar.google.com/calendar/u/0/r?cid=NjA5ZWM4Y2IwMmZiMWM2ZDYyMTkzNWM1YWNkZTRlNWExN2YxOWQ2NDU3NTA3MjQwMTk3YmJlZGFjYTQ3MjZlOEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t"
+        },
+        "action_type": "post_redirect"
+      },
+      {
+        "title": "Zoom",
+        "next_page": {
+          "redirect_url": "https://zoom.us/j/98052336425?pwd=aFYyRk9ZSDhqR1h5eVJENmtGSGo4UT09#success"
+        },
+        "action_type": "post_redirect"
+      },
+      {
+        "title": "Recordings",
+        "next_page": {
+          "redirect_url": "https://www.youtube.com/playlist?list=PL0eq1PLf6eUeZnPtyKMS6uN9I5iRIlnvq"
+        },
+        "action_type": "post_redirect"
+      }
+    ],
+    "version": "vNext"
+  }
+  ```
+</CodeGroup>
+
+## Hosting
+
+Neynar hosts pages on behalf of developers. We convert this JSON format into the Metatags expected by the [Farcaster Frames Specification](https://warpcast.notion.site/Farcaster-Frames-4bd47fe97dc74a42a48d3a234636d8c5).
+
+If you have questions/feedback, please reach out to [@rish](https://warpcast.com/rish)or [@manan](https://warpcast.com/manan) on Farcaster. We will continue improving the frames experience! <Icon icon="planet-ringed" iconType="solid" />
+
+
+# Cast Action with Analytics
+Source: https://docs.neynar.com/docs/cast-action-with-analytics-neynar
+
+In this guide, we’ll make a cast action with the neynar SDK and frog.fm, within a few minutes! The cast action will fetch the follower count of the cast's author using its fid and display it.
+
+## Cast Action
+
+We'll also validate the requests using Neynar's frame validator which provides analytics as well!
+
+Before we begin, you can access the [complete source code](https://github.com/neynarxyz/farcaster-examples/tree/main/cast-action) for this guide on GitHub.
+
+Let's get started!
+
+### Creating a new frames project
+
+We will use [bun](https://bun.sh/) and [frog](https://frog.fm/) for building the cast action in this guide, but feel free to use [framejs](https://framesjs.org/), [onchainkit](https://onchainkit.xyz/), or anything else as well!
+
+Enter this command in your terminal to create a new app:
+
+<CodeGroup>
+  ```powershell PowerShell
+  bunx create-frog -t bun
+  ```
+</CodeGroup>
+
+Enter a name for your project and it will spin up a new project for you. Once the project is created install the dependencies:
+
+<CodeGroup>
+  ```powershell PowerShell
+  cd <project_name>
+  bun install
+  ```
+</CodeGroup>
+
+Now, let's install the dependencies that we are going to need to build out this action:
+
+<CodeGroup>
+  ```powershell PowerShell
+  bun add @neynar/nodejs-sdk dotenv
+  ```
+</CodeGroup>
+
+#### Creating the cast action route
+
+Head over to the `src/index.ts` file. Here, you'll be able to see a starter frame on the / route. But first, let's change the Frog configuration to use `/api` as the base path and use neynar for hubs like this:
+
+<CodeGroup>
+  ```typescript index.tsx
+  export const app = new Frog({
+    hub: neynar({ apiKey: "NEYNAR_FROG_FM" }),
+    basePath: "/api",
+  });
+  ```
+</CodeGroup>
+
+You also might need to import neynar from "frog/hubs":
+
+<CodeGroup>
+  ```typescript index.tsx
+  import { neynar } from "frog/hubs";
+  ```
+</CodeGroup>
+
+Now, we'll create a new post route which will handle our cast actions. So, create a new route like this:
+
+<CodeGroup>
+  ```typescript index.tsx
+  app.hono.post("/followers", async (c) => {
+    try {
+      let message = "GM";
+      return c.json({ message });
+    } catch (error) {
+      console.error(error);
+    }
+  });
+  ```
+</CodeGroup>
+
+This route will return a GM message every time the action is clicked, but let's now use the neynar SDK to get the follower count of the cast's author!
+
+Create a new `src/lib/neynarClient.ts` file and add the following:
+
+<CodeGroup>
+  ```typescript neynarClient.ts
+  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
+  import { config } from "dotenv";
+  config();
+
+  if (!process.env.NEYNAR_API_KEY) {
+    throw new Error("Make sure you set NEYNAR_API_KEY in your .env file");
+  }
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const configuration = new Configuration({
+    apiKey: process.env.NEYNAR_API_KEY,
+  });
+
+  const neynarClient = new NeynarAPIClient(configuration);
+
+  export default neynarClient;
+  ```
+</CodeGroup>
+
+Here, we initialise the neynarClient with the neynar api key which you can get from your dashboard:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4b72f6261afde6d5da380fa53c94c3d9" alt="Neynar API key" width="2512" height="2652" data-path="images/docs/794cfad-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=35ae5234dc0c3a65f902bcf27ff011ed 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=352cca2264c7ba35f841569e9d3ccca2 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=07414bf08a7d03b104cbf06bfea2d0b4 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=41593aaaedee0d13e2fe30a129794d1e 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=28707b4aac6500c141054ad0a38d5fcb 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e1cfcefd9288fae24642c6a3a73c1e5a 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Add the api key in a `.env` file with the name `NEYNAR_API_KEY`.
+
+Head back to the `src/index.tsx` file and add the following in the followers route instead of the GM message:
+
+<CodeGroup>
+  ```typescript index.tsx
+  try {
+    const body = await c.req.json();
+    const result = await neynarClient.validateFrameAction({
+       messageBytesInHex:body.trustedData.messageBytes}
+    );
+
+    const { users } = await neynarClient.fetchBulkUsers({
+     fids: [Number(result.action.cast.author.fid)],
+    });
+
+    if (!users) {
+      return c.json({ message: "Error. Try Again." }, 500);
+    }
+
+    let message = `Count:${users[0].follower_count}`;
+
+    return c.json({ message });
+  } catch (e) {
+    return c.json({ message: "Error. Try Again." }, 500);
+  }
+  ```
+</CodeGroup>
+
+Here, we use the neynar client that we just initialised to first validate the action and get the data from the message bytes. Then, we use it to fetch the user information using the `fetchBulkUsers` function. Finally, we return a message with the follower count!
+
+#### Creating a frame with add cast action button
+
+I am also adding a simple frame that allows anyone to install the action. But for that, you need to host your server somewhere, for local development you can use ngrok.
+
+If you don’t already have it installed, install it from [here](https://ngrok.com/downloads/mac-os). Once it’s installed, authenticate using your auth token and serve your app using this command:
+
+<CodeGroup>
+  ```powershell PowerShell
+  ngrok http http://localhost:5173/
+  ```
+</CodeGroup>
+
+This command will give you a URL which will forward the requests to your localhost:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3d75166dbbca1cf95e9335970e56a699" alt="Ngrok URL" width="1858" height="490" data-path="images/docs/9e1852c-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=aed41d3fdf7f9958cafa42af9e4f67c4 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=68b9aae96a9ad9d7e12b5dd2aefda8b7 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=217bfd7e9e0f763837dcf141f0acb312 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=754c196211dac3685b61c6b4e0fa4703 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=25de4a885302e9778225f48249a81cba 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c9c1e14ab0544e40a6eaf61ab33a0889 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+You can now head over to the [cast action playground](https://warpcast.com/~/developers/cast-actions) and generate a new URL by adding in the info as such:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47248c2-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=163876e9944963edde6e04527e5ec5e9" alt="Farcaster Cast action playground" width="1088" height="1068" data-path="images/docs/47248c2-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47248c2-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a46e3c5ff19e7691ddc52f281c9f79c3 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47248c2-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d2e4b24b61d3a61d1edcc1c8664524f7 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47248c2-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=38b89e7a6d777e6cc7de675b0a2f966b 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47248c2-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=382a6c1132c55c376c8747967b8e85da 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47248c2-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=14f7c0b17135afa2e26a875c2c172339 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47248c2-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f4fadb6ab3d06de4de4b756eb7d52712 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Copy the install URL and paste it into a new variable in the `index.tsx` like this:
+
+<CodeGroup>
+  ```typescript index.tsx
+  const ADD_URL =
+    "https://warpcast.com/~/add-cast-action?actionType=post&name=Followers&icon=person&postUrl=https%3A%2F%2F05d3-2405-201-800c-6a-70a7-56e4-516c-2d3c.ngrok-free.app%2Fapi%2Ffollowers";
+  ```
+</CodeGroup>
+
+Finally, you can replace the / route with the following to have a simple frame which links to this URL:
+
+<CodeGroup>
+  ```typescript index.tsx
+  app.frame("/", (c) => {
+    return c.res({
+      image: (
+        <div
+          style={{
+            alignItems: "center",
+            background: "black",
+            backgroundSize: "100% 100%",
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "nowrap",
+            height: "100%",
+            justifyContent: "center",
+            textAlign: "center",
+            width: "100%",
+          }}
+        >
+          <h2
+            style={{
+              color: "white",
+              fontSize: 60,
+              fontStyle: "normal",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.4,
+              marginTop: 30,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            gm! Add cast action to view followers count
+          </h2>
+        </div>
+      ),
+      intents: [<Button.Link href={ADD_URL}>Add Action</Button.Link>],
+    });
+  });
+  ```
+</CodeGroup>
+
+If you now start your server using `bun run dev` and head over to [http://localhost:5173/dev](http://localhost:5173/dev) you'll be able to see a frame somewhat like this:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ff041d7-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=e6a60b3f590ca594269443f552ae7f36" alt="Frog frame dev env" width="2546" height="2652" data-path="images/docs/ff041d7-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ff041d7-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f0aef4db2a7e23a2bc8791fb468df942 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ff041d7-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f00743fd9d93af8e13054de58a0eda20 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ff041d7-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=1a9f82f0ae3ca5252575991928e6666b 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ff041d7-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ebbd815d56f8bab6d9e490142e57e61a 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ff041d7-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=598324afcf620ba68ed1cbd8a03566b4 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ff041d7-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ad4beb7cb4e9783d7d3631c94d025349 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Click on Add action and it'll prompt you to add a new action like this:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fc953-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a9de773c8ccb77c64b96f0a359bb700c" alt="Add farcaster action" width="1078" height="666" data-path="images/docs/08fc953-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fc953-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=ddc091807205980696babb21efcf0911 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fc953-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=7ae1bb5e0522c8413944aa4047206f5c 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fc953-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=6dbce8283be5e8996e29e0007482f18a 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fc953-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=66ac79ffe644a656a57afcb26f437f5c 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fc953-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d5be109afd5cbf0e3480eaa8b206be52 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fc953-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c269eb9f3896b12111e94c6887e5449b 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Once you have added the action, you can start using it on Warpcast to see the follower count of various people! 🥳
+
+### Analytics
+
+Since we are using the validateFrameAction function, we also get analytics out of the box. Head over to the usage tab and click on the frame that you are currently using. It will provide you with various analytics like total interactors, interactions per cast, etc.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=da3d7ed1857d3ffc193a2c1a9870caf9" alt="Frame analytics" width="2712" height="1548" data-path="images/docs/713fe83-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d3edb2c3fa541221d74cdd7474798729 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=44233f30649ac573669b66e25035d104 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=af017201dbc47a7734002f87f4faa69b 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=481b9938eb8af2a40cef3e4a2ba92a87 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b51ddaea869218e5eeecc9afdaac0e41 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0eaf75f2c7c1f0d0fd4a2f9b04c8afcf 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+### Conclusion
+
+This guide taught us how to create a Farcaster cast action that shows the follower count of the cast's author! If you want to look at the completed code, check out the [GitHub repository](https://github.com/neynarxyz/farcaster-examples/tree/main/cast-action).
+
+Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
+
+
+# Cast From Inside a Frame
+Source: https://docs.neynar.com/docs/casting-from-a-frame
+
+In this guide, we'll look at how to build a frame using which people can create casts and perform other actions on the Farcaster app.
+
+For this guide, I will be using Next.js and frames.js but feel free to refer to this guide for any other framework with the necessary changes.
+
+For this guide, we'll go over:
+
+<CardGroup>
+  <Card title="Adding sign-in with neynar" href="/docs/casting-from-a-frame#adding-sign-in-with-neynar" icon="square-1" iconType="solid" horizontal />
+
+  <Card title="Storing signers in a DB" icon="square-2" iconType="solid" horizontal />
+
+  <Card title="Using the signer to create casts" icon="square-3" iconType="solid" horizontal />
+</CardGroup>
+
+Before we begin, you can access the [complete source code](https://github.com/avneesh0612/frame-cast) for this guide on GitHub.
+
+Let's get started!
+
+## Setting up
+
+### App
+
+We're going to use next.js so that we can have everything from our login page to our frame in the same project. So, create a new project using the following command:
+
+<CodeGroup>
+  ```powershell PowerShell
+  npx create-next-app@latest cast-frame-signer
+  ```
+</CodeGroup>
+
+You can choose the configuration based on your personal preference, I am using this config for the guide:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af167c6-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8d1834082b510b821830dcd6a7c5eeb3" alt="Frame creation" width="1954" height="1024" data-path="images/docs/af167c6-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af167c6-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=77c5229db324ac79009a00648ca189c7 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af167c6-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=039573152566578c1f27bffbb1ff629d 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af167c6-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d64864e65467c5f5093c78b0baa0a4d6 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af167c6-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9896a3fa34a3b1866ddc78fa97323905 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af167c6-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=dcc71ee0e3bf59fa005833c93c586701 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af167c6-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8341c126e6e798402ec90b456961433f 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Once the app is created, install the packages that we are going to need for the command:
+
+<CodeGroup>
+  ```powershell npm
+  npm i @neynar/react @neynar/nodejs-sdk axios @prisma/client prisma frames.js
+  ```
+
+  ```powershell yarn
+  yarn add @neynar/react @neynar/nodejs-sdk axios
+  ```
+
+  ```powershell bash
+  bun add @neynar/react @neynar/nodejs-sdk axios
+  ```
+</CodeGroup>
+
+### Database
+
+We're also going to need a database to store all the signers so that we can later access it to create casts and perform other actions on the user's behalf. I am going to use MongoDB as the database, and prisma as an ORM. So, go ahead and create an account/sign into your MongoDB account here. Once you've signed up go ahead and setup a new cluster on Mongodb. You can follow this [guide](https://www.mongodb.com/resources/products/fundamentals/mongodb-cluster-setup) to do it. Once you've setup your cluster follow these steps to get your connection URL:
+
+<Steps>
+  <Step title="Click on Connect in the dashboard tab">
+    <Frame>
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d19671c-SCR-20240608-blkb.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=fe803d1635d5f2c12a82cf5f8d0d2968" alt="Frame creation" width="2526" height="1652" data-path="images/docs/d19671c-SCR-20240608-blkb.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d19671c-SCR-20240608-blkb.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3f922ee8fb223a3587dcdbcc99c1374e 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d19671c-SCR-20240608-blkb.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=88562555586958b73397a936cbd37f78 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d19671c-SCR-20240608-blkb.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8121360ab631200d79e119363d27b006 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d19671c-SCR-20240608-blkb.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=99bb84cb661f919c8e2a77441ee7e108 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d19671c-SCR-20240608-blkb.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=738769cf226644ed1c42e61a5303c0c8 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d19671c-SCR-20240608-blkb.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=acfa187567ef63a5c403835055848cc3 2500w" data-optimize="true" data-opv="2" />
+    </Frame>
+  </Step>
+
+  <Step title="In the modal select drivers as the connection method">
+    <Frame>
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1fd4064-SCR-20240608-bllr.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9858a4d203f58e3564d7d2b934cca09a" alt="Frame creation" width="1594" height="1634" data-path="images/docs/1fd4064-SCR-20240608-bllr.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1fd4064-SCR-20240608-bllr.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=572220df7577cbdb92f32c75807d46d3 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1fd4064-SCR-20240608-bllr.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5a1883eddd6c2cbca28ad2ba8fb39af7 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1fd4064-SCR-20240608-bllr.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a0e622c6f732f42c539c52b3d140891c 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1fd4064-SCR-20240608-bllr.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=6da710db1818e05d7a4616d98ba20697 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1fd4064-SCR-20240608-bllr.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0ed82c2cf5a61d7e9baed5d092698c73 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1fd4064-SCR-20240608-bllr.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2fabc7c35fbb1692ef0d481ec82a063f 2500w" data-optimize="true" data-opv="2" />
+    </Frame>
+  </Step>
+
+  <Step title="Copy the connection string from here and replace `<password>` with your user password">
+    <Frame>
+      <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fcd5358-SCR-20240608-blmy.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=97817176a1de8cc7a51b6dac479a65fc" alt="Frame creation" width="1556" height="1868" data-path="images/docs/fcd5358-SCR-20240608-blmy.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fcd5358-SCR-20240608-blmy.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=5f84838bff4fa4add59bc54732227b96 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fcd5358-SCR-20240608-blmy.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=cfd387388292cbbe915962ed3399a29c 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fcd5358-SCR-20240608-blmy.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a102a1c11072dfc1dbda5dc11ad12fea 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fcd5358-SCR-20240608-blmy.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=df89b474c704098e36705a352457765a 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fcd5358-SCR-20240608-blmy.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=491994dc24e02f76f201c3c1f4e60cfc 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fcd5358-SCR-20240608-blmy.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=c977b45e757ca9eb9ff5981298ba0954 2500w" data-optimize="true" data-opv="2" />
+    </Frame>
+  </Step>
+</Steps>
+
+Now, let's go ahead and set up Prisma in our project. Run the following command to initialise:
+
+<CodeGroup>
+  ```powershell PowerShell
+  npx prisma init --datasource-provider MongoDB
+  ```
+</CodeGroup>
+
+Once the initialisation is complete head over to the `.env` file and add the connection url that you just copied and replace the part after `.mongodb.net/` with `/db?retryWrites=true&w=majority`.
+
+<Warning>
+  ### Make sure to add .env into .gitignore
+</Warning>
+
+Firstly, let's first define our database schema. Head over to `prisma/schema.prisma` and add a user model like this:
+
+<CodeGroup>
+  ```Text schema.prisma
+  model User {
+    fid        String @id @default(cuid()) @map("_id")
+    signerUUID String @unique
+  }
+  ```
+</CodeGroup>
+
+Once you have added the model, run these two commands:
+
+<CodeGroup>
+  ```powershell PowerShell
+  npx prisma db push
+  npx prisma generate
+  ```
+</CodeGroup>
+
+Now, we can add the Prisma client which we'll use to interact with our database. To do that, create a new `lib/prisma.ts` file in the `src` folder and add the following:
+
+<CodeGroup>
+  ```typescript prisma.ts
+  import { PrismaClient } from "@prisma/client";
+
+  let prisma: PrismaClient;
+
+  if (process.env.NODE_ENV === "production") {
+    prisma = new PrismaClient();
+  } else {
+    const globalWithPrisma = global as typeof globalThis & {
+      prisma: PrismaClient;
+    };
+    if (!globalWithPrisma.prisma) {
+      globalWithPrisma.prisma = new PrismaClient();
+    }
+    prisma = globalWithPrisma.prisma;
+  }
+
+  export default prisma;
+  ```
+</CodeGroup>
+
+## Adding sign-in with neynar
+
+Now that we've setup all the boilerplate let's start coding the actual part. We'll first go ahead and add sign in with neynar.
+
+To do that we need to wrap our app in a provider, so, head over to the `layout.tsx` file and wrap your app in a `NeynarContextProvider` like this:
+
+<CodeGroup>
+  ```typescript layout.tsx
+  "use client";
+
+  import { NeynarContextProvider, Theme } from "@neynar/react";
+  import "@neynar/react/dist/style.css";
+  import { Inter } from "next/font/google";
+  import "./globals.css";
+
+  const inter = Inter({ subsets: ["latin"] });
+
+  export default function RootLayout({
+    children,
+  }: Readonly<{
+    children: React.ReactNode;
+  }>) {
+    return (
+      <html lang="en">
+        <NeynarContextProvider
+          settings={{
+            clientId: process.env.NEXT_PUBLIC_NEYNAR_CLIENT_ID || "",
+            defaultTheme: Theme.Light,
+            eventsCallbacks: {
+              onAuthSuccess: () => {},
+              onSignout() {},
+            },
+          }}
+        >
+          <body className={inter.className}>{children}</body>
+        </NeynarContextProvider>
+      </html>
+    );
+  }
+  ```
+</CodeGroup>
+
+We are passing some settings here like `clientId`, `defaultTheme` and `eventsCallbacks`.
+
+* `clientId`: This is going to be the client ID you get from your neynar, add it to your `.env.local` file as `NEXT_PUBLIC_NEYNAR_CLIENT_ID`.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c44bb9404a8361f45b82f97d08e9feb8" alt="Frame creation" width="1522" height="1872" data-path="images/docs/bde5490-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4ff5bf38fa38e4de94c06ad0fcbb6970 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a222ad17c18b5f663e6f04e824186fa3 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=94a0a2869773842d26e582b557d6c4a1 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9586396fe163aadcfbd13b91e5f962bb 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=52749ddd7e277cfab691a1c452fdc42c 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e0ceb60805af565ad977367fc2e567c7 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+<Info>
+  ### Make sure to add localhost to the authorized origins
+</Info>
+
+* `defaultTheme`: default theme lets you change the theme of your sign-in button, currently, we have only light mode but dark mode is going to be live soon.
+* `eventsCallbacks`: This allows you to perform certain actions when the user signs out or auth is successful.
+
+I've also added a styles import from the neynar react package here which is needed for the styles of the sign-in button.
+
+Finally, let's add the sign-in button in the `page.tsx` file like this:
+
+<CodeGroup>
+  ```typescript page.tsx
+  "use client";
+
+  import { NeynarAuthButton } from "@neynar/react";
+
+  export default function Login() {
+    return (
+      <div tw="flex items-center gap-4">
+        <NeynarAuthButton />
+      </div>
+    );
+  }
+  ```
+</CodeGroup>
+
+If you head over to your app you'll be able to see a sign-in button on the screen. Go ahead and try signing in!
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2aefa20261f34feab92e7275ff564047" alt="Frame creation" width="396" height="196" data-path="images/docs/4813dc2-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=959840c686b273f0c270c73edb8aca02 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9071c020d137f8d6f4832b8915186ea8 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d19a81152b50ab7aebc0a958d7598aa1 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4499ea812b301b53f0d7ad7d96e5b48f 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0f52430ccff26d89a8d30693ab48d3c7 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=03bb8c35a195c8acf279b800acd94895 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Now that our sign-in button is working let's add a call to add the users' signers to the database.
+
+In `layout.tsx` add this to the `onAuthSuccess` function in `NeynarContextProvider`'s settings:
+
+<CodeGroup>
+  ```typescript layout.tsx
+  eventsCallbacks: {
+              onAuthSuccess: ({ user }) => {
+                axios.post("/api/add-user", {
+                  signerUuid: user?.signer_uuid,
+                  fid: user?.fid,
+                });
+              },
+              onSignout() {},
+            },
+  ```
+</CodeGroup>
+
+This will call an `/api/add-user`API route which we are yet to create with the user's signer and fid every time a user successfully signs in.
+
+Now, create a new `/api/add-user/route.ts` file in the `app` folder and add the following:
+
+<CodeGroup>
+  ```typescript add-user/route.ts
+  import { NextRequest, NextResponse } from "next/server";
+  import { isApiErrorResponse } from "@neynar/nodejs-sdk";
+  import neynarClient from "@/lib/neynarClient";
+  import prisma from "@/lib/prisma";
+
+  export async function POST(request: NextRequest) {
+    const { signerUuid, fid } = (await request.json()) as {
+      signerUuid: string;
+      fid: string;
+    };
+
+    try {
+      const { fid: userFid } = await neynarClient.lookupSigner({ signerUuid });
+
+      if (!userFid) {
+        return NextResponse.json({ message: "User not found" }, { status: 404 });
+      }
+
+      if (fid !== String(userFid)) {
+        return NextResponse.json(
+          { message: "Invalid user data" },
+          { status: 400 }
+        );
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {
+          fid: String(userFid),
+        },
+      });
+
+      if (!user) {
+        await prisma.user.create({
+          data: {
+            signerUUID: signerUuid,
+            fid: String(userFid),
+          },
+        });
+      }
+
+      return NextResponse.json({ message: "User added" }, { status: 200 });
+    } catch (err) {
+      if (isApiErrorResponse(err)) {
+        return NextResponse.json(
+          { ...err.response.data },
+          { status: err.response.status }
+        );
+      } else
+        return NextResponse.json(
+          { message: "Something went wrong" },
+          { status: 500 }
+        );
+    }
+  }
+  ```
+</CodeGroup>
+
+Here we are verifying the signer is valid and if it's valid we add it to the database.
+
+As you can see we are importing a `neynarClient` function which we have not yet created so we have to do that. Create a new `lib/neynarClient.ts` file and add the following:
+
+<CodeGroup>
+  ```Text neynarClient.ts
+  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
+
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const config = new Configuration({
+    apiKey: process.env.NEYNAR_API_KEY,
+  });
+
+  const neynarClient = new NeynarAPIClient(config);
+  export default neynarClient;
+  ```
+</CodeGroup>
+
+## Creating the frame
+
+Firstly, let's create the homescreen of the frame which will be a simple frame with a few buttons and a simple text.
+
+So, create a new file `frame/route.tsx` file in the `app` folder and add the following:
+
+```js
+import { createFrames, Button } from "frames.js/next";
+
+const frames = createFrames({});
+
+const HOST = process.env.HOST || "http://localhost:3000";
+
+const handleRequest = frames(async () => {
+  return {
+    image: (
+      <div tw="flex items-center justify-center h-full w-full bg-black">
+        <p tw="text-white text-6xl flex">Cast from a frame!</p>
+      </div>
+    ),
+    buttons: [
+      <Button action="post" key="start" target={`${HOST}/frame/start`}>
+        Start
+      </Button>,
+    ],
+  };
+});
+
+export const GET = handleRequest;
+export const POST = handleRequest;
+```
+
+If you open it up in a debugger it will show you a frame like this:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cf3bf1e-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a8ef776ab642323059109398dac2fd78" alt="Frame creation" width="1040" height="736" data-path="images/docs/cf3bf1e-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cf3bf1e-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=88cc432c40f98fb50b84ad813c42f9ba 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cf3bf1e-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=acd209339914ad49d60fc0ab94d2b674 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cf3bf1e-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f916c61fbb2f613fc0a930e67f5c0c63 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cf3bf1e-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=192ad84886fd1643ddc9e87eb9db43dc 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cf3bf1e-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0da8d0eb732a934338cdd3aba718bd33 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cf3bf1e-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a293c4f99774d75f92a1fe1f14f4c834 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Now, create a new file `start/route.tsx` in the `frame` folder and add the following:
+
+<CodeGroup>
+  ```typescript start/route.tsx
+  import prisma from "@/lib/prisma";
+  import { createFrames, Button } from "frames.js/next";
+
+  const frames = createFrames({});
+
+  const HOST = process.env.HOST || "http://localhost:3000";
+
+  const handleRequest = frames(async (payload) => {
+    const fid = payload.message?.requesterFid;
+    const user = await prisma.user.findUnique({
+      where: {
+        fid: String(fid),
+      },
+    });
+
+    if (!user) {
+      return {
+        image: (
+          <div tw="flex items-center justify-center h-full w-full bg-black">
+            <p tw="text-white text-6xl">User not found!</p>
+          </div>
+        ),
+        buttons: [
+          <Button action="link" key="login" target={`${HOST}`}>
+            Sign in
+          </Button>,
+        ],
+      };
+    }
+
+    return {
+      image: (
+        <div tw="flex items-center justify-center h-full w-full bg-black">
+          <p tw="text-white text-6xl">Cast from a frame!</p>
+        </div>
+      ),
+      buttons: [
+        <Button action="post" key="login" target={`${HOST}/frame/publish`}>
+          Cast
+        </Button>,
+      ],
+      textInput: "Text to cast...",
+    };
+  });
+
+  export const GET = handleRequest;
+  export const POST = handleRequest;
+  ```
+</CodeGroup>
+
+This is just the home page for the frame that we are creating let's create a new `/frame/publish` route where the cast is made using the text that the user entered on the home screen.
+
+Create a new file `route.tsx` in the `frame/publish/` folder and add the following:
+
+<CodeGroup>
+  ```typescript publish/route.tsx
+  import neynarClient from "@/lib/neynarClient";
+  import prisma from "@/lib/prisma";
+  import { createFrames, Button } from "frames.js/next";
+
+  const frames = createFrames({});
+
+  const HOST = process.env.HOST || "http://localhost:3000";
+
+  const handleRequest = frames(async (payload) => {
+    const text = payload.message?.inputText;
+    const fid = payload.message?.requesterFid;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        fid: String(fid),
+      },
+    });
+
+    if (!user) {
+      return {
+        image: (
+          <div style={{ color: "white", display: "flex", fontSize: 60 }}>
+            User not found!
+          </div>
+        ),
+        buttons: [
+          <Button action="link" key="login" target={HOST}>
+            Sign in
+          </Button>,
+        ],
+      };
+    }
+
+    const cast = await neynarClient.publishCast({signerUuid:user?.signerUUID,text:text || "gm"});
+
+    return {
+      image: (
+        <div tw="flex items-center justify-center h-full w-full bg-black">
+          <div tw="text-white text-6xl flex">
+            Casted successfully! 🎉
+            {cast?.hash}
+          </div>
+        </div>
+      ),
+    };
+  });
+
+  export const GET = handleRequest;
+  export const POST = handleRequest;
+  ```
+</CodeGroup>
+
+Here, we are first confirming that the user's signer exists. And if it does we use it to create a new cast using the `publishCast` function from the client we initialised. If you try publishing a new cast on the frame it will create the cast and show you something like this.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/55e260d-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1ccc59c4154be3772ce3b7990d44e0aa" alt="Frame creation" width="1064" height="636" data-path="images/docs/55e260d-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/55e260d-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=10b5faa92afd6c153a4773d6292bfa5e 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/55e260d-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c31e4ef4cfb99fdec725f106b5cb8a51 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/55e260d-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=aa0673809c18bf57c4da823d5ee3ad0b 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/55e260d-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=ac249ce9b2365ac7dbd819bcda482918 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/55e260d-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e1a328ad9af83a4cec758a5efd90eb2f 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/55e260d-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=8f2601439522d6055b0fa474c1639d0d 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Conclusion
+
+This guide taught us how to create a frame from which the users can create casts, check out the [GitHub repository](https://github.com/avneesh0612/frame-cast) if you want to look at the full code.
+
+Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # Find User Subscriptions with Neynar Hypersub
@@ -585,8 +1852,10 @@ Source: https://docs.neynar.com/docs/common-subscriptions-fabric
 Finding Hypersub subscriptions on Social Token Protocol (STP) using Neynar
 
 <Info>
-  ### Related set of APIs [here](/reference/fetch-subscribers-for-fid)
+  ### Related set of APIs [Fetch Subscribers for FID](/reference/fetch-subscribers-for-fid)
 </Info>
+
+## How to Find Common Subscriptions
 
 In this guide, we'll take two FIDs and then find their common subscriptions on fabric.
 
@@ -650,14 +1919,14 @@ Here, we use the filter function on the data that we just fetched and match the 
 Now, we can test the script by running it.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/304285a-image.png" alt="Common Subscriptions" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/304285a-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=630569e1055e9b0d72319f1c6922cc81" alt="Common Subscriptions" width="1802" height="1300" data-path="images/docs/304285a-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/304285a-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=bcb4a155d1bc1732ab082fff21cc6291 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/304285a-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b5e70aca86b985b4d27a9cd1961c67f8 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/304285a-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=540835eda2481fa0a491610009c549fb 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/304285a-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=7e763f541bd6f9e75d17e032cdeb54c8 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/304285a-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=ac65546f0b3c086b491285f4c4c59a31 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/304285a-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cceec13388cf519a62f5d8e98bafc921 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 The two FIDs we used were subscribed to Terminally Onchain, so that shows up.
 
-If you want to look at the complete script, you can look at this [GitHub Gist](https://gist.github.com/avneesh0612/f9fa2da025fa764c6dc65de5f3d5ecec). If you want to know more about the subscription APIs take a look [here](/reference/fetch-subscribers-for-fid).
+If you want to look at the complete script, you can look at this [GitHub Gist](https://gist.github.com/avneesh0612/f9fa2da025fa764c6dc65de5f3d5ecec). If you want to know more about the subscription APIs take a look at [Fetch Subscribers for FID](/reference/fetch-subscribers-for-fid).
 
-Lastly, please share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+Lastly, please share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # Convert a Web App to a Farcaster Mini App
@@ -666,13 +1935,13 @@ Source: https://docs.neynar.com/docs/convert-web-app-to-mini-app
 Update any JavaScript web app to be a Farcaster mini app
 
 <Info>
-  If looking to create a new mini app from scratch, see [here](/docs/create-farcaster-miniapp-in-60s).
+  If looking to create a new mini app from scratch, see [Create Farcaster Mini App in 60s](/docs/create-farcaster-miniapp-in-60s).
 </Info>
 
 Converting an existing JavaScript-based web app to a Farcaster mini app involves the following steps:
 
 * install the [@neynar/react](https://www.npmjs.com/package/@neynar/react) npm package and use the `<MiniAppProvider>` provider in your app
-  * alternatively, install the [Mini App SDK](https://www.npmjs.com/package/@farcaster/frame-sdk) and call `sdk.actions.ready()`
+  * alternatively, install the [Mini App SDK](https://www.npmjs.com/package/@farcaster/miniapp-sdk) and call `sdk.actions.ready()`
 * integrate with the SDK's ethereum provider exposed via `sdk.wallet.ethProvider`
 * add a `farcaster.json` file with mini app metadata and a signature proving ownership
 * add a custom HTML `<meta />` tag specifying how embeds should be rendered
@@ -721,13 +1990,13 @@ export default function HomePage() {
 Alternatively, you can use the Mini App SDK (formerly the Frame SDK):
 
 ```bash
-npm install @farcaster/frame-sdk
+npm install @farcaster/miniapp-sdk
 ```
 
 Then call the ready function when your interface is loaded and ready to be displayed:
 
 ```javascript
-import { sdk } from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
  
 await sdk.actions.ready();
 ```
@@ -738,7 +2007,7 @@ Here's an example of how you might do this in a standard React app:
 
 ```javascript {9}
 import { useEffect, useState } from "react";
-import { sdk } from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -759,14 +2028,14 @@ export default function Home() {
 
 ## Connecting to the wallet provider
 
-It's recommended to use `wagmi` for your wallet provider, as the Farcaster team provides the [@farcaster/frame-wagmi-connector package](https://www.npmjs.com/package/@farcaster/frame-wagmi-connector) for easy configuration.
+It's recommended to use `wagmi` for your wallet provider, as the Farcaster team provides the [@farcaster/miniapp-wagmi-connector package](https://www.npmjs.com/package/@farcaster/miniapp-wagmi-connector) for easy configuration.
 
-Run `npm i @farcaster/frame-wagmi-connector` to install, and then connecting is as simple as adding the connector to the wagmi config:
+Run `npm i @farcaster/miniapp-wagmi-connector` to install, and then connecting is as simple as adding the connector to the wagmi config:
 
 ```javascript {11}
 import { http, createConfig } from 'wagmi';
 import { base } from 'wagmi/chains';
-import { farcasterFrame as miniAppConnector } from '@farcaster/frame-wagmi-connector';
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
  
 export const wagmiConfig = createConfig({
   chains: [base],
@@ -774,7 +2043,7 @@ export const wagmiConfig = createConfig({
     [base.id]: http(),
   },
   connectors: [
-    miniAppConnector()
+    farcasterMiniApp()
     // add other wallet connectors like metamask or coinbase wallet if desired
   ]
 });
@@ -863,15 +2132,15 @@ Use Solana wallet hooks in your components:
 
 Mini apps are expected to serve a farcaster.json file, also known as a "manifest", at `/.well-known/farcaster.json`, published at the root of the mini app's domain.
 
-The manifest consists of a `frame` section containing metadata specific to the mini app and an `accountAssociation` section consisting of a JSON Farcaster Signature (JFS) to verify ownership of the domain and mini app.
+The manifest consists of a `miniapp` section containing metadata specific to the mini app and an `accountAssociation` section consisting of a JSON Farcaster Signature (JFS) to verify ownership of the domain and mini app.
 
-The `frame` metadata object only has four required fields (`version`, `name`, `homeUrl`, and `iconUrl`), but providing more is generally better to help users and clients discover your mini app. See the full list of options [here in the Farcaster docs](https://miniapps.farcaster.xyz/docs/specification#frame).
+The `miniapp` metadata object only has four required fields (`version`, `name`, `homeUrl`, and `iconUrl`), but providing more is generally better to help users and clients discover your mini app. See the full list of options [here in the Farcaster docs](https://miniapps.farcaster.xyz/docs/specification#frame).
 
-Start by publishing just the frame portion of the manifest:
+Start by publishing just the miniapp portion of the manifest:
 
 ```json
 {
-  "frame": {
+  "miniapp": {
     "version": "1",
     "name": "Yoink!",
     "iconUrl": "https://yoink.party/logo.png",
@@ -895,7 +2164,7 @@ public/
 
 Once your domain is live and serving something like the above example at `yourURL.com/.well-known/farcaster.json`, you need to generate an `accountAssociation` signed with your farcaster custody address:
 
-* go to [the manifest tool on Farcaster](https://warpcast.com/~/developers/mini-apps/manifest) in your desktop browser
+* go to [the manifest tool on Farcaster](https://farcaster.xyz/~/developers/mini-apps/manifest) in your desktop browser
 * enter your domain and scroll to the bottom
 * click "Claim Ownership", and follow the steps to sign the manifest with your Farcaster custody address using your phone
 * finally, copy the output manifest from the manifest tool and update your domain to serve the full, signed farcaster.json file, which should look something like this:
@@ -907,7 +2176,7 @@ Once your domain is live and serving something like the above example at `yourUR
     "payload": "eyJkb21haW4iOiJ5b2luay5wYXJ0eSJ9",
     "signature": "MHgwZmJiYWIwODg3YTU2MDFiNDU3MzVkOTQ5MDRjM2Y1NGUxMzVhZTQxOGEzMWQ5ODNhODAzZmZlYWNlZWMyZDYzNWY4ZTFjYWU4M2NhNTAwOTMzM2FmMTc1NDlmMDY2YTVlOWUwNTljNmZiNDUxMzg0Njk1NzBhODNiNjcyZWJjZTFi"
   },
-  "frame": {
+  "miniapp": {
     "version": "1",
     "name": "Yoink!",
     "iconUrl": "https://yoink.party/logo.png",
@@ -929,7 +2198,7 @@ To allow your mini app to render properly in social feeds, you must add a meta t
 <meta name="fc:frame" content="<stringified Embed JSON>" />
 ```
 
-The full schema can be found [here in the Farcaster docs](https://miniapps.farcaster.xyz/docs/specification#schema), but the most common button action is `launch_frame`, so unless you have a specific use case, you can safely copy the following example:
+The full schema can be found [here in the Farcaster docs](https://miniapps.farcaster.xyz/docs/specification#schema), but the most common button action is `launch_miniapp`, so unless you have a specific use case, you can safely copy the following example:
 
 ```json
 {
@@ -938,7 +2207,7 @@ The full schema can be found [here in the Farcaster docs](https://miniapps.farca
   "button": {
     "title": "🚩 Start",
     "action": {
-      "type": "launch_frame",
+      "type": "launch_miniapp",
       "name": "Yoink!",
       "url": "https://yoink.party/framesV2",
       "splashImageUrl": "https://yoink.party/logo.png",
@@ -947,6 +2216,269 @@ The full schema can be found [here in the Farcaster docs](https://miniapps.farca
   }
 }
 ```
+
+
+# Bot Replying with Frames
+Source: https://docs.neynar.com/docs/create-a-farcaster-bot-to-reply-with-frames-using-neynar
+
+In this guide, we’ll take a look at how to create a Farcaster bot that replies to specific keywords with a frame created on the go specifically for the reply!
+
+Here’s an example of the same:
+
+<Frame>
+  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/neynarxyz/farcaster-examples/assets/76690419/d5749625-ce9c-46da-b8aa-49bb9be8fd0f" alt="Demo of the farcaster frames bot" />
+</Frame>
+
+For this guide, we'll go over:
+
+<CardGroup>
+  <Card title="Creating a webhook that listens to casts" href="/docs/create-a-farcaster-bot-to-reply-with-frames-using-neynar#creating-a-webhook" icon="square-1" iconType="solid" horizontal />
+
+  <Card title="Creating a bot that replies to the casts" href="/docs/create-a-farcaster-bot-to-reply-with-frames-using-neynar#creating-the-bot" icon="square-2" iconType="solid" horizontal />
+
+  <Card title="Creating frames dynamically using the neynar SDK" href="/docs/create-a-farcaster-bot-to-reply-with-frames-using-neynar#creating-the-frame" icon="square-3" iconType="solid" horizontal />
+</CardGroup>
+
+Before we begin, you can access the [complete source code](https://github.com/neynarxyz/farcaster-examples/tree/main/frames-bot) for this guide on GitHub.
+
+Let's get started!
+
+## Setting up our server
+
+### Creating a bun server
+
+I am using a [bun server](https://bun.sh/) for the sake of simplicity of this guide, but you can use express, Next.js api routes or any server that you wish to use! Here's a [serverless example using next.js api routes](https://github.com/davidfurlong/farcaster-bot-template/tree/main) created by [@df](https://warpcast.com/df).
+
+Create a new server by entering the following commands in your terminal:
+
+<CodeGroup>
+  ```powershell PowerShell
+  mkdir frames-bot
+  cd frames-bot
+  bun init
+  ```
+</CodeGroup>
+
+We are going to need the `@neynar/nodejs-sdk`, so let’s install that as well:
+
+<CodeGroup>
+  ```powershell PowerShell
+  bun add @neynar/nodejs-sdk
+  ```
+</CodeGroup>
+
+Once the project is created and the packages are installed, you can open it in your favourite editor and add the following in `index.ts`:
+
+<CodeGroup>
+  ```typescript index.ts
+  const server = Bun.serve({
+    port: 3000,
+    async fetch(req) {
+      try {
+        return new Response("Welcome to bun!");
+      } catch (e: any) {
+        return new Response(e.message, { status: 500 });
+      }
+    },
+  });
+
+  console.log(`Listening on localhost:${server.port}`);
+  ```
+</CodeGroup>
+
+This creates a server using bun which we will be using soon!
+
+Finally, run the server using the following command:
+
+<CodeGroup>
+  ```powershell PowerShell
+  bun run index.ts
+  ```
+</CodeGroup>
+
+### Serve the app via ngrok
+
+We’ll serve the app using ngrok to use this URL in the webhook. If you don’t already have it installed, install it from [here](https://ngrok.com/download). Once it’s installed, authenticate using your auth token and serve your app using this command:
+
+<CodeGroup>
+  ```powershell PowerShell
+  ngrok http http://localhost:3000
+  ```
+</CodeGroup>
+
+<Frame>
+  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/neynarxyz/farcaster-examples/assets/76690419/7f3e8d33-1aef-4723-948c-436c56658864" alt="Serve your app using ngrok" />
+</Frame>
+
+<Warning>
+  ### Free endpoints like ngrok, localtunnel, etc. can have issues because service providers start blocking events over a certain limit
+</Warning>
+
+## Creating a webhook
+
+We need to create a webhook on the neynar dashboard that will listen for certain words/mentions and call our server which will then reply to the cast. So, head to the neynar dashboard and go to the [webhooks tab](https://dev.neynar.com/webhook). Click on new webhook and enter the details as such:
+
+<Frame>
+  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/neynarxyz/farcaster-examples/assets/76690419/81b65ce0-5b3a-4856-b1e5-7f46c2c648cd" alt="Create a new webhook on the neynar dashboard" />
+</Frame>
+
+The target URL should be the URL you got from the ngrok command, and you can select whichever event you want to listen to. I’ve chosen to listen to all the casts with “farcasterframesbot” in it. Once you have entered all the info, click Create to create a webhook.
+
+## Creating the bot
+
+Head over to the [app section](https://dev.neynar.com/app/list) in the [neynar dashboard](https://dev.neynar.com/) and copy the signer uuid for your account:
+
+<Frame>
+  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/neynarxyz/farcaster-examples/assets/76690419/a6a56060-612c-4ff1-bf67-b01a0b43bcf3" alt="Copy the signer uuid for the bot" />
+</Frame>
+
+Create a new `.env` file in the root of your project and add the following:
+
+<CodeGroup>
+  ```bash .env
+  SIGNER_UUID=your_signer_uuid
+  NEYNAR_API_KEY=your_neynar_api_key
+  ```
+</CodeGroup>
+
+Add the signer UUID to the `SIGNER_UUID` and the neynar api key to the `NEYNAR_API_KEY` which you can get from the overview section of the neynar dashboard:
+
+<Frame>
+  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/neynarxyz/farcaster-examples/assets/76690419/f55d7ee4-a2d2-4c61-ac0f-bf7074a80a60" alt="Copy neynar api key from the dashboard" />
+</Frame>
+
+Create a `neynarClient.ts` file and add the following:
+
+<CodeGroup>
+  ```typescript neynarClient.ts
+  // npm i @neynar/nodejs-sdk
+  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
+
+  if (!process.env.NEYNAR_API_KEY) {
+    throw new Error("Make sure you set NEYNAR_API_KEY in your .env file");
+  }
+
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const config = new Configuration({
+    apiKey:process.env.NEYNAR_API_KEY,
+  });
+
+  const neynarClient = new NeynarAPIClient(config);
+
+  export default neynarClient;
+  ```
+</CodeGroup>
+
+Here we initialize the neynar client, which we can use to publish casts. Head back to `index.ts` and add this inside the try block:
+
+<CodeGroup>
+  ```typescript index.ts
+  if (!process.env.SIGNER_UUID) {
+    throw new Error("Make sure you set SIGNER_UUID in your .env file");
+  }
+
+  const body = await req.text();
+  const hookData = JSON.parse(body);
+  const signerUuid= process.env.SIGNER_UUID;
+  const text= `gm ${hookData.data.author.username}`;
+  const replyTo= hookData.data.hash;
+
+  const reply = await neynarClient.publishCast(
+    {
+       signerUuid,
+       text,
+       parent: replyTo,
+    }
+  );
+  console.log("reply:", reply.cast);
+  ```
+</CodeGroup>
+
+You also need to import the neynar client in the `index.ts` file:
+
+<CodeGroup>
+  ```typescript index.ts
+  import neynarClient from "./neynarClient";
+  ```
+</CodeGroup>
+
+This will now reply to every cast that has the word “farcasterframesbot” in it with a gm. Pretty cool, right?
+
+Let’s take this a step further and reply with a frame instead of boring texts!
+
+## Creating the frame
+
+We’ll now generate a unique frame for every user on the fly using neynar frames. To create the frame, add the following code in the `index.ts` before the reply:
+
+<CodeGroup>
+  ```typescript index.ts
+  const creationRequest: NeynarFrameCreationRequest = {
+    name: `gm ${hookData.data.author.username}`,
+    pages: [
+      {
+        image: {
+          url: "https://moralis.io/wp-content/uploads/web3wiki/638-gm/637aeda23eca28502f6d3eae_61QOyzDqTfxekyfVuvH7dO5qeRpU50X-Hs46PiZFReI.jpeg",
+          aspect_ratio: "1:1",
+        },
+        title: "Page title",
+        buttons: [],
+        input: {
+          text: {
+            enabled: false,
+          },
+        },
+        uuid: "gm",
+        version: "vNext",
+      },
+    ],
+  };
+
+  const frame = await neynarClient.publishNeynarFrame(creationRequest);
+  ```
+</CodeGroup>
+
+You can edit the metadata here, I have just added a simple gm image but you can go crazy with it! For example, check out some templates in the [frame studio](https://dev.neynar.com) .
+
+Anyway, let’s continue building; you also need to add the frame as an embed in the reply body like this:
+
+<CodeGroup>
+  ```typescript index.ts
+  const signerUuid= process.env.SIGNER_UUID;
+  const text= `gm ${hookData.data.author.username}`;
+  const replyTo= hookData.data.hash;
+  const embeds = [
+    {
+      url: frame.link,
+    },
+  ];
+  const reply = await neynarClient.publishCast({
+    signerUuid,
+   	text,
+    parent: replyTo,
+    embeds
+    }
+  );
+  ```
+</CodeGroup>
+
+Putting it all together, your final `index.ts` file should look similar to [this complete example](https://github.com/neynarxyz/farcaster-examples/blob/main/frames-bot/index.ts).
+
+Don't forget to restart your server after making these changes!
+
+<CodeGroup>
+  ```powershell PowerShell
+  bun run index.ts
+  ```
+</CodeGroup>
+
+You can now create a cast on Farcaster, and your webhook should work fine!
+
+## Conclusion
+
+This guide taught us how to create a Farcaster bot that replies to specific keywords with a frame created on the go! If you want to look at the completed code, check out the [GitHub repository](https://github.com/neynarxyz/farcaster-examples/tree/main/frames-bot).
+
+Lastly, make sure to tag what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # Cast Stream
@@ -996,7 +2528,7 @@ Now, let's get to building our stream. In the index.ts file add the following to
 
 You need to replace "YOUR\_NEYNAR\_API\_KEY" with your API key. You can get it from your [neynar app page](https://dev.neynar.com/app).
 
-Once our client is initialized we can use it to subscribe to specific events, in our case we want to subscribe to the `MERGE_MESSAGE` event. You can check out the full details about the types of events [here](https://www.thehubble.xyz/docs/events.html). So, add the following in your code:
+Once our client is initialized we can use it to subscribe to specific events, in our case we want to subscribe to the `MERGE_MESSAGE` event. You can check out the full details about the types of events in [The Snapchain Events Documentation](https://snapchain.farcaster.xyz/reference/datatypes/events#events). So, add the following in your code:
 
 <CodeGroup>
   ```typescript index.ts
@@ -1083,12 +2615,12 @@ client.$.waitForReady(Date.now() + 5000, async (e) => {
 Finally, you can run the script using `bun run index.ts` and it will provide you with a stream like this:
 
 <Frame>
-  ![Cast Stream](https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/bc0fa74-image.png)
+    <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bc0fa74-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=96463bef2c786dfd41e26eee07c6ae18" alt="Cast Stream" width="2296" height="1344" data-path="images/docs/bc0fa74-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bc0fa74-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=41484e3fb31d083a683cb8f439aa5924 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bc0fa74-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=db683d8be1b6cfaeff3679a2fdf743f7 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bc0fa74-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=96c9038d4118245e91a501d687de64f1 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bc0fa74-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9a9c7dd12304ca01e41a4b6a2737561d 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bc0fa74-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5f33aa4f2d0a0841522755e682c23447 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bc0fa74-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8d0b8e29f6da8757f6c0c03762f0b33f 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ## Share with us!
 
-Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # Create in UI
@@ -1101,13 +2633,13 @@ Create a new Farcaster agent directly in Neynar dev portal
 If you haven't created a new agent account yet, you can make it directly in the [Neynar dev portal](https://dev.neynar.com) . You can click inside an app and directly spin up a new bot from there.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png" alt="create agent" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=1c33bfeea83c2e7a28b77f145ede891a" alt="create agent" width="2010" height="244" data-path="images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c550d7f82b7954c8cf05af485a905896 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=034801a7fb2688c086c7d5d547058fdf 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4fb8eb462ba291c9ca047fb4fe3d86de 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9a113bc7d5d6949dd9aa1fc6048342de 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5a5e83fa174e3288f90bc3b206e06c7a 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cec6f046cd86dcc0f3c2bbff6f22c056c39f277b78d3f3dd3d35483bddc8071c-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d13b4bd59e22d3a2826f4e7195bd9fd5 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Tap on "Create Agent" to make the agent.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png" alt="create agent" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d8f8ab4d9ef37e491ca17c292dd885f6" alt="create agent" width="1386" height="1164" data-path="images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6b4f247f35eb64b06c0335f39a930ffe 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e23d7a8470adf1900ad34a4bd589c003 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=cf08e927fffe671d09977059a31fd6ed 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c8ccd29865df7a91f2d3c6649a5baae9 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f643170f7f8842287bb0e525d2a6f7ad 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c3ea656528155a1f0d16d571fb298da7cbc348b3a2aecfb99bd6a33a31f19704-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=47aa8ee667c236741c83acaa5b996b25 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Agent creation requires paying for account creation on the Farcaster protocol which Neynar does on your behalf. However, this is why we restrict the number of agents you can create per developer account. Best to not create more than one test agent through the portal in case you hit the limit prematurely.
@@ -1140,48 +2672,292 @@ If your bot or agent needs to listen to replies, see how to use webhooks in [Lis
 
 
 # Create Farcaster Mini App (v2 frame) in < 60s
-Source: https://docs.neynar.com/docs/create-farcaster-miniapp-in-60s
+Source: https://docs.neynar.com/docs/create-farcaster-frame-in-60s
 
 Create a v2 Farcaster mini app in less than 60 seconds
 
 <Info>
-  If looking to convert an existing web app into a mini app, see [here](/docs/convert-web-app-to-mini-app).
+  This doc has been updated. See [Create Farcaster Mini App in 60s](/docs/create-farcaster-miniapp-in-60s).
 </Info>
 
-This tutorial shows how to create a Farcaster mini app (prev. called frames) with one simple command in less than 60s using the [Neynar Starter Kit](https://github.com/neynarxyz/create-farcaster-mini-app/).
 
-Simply type `npx @neynar/create-farcaster-mini-app@latest` in any terminal window. Github repo [here](https://github.com/neynarxyz/create-farcaster-mini-app).
+# Farcaster Mini Apps Getting Started - Create mini apps in <60s
+Source: https://docs.neynar.com/docs/create-farcaster-miniapp-in-60s
 
-* package is open source ([github](https://github.com/neynarxyz/create-farcaster-mini-app) )
+Create a Farcaster mini app in less than 60 seconds
+
+<Info>
+  If looking to convert an existing web app into a mini app, see [Convert Web App to Mini App](/docs/convert-web-app-to-mini-app).
+</Info>
+
+This tutorial shows how to create a Farcaster mini app (previously known as Farcaster frames) with one simple command in less than 60s using the [Neynar Starter Kit](https://github.com/neynarxyz/create-farcaster-mini-app/).
+
+<div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-dark-mode.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=448e402bcc0012cf8a7a293e5edf21b8" alt="Neynar Starter Kit demo app screenshot in dark mode" className="w-auto h-auto" width="792" height="1510" data-path="images/docs/nsk-dark-mode.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-dark-mode.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f59401630864a0bbe443ea032f7416fa 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-dark-mode.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=9b6e31a45c6d90755ffbe27609db44ad 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-dark-mode.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=d6fca60aba9dda056f68588096a87957 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-dark-mode.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=e5e7b29fb14d47ebf68ee5dd268b17b1 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-dark-mode.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=b9b31f75850dc05e5d3b37a65cfa1734 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-dark-mode.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=21e9be6be4691399d2fa5653571e7ec2 2500w" data-optimize="true" data-opv="2" />
+
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-light-mode.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=51bdb0b917ad5679daf0c7cdef972df7" alt="Neynar Starter Kit demo app screenshot in light mode" className="w-auto h-auto" width="792" height="1512" data-path="images/docs/nsk-light-mode.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-light-mode.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2ee9b7de72d94bee8bc3bf8348ec6888 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-light-mode.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=5180fc8c16b259a2502910693469aa4e 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-light-mode.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=eee698d779c787a1bca4cb8ff6347518 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-light-mode.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=4d8b50a5eb0db9bcff75d1b2f6ff1de6 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-light-mode.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=10a7ec84a4c2e637bfe9d29d94369248 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/nsk-light-mode.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=1e3eb0d0f0db42dccefb358eb4024def 2500w" data-optimize="true" data-opv="2" />
+</div>
+
+Simply type `npx @neynar/create-farcaster-mini-app@latest` in any terminal window to get started with the template, or check out the [live demo of the Neynar Starter Kit](https://farcaster.xyz/miniapps/Qmodl2Stf9qh/starter-kit) on Farcaster.
+
+* package is open source ([github repo](https://github.com/neynarxyz/create-farcaster-mini-app))
 * using neynar services is optional
 * demo API key is included if you haven't subscribed yet
 
 The flow:
 
-* generates signature required by frame spec on your behalf and puts in the farcaster manifest
+* generates signature required by mini app spec on your behalf and puts in the farcaster manifest
 * sets up splash image, CTA, etc. as part of workflow (incl. personalized share images, more on that below)
 * spins up a localtunnel hosted url so you can debug immediately, no need to ngrok or cloudflare on your own
 * if you use neynar:
   * automatically fetches user data
   * automatically sets sets up [notifications and analytics](/docs/send-notifications-to-mini-app-users) (just put in your client id from the dev portal)
 
-See \< 1 min video here that goes from scratch to testable frame:
+See \< 1 min video here that goes from scratch to testable mini app:
 
 <Frame>
-  <iframe width="100%" height="420" src="https://www.youtube.com/embed/VpZqw976bqs" title="Create v2 Farcaster frame in less than 1 min" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen />
+  <iframe width="100%" height="420" src="https://www.youtube.com/embed/VpZqw976bqs" title="Create Farcaster mini app in less than 1 min" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen />
 </Frame>
 
 If you have questions or feature requests, please reach out to @[veganbeef](https://warpcast.com/veganbeef) or @[rish](https://warpcast.com/rish). We are always looking forward to working with developers!
 
 <Info>
-  If you want to sign in users with a Farcaster signer into your mini app, use [Neynar Managed Signers](/docs/integrate-managed-signers).
+  If you want to sign in users with a Farcaster signer into your mini app, use
+
+  * [Mini app auth](/docs/mini-app-authentication) if you want a built in next.js frontend.
+  * [Neynar Managed Signers](/docs/integrate-managed-signers) when building your own frontend.
 </Info>
 
 ### Appendix
 
 A great way to make your mini app go viral is to give your users personalized share images / urls that they can share on their social media timelines. Our starter kit makes it easy. Simply add `/share/[fid]` at the end of your mini app domain to create a personalized share image for that user e.g. `[your_url].[extension]/share/[fid]` should create an embed image like below:
 
-![Original(1) Avi](https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/original\(1\).avif)
+<img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/original(1).avif?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f810f75e333ffa23efa49b4815b490a4" alt="Original(1) Avi" width="971" height="748" data-path="images/original(1).avif" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/original(1).avif?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f8907a5d18e2eb6d35ad68b8d3328466 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/original(1).avif?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=e9a4fc35ed1d077cc0cda8388d9f96d0 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/original(1).avif?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=aed1a8a70a99b13fdc27656a17006c2d 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/original(1).avif?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=438c121b23873c05c8a428912895ac7a 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/original(1).avif?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=90eec085c1e0ceb535a442b7c221dfd9 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/original(1).avif?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=24060d8e149b381fb532cdad5cbc3577 2500w" data-optimize="true" data-opv="2" />
+
+
+# Create Multi Step Cast Action
+Source: https://docs.neynar.com/docs/create-multi-step-cast-action
+
+In this guide, we’ll make a multi-step cast action, within a few minutes! The cast action will go ahead and return a frame which will show the cast hash.
+
+Let's get started!
+
+## Creating a new frames project
+
+We will use [bun](https://bun.sh/) and [frog](https://frog.fm/) for building the cast action in this guide, but feel free to use [framejs](https://framesjs.org/), [onchainkit](https://onchainkit.xyz/), or anything else as well!
+
+Enter this command in your terminal to create a new app:
+
+<CodeGroup>
+  ```powershell PowerShell
+  bunx create-frog -t bun
+  ```
+</CodeGroup>
+
+Enter a name for your project and it will spin up a new project for you. Once the project is created install the dependencies:
+
+<CodeGroup>
+  ```powershell PowerShell
+  cd <project_name>
+  bun install
+  ```
+</CodeGroup>
+
+Once everything is done, open up `index.tsx` and update the Frog instance to use neynar hubs and make sure to update the api key so that you can get analytics for your frame and cast action!
+
+<CodeGroup>
+  ```typescript index.tsx
+  import { neynar } from "frog/hubs";
+
+  export const app = new Frog({
+    hub: neynar({ apiKey: "NEYNAR_FROG_FM" }),
+  });
+  ```
+</CodeGroup>
+
+## Creating the add cast action frame
+
+Firstly, let's create the home screen frame that will link to adding the cast action. So, head over to the `index.tsx` file and update the `/` frame to this:
+
+<CodeGroup>
+  ```typescript index.tsx
+  app.frame("/", (c) => {
+    return c.res({
+      image: (
+        <div
+          style={{
+            alignItems: "center",
+            background: "black",
+            backgroundSize: "100% 100%",
+            height: "100%",
+            textAlign: "center",
+            width: "100%",
+            display: "flex",
+          }}
+        >
+          <div
+            style={{
+              color: "white",
+              fontSize: 60,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            Create a multi step cast action
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button.AddCastAction action="/get-cast-hash">Add</Button.AddCastAction>,
+      ],
+    });
+  });
+  ```
+</CodeGroup>
+
+This should render a pretty simple frame like this:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/79ef4e0-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2654b459f21b7d496335932a847d95d2" alt="Add cast action frame" width="1108" height="780" data-path="images/docs/79ef4e0-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/79ef4e0-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3df241136eebadf1d4ddbc50f58a4069 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/79ef4e0-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=95bb7d5d16e6d605fa8e990c3bc182aa 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/79ef4e0-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3a6f95d6b25e520838cae7645a28b7a0 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/79ef4e0-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a3617145e85b677e054cc46d4a80d7bb 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/79ef4e0-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=355c9ba04f999724eff3f2801bc83d26 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/79ef4e0-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=321f913668d24b5a3aeb6168a23497de 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Let's now build the actual cast action.
+
+## Creating the cast action
+
+The frog instance provides us with a `.castAction` which can be used to create new cast actions like this:
+
+<CodeGroup>
+  ```typescript index.tsx
+
+  app.castAction(
+    "/get-cast-hash",
+    (c) => {
+      return c.frame({ path: "/cast-hash" });
+    },
+    { name: "Get cast hash", icon: "hash" }
+  );
+  ```
+</CodeGroup>
+
+This creates a new cast action on the `/get-cast-hash` route which will return a new frame linking to `/cast-hash`. In the last object, you can change the name and icon of your cast action and add a description as well!
+
+Now, let's create the frame that the cast action will return.
+
+## Creating the cast hash frame
+
+Create a new frame on the `/cast-hash` route like this:
+
+<CodeGroup>
+  ```typescript index.tsx
+  app.frame("/cast-hash", (c) => {
+    return c.res({
+      image: (
+        <div
+          style={{
+            alignItems: "center",
+            background: "black",
+            backgroundSize: "100% 100%",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            justifyContent: "center",
+            textAlign: "center",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              color: "white",
+              fontSize: 48,
+              marginTop: 30,
+              padding: "0 120px",
+            }}
+          >
+            Cast hash is:
+          </div>
+          <div
+            style={{
+              color: "white",
+              fontSize: 48,
+              marginTop: 30,
+              padding: "0 120px",
+            }}
+          >
+            {c.frameData?.castId.hash}
+          </div>
+        </div>
+      ),
+    });
+  });
+  ```
+</CodeGroup>
+
+This frame gets the cast hash from the `frameData` object and displays it.
+
+Now we can go ahead and test our cast action. But for that, you need to host your server somewhere, for local development you can use ngrok.
+
+If you don’t already have it installed, install it from [here](https://ngrok.com/download). Once it’s installed authenticate using your auth token and serve your app using this command:
+
+<CodeGroup>
+  ```powershell PowerShell
+  ngrok http http://localhost:5173/
+  ```
+</CodeGroup>
+
+This command will give you a URL which will forward the requests to your localhost:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3d75166dbbca1cf95e9335970e56a699" alt="Ngrok URL" width="1858" height="490" data-path="images/docs/9e1852c-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=aed41d3fdf7f9958cafa42af9e4f67c4 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=68b9aae96a9ad9d7e12b5dd2aefda8b7 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=217bfd7e9e0f763837dcf141f0acb312 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=754c196211dac3685b61c6b4e0fa4703 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=25de4a885302e9778225f48249a81cba 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9e1852c-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c9c1e14ab0544e40a6eaf61ab33a0889 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+If you go ahead and try out your action you'll see a frame like this
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e486b4-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=599add55ee036e344d910ad79f79c378" alt="Multi step cast action" width="1188" height="828" data-path="images/docs/5e486b4-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e486b4-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=174cdc85d993341fc292b4868abe5537 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e486b4-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a54cd4922f652a069ed9e863fddf992b 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e486b4-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c3e8fe246400b2bdf124c4419a9ff720 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e486b4-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3b5eac3b701091f725cc6ef603408f0a 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e486b4-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f7deeeb0504506772a65ab94a32e96d5 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e486b4-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2ca170ef133adee1dd6ae669e24c223d 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Conclusion
+
+This guide taught us how to create a multi-step cast action, which returns a frame! If you want to look at the completed code, check out the [GitHub Gist](https://gist.github.com/avneesh0612/69a9f0dd373a1709d2435304959b02f5).
+
+Lastly, make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
+
+
+# Create Transaction Frames
+Source: https://docs.neynar.com/docs/create-transaction-frames
+
+Learn how to create transaction frames that enable users to interact with blockchain transactions directly from Farcaster
+
+<Info>
+  See [Make agents prompt transactions](/docs/make-agents-prompt-transactions)
+</Info>
+
+
+# Debug Notifications
+Source: https://docs.neynar.com/docs/debug-notifications
+
+A guide to debug the mini app notifications service if you are experiencing issues where notifications are not sending properly.
+
+## How to debug
+
+* **Step 1:** First, remove your miniapp. Then re-add it and re-enable notifications. Afterwards, retry notifications and send to yourself.
+* **Step 2:** Test notifications with another user. Send them the miniapp link, confirm the receiving user has enabled notifications for their Farcaster account, and then try sending another notification just to their FID.
+* **Step 3:** If the previous two steps have not resolved your situation, please reach out to our [Developer Slack](https://join.slack.com/t/neynarcommunity/shared_invite/zt-3a4zrezxu-ePFVx2wKHvot1TLi2mVHkA) for support. In your Slack message, please share a screenshot of the console (right click on page, then click “inspect”).
+
+***
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Why am I not receiving a notification?">
+    Developers often test enabling notifications with their own account using a localtunnel or ngrok domain (sometimes without even realizing they’ve enabled notifications on their test URL). When developers change their domain to a Vercel domain or something else, their notification token becomes invalid and results in failures from Farcaster’s servers (usually an “invalid domain” error).
+  </Accordion>
+
+  <Accordion title="Why are only some users receiving notifications?">
+    Please see response to "Why am I not receiving a notification?" above. Additionally, there are instances where a user may be on an old mini app domain that has phased out. Users who do receive notifications are usually on the most recent domain.
+  </Accordion>
+</AccordionGroup>
 
 
 # Deploy a Token on Base with 1 API Call
@@ -1358,17 +3134,17 @@ You can look at the differences in follower counts below in the screenshots.
 
 With experimental flag set to `false` (raw data)
 
-<img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/raw-follower-count.png" alt="Raw follower count showing 273791 followers" style={{borderRadius: '5px'}} />
+<img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/raw-follower-count.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a223778451b47f5eeb5d1253bcd5ca62" alt="Raw follower count showing 273791 followers" style={{borderRadius: '5px'}} width="2686" height="1592" data-path="images/docs/raw-follower-count.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/raw-follower-count.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=7e88b60d9ee19da2e805481e5d4e207b 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/raw-follower-count.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=e8ed15ff39bb691684e0423673a8f7ac 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/raw-follower-count.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=54417d23fd138289a3b5a28e43ca2b43 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/raw-follower-count.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=3c98340bd11588f7af3447d6ca55dbc9 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/raw-follower-count.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=0552e6d3a4e7a59ecf718af8072867c5 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/raw-follower-count.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=437e921022fabec6daf7c5126651543d 2500w" data-optimize="true" data-opv="2" />
 
 With experimental flag set to `true` (filtered data)
 
-<img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/filtered-follower-count.png" alt="Filtered follower count showing 146993 followers" style={{borderRadius: '5px'}} />
+<img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/filtered-follower-count.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=85e71754bf6ac7189f47a404e5f60656" alt="Filtered follower count showing 146993 followers" style={{borderRadius: '5px'}} width="2648" height="1586" data-path="images/docs/filtered-follower-count.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/filtered-follower-count.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=6729cfb66030a4a2160268b152c613eb 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/filtered-follower-count.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a33c6723bf26d7317bceab677ea3105c 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/filtered-follower-count.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=c174ceb68846a0cb1e868348eb083406 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/filtered-follower-count.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=9db2674ed4458605fb60280c65459cc7 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/filtered-follower-count.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=d6cd8ae864a4537565e54dcc3fcf4ebc 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/filtered-follower-count.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=65bb376e10ce3dde1379b41d360a0026 2500w" data-optimize="true" data-opv="2" />
 
 As you can see, the raw data shows **273,791 followers** while the filtered data shows **146,993 followers** - a significant difference due to spam filtering.
 This is different from what another client might show due to their own filtering logic.
 E.g. Merkle's Farcaster client shows it as 145k which is close to Neynar's 146k number but not exact. This is because each company uses their own spam filtering logic.
 
-<img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/rish-warpcast-follower-count.png" alt="rish's filtered follower count" style={{borderRadius: '5px'}} />
+<img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/rish-warpcast-follower-count.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=273f896f89bbfef16c75642d6dad3631" alt="rish's filtered follower count" style={{borderRadius: '5px'}} width="864" height="450" data-path="images/docs/rish-warpcast-follower-count.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/rish-warpcast-follower-count.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=dca27e5a57288c53821cba0c6335d257 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/rish-warpcast-follower-count.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=051b71d6d0b943178aff6f874691f2ff 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/rish-warpcast-follower-count.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2988e24a1e7ff2cca980cdb701711038 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/rish-warpcast-follower-count.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=d69072761d55dbedb9036938af2a73b3 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/rish-warpcast-follower-count.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a30aa02912c582a8bf6c76c416ab7d3f 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/rish-warpcast-follower-count.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a3a0c4eeb17079f3cf05a1a53fe89332 2500w" data-optimize="true" data-opv="2" />
 
 
 # Explore Event Propagation on Farcaster
@@ -1382,35 +3158,35 @@ Search for specific messages and debug Farcaster network health
 
 You can use the search bar to explore the network
 
-* Node and API tiles will show where an event has propagated. Nodes / APIs that are missing events will be highlighted in red ❗️ , partially missing data will be highlighted in yellow ⚠️ and fully synced will be green ✅
+* Node and API tabs will show where an event has propagated after clicking on the “Network response” button. Nodes / APIs that are missing events will be highlighted in red ❗️ , partially missing data will be highlighted in yellow ⚠️ and fully synced will be green ✅
 
-  ![Screenshot2025 05 14at6 52 48PM Pn](https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Screenshot2025-05-14at6.52.48PM.png)
-* Tapping on a tile will open more details and you can compare the object against other nodes / APIs
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-nodes.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=321196d11374dd736fb6ce26fc59fd6c" alt="Screenshot2025 05 14at6 52 48PM Pn" width="1106" height="70" data-path="images/Explorer-nodes.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-nodes.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cd53c4ed29841c82fa681c7dfcede10d 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-nodes.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0d3d00aa28daef030e6a4b598d152c81 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-nodes.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1fef7e700499bbcb6616ea1bb041320b 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-nodes.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=26008a7827f7127bd4f5c6b6126a496a 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-nodes.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=adf5b0f6d63de1ed50b7ae78a4872e8e 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-nodes.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=bb025ebe81b53c04c12a2d63c0c716dd 2500w" data-optimize="true" data-opv="2" />
+* Clicking on a tab opens more details, allowing you to compare objects across nodes and APIs.
 
-  ![Screenshot2025 05 14at6 47 08PM Pn](https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Screenshot2025-05-14at6.47.08PM.png)
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-network-response.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3d9c3ba24187d998772d2ab2227bff30" alt="Screenshot2025 05 14at6 47 08PM Pn" width="1354" height="1266" data-path="images/Explorer-network-response.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-network-response.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f2f1777bda0be09de286be7bb4839b21 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-network-response.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0e8f98a6b720ca49646cd45ca0d9cf7f 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-network-response.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5664f58c7f8fcbdc40ad20431602c75d 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-network-response.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5cc68f1f79acb5bd306ee5e87b89ad52 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-network-response.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=01f2edb1a0376f97e997280f21e68a63 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/Explorer-network-response.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=73be53d893cfe71ed4b4f8ba9f108926 2500w" data-optimize="true" data-opv="2" />
 
 ### Things you can explore
 
 * **Specific casts:** e.g. `0x1a37442d0bd166806b6bc3a780bdb51f94d96fad` (cast hash) or `https://warpcast.com/v/0xf809724b`
-* **Specific users:** e.g.`194` (user's fid)
+* **Specific users:** e.g. `194` (user's fid)
 * **Cast search with keywords:** e.g. `$higher`
   * this will also show metrics of how often that keyword has appeared on the network recently
-  * results can be filtered by by `username` (cast author), `channel_id` (channel of cast)
+  * results can be filtered by `username` (cast author), `channel_id` (channel of cast)
   * results can be sorted by `desc_chron` or `algorithmic`
   * search mode can be changed between `literal`, `semantic` or `hybrid`
-  * *read more about our cast search API *[*here*](/reference/search-casts)*, tap "Network response" to see event propagation for any cast*
+  * *read more about our [cast search API](/reference/search-casts), tap "Network response" to see event propagation for any cast*
 * **User search with usernames:** e.g. `rish`
-  * *read more about user search API *[*here*](/reference/search-user)*, tap "Network response" to see event propagation for any user*
+  * *read more about our [user search API](/reference/search-user), tap "Network response" to see event propagation for any user*
 * **Follow relationships:** e.g. `194<>191` to see relationship between two FIDs
 * **Feed API results:** e.g. `https://api.neynar.com/v2/farcaster/feed/trending?limit=10&time_window=24h&provider=neynar`
   * put any Feed API url from Neynar docs and evaluate results in a feed like format before you build a feed client
-  * *see our Feed APIs [here](/reference/fetch-feed-for-you)*
+  * *see our [Feed APIs](/reference/fetch-feed-for-you)*
 
 ### What else do you want to explore?
 
 Hit us up with feature requests, we want to make debugging as easy as possible for developers!
 
-<sup>1 </sup>Read more on event propagation [here](https://neynar.com/blog/understanding-message-propagation-on-farcaster-mainnet). The blog was written at the time of hubs but similar debugging for snapchain syncs apply.
+<sup>1 </sup>Read more on event propagation in [Understanding Message Propagation on Farcaster Mainnet](https://neynar.com/blog/understanding-message-propagation-on-farcaster-mainnet). The blog was written at the time of hubs but similar debugging for snapchain syncs apply.
 
 
 # Farcaster Actions Spec
@@ -1421,7 +3197,7 @@ Complete specification for Farcaster Actions - enabling secure cross-app communi
 <Info>
   ### API Endpoints
 
-  Related API reference [here](/reference/publish-farcaster-action)
+  Related API reference [Publish Farcaster Action](/reference/publish-farcaster-action)
 </Info>
 
 ## Introduction
@@ -1766,8 +3542,105 @@ In order to get an approved signer you need to do an on-chain transaction on OP 
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
+
+
+# Features (hidden from roadmap right now)
+Source: https://docs.neynar.com/docs/features-hidden-from-roadmap-right-now
+
+Upcoming Neynar features and capabilities not yet shown on the public roadmap including Frame Studio enhancements and API improvements
+
+## Features
+
+### Neynar Frame Studio
+
+* <Icon icon="square-check" iconType="solid" /> Rapid prototyping using a GUI interface
+* <Icon icon="square-check" iconType="solid" /> Pre made templates that you can turn into a frame very quickly (galleries, memes, product checkout, taking in text input, NFT minting)
+* <Icon icon="square-check" iconType="solid" /> Neynar provided frame hosting
+* <Icon icon="forward" iconType="solid" /> Built in usage analytics for every frame \[coming soon]
+* <Icon icon="forward" iconType="solid" /> Self serve data export for frames that take in text input \[coming soon]
+* <Icon icon="forward" iconType="solid" /> custom domains for your frame URLs \[coming soon]
+
+### Neynar APIs
+
+* <Icon icon="square-check" iconType="solid" /> APIs to embed frames into your client
+* <Icon icon="square-check" iconType="solid" /> APIs to validate frame data and hydrate user data, user reactions and cast data in one API call
+* <Icon icon="forward" iconType="solid" /> Extensibility using flex URLs with detailed context on the cast, cast author, signer, interactor, and actions \[coming soon]
+* <Icon icon="forward" iconType="solid" /> Programmatic access to building frames using APIs \[coming soon]
+* <Icon icon="forward" iconType="solid" /> Neynar provided hosting for programmatically created frames \[coming soon]
+* <Icon icon="forward" iconType="solid" /> Improved security & spam protection by privatizing POST API endpoints \[coming soon]
+* <Icon icon="forward" iconType="solid" /> Frame usage analytics over API \[coming soon]
+
+If you have questions on how to get started see our guides on [building frames](/docs/how-to-build-farcaster-frames-with-neynar) and [embedding frames](/docs/how-to-embed-farcaster-frames-in-your-app-with-neynar). More details on Neynar frame architecture below.
+
+### Simple Pages
+
+There are two ways to create simple pages inside a frame
+
+#### 1. Frame Builder GUI
+
+Check out the [Neynar Frame Studio](https://dev.neynar.com/frames)
+
+<CodeGroup>
+  ```text JSON
+  {
+    "uuid": "5ec484f5-efaf-4bda-9a3f-0579232a386a",
+    "image": "https://i.imgur.com/gpn83Gm.png",
+    "title": "Frame Shopper",
+    "buttons": [
+      {
+        "title": "Shop",
+        "next_page": {
+          "flex_url": "https://frameshopper.xyz/api/shop"
+        },
+        "action_type": "post_flex"
+      }
+    ],
+    "version": "vNext"
+  }
+  ```
+</CodeGroup>
+
+When the action button on this page is tapped, Neynar will:
+
+1. Receive an initial post from the client
+2. Validate the action
+3. Hydrate context details (as needed) - cast, cast author, interactor, signer, and actions
+4. Make a POST request to the `flex_url` on the Frame developer's server with all the action context
+5. Frame developer should respond with a status 200 and a JSON representation of the next page
+6. Neynar will return the next page to the client
+7.
+
+#### 2. Create simple pages using simple REST APIs
+
+<Icon icon="forward" iconType="solid" /> GET, PUT, POST, DELETE at `/v2/farcaster/frame` \[coming soon]
+
+### <Icon icon="forward" iconType="solid" size="20" /> Flex Pages \[coming soon]
+
+Frame developers can build dynamic pages using the `flex_url` All frame actions with a `flex_url` will be forwarded to the URL as a POST
+
+Here's an example frame with a static first page.
+
+<CodeGroup>
+  ```text JSON
+  {
+    "uuid": "5ec484f5-efaf-4bda-9a3f-0579232a386a",
+    "image": "https://i.imgur.com/gpn83Gm.png",
+    "title": "Frame Shopper",
+    "buttons": [
+      {
+        "title": "Shop",
+        "next_page": {
+          "flex_url": "https://frameshopper.xyz/api/shop"
+        },
+        "action_type": "post_flex"
+      }
+    ],
+    "version": "vNext"
+  }
+  ```
+</CodeGroup>
 
 
 # Farcaster For You Feed
@@ -1776,13 +3649,13 @@ Source: https://docs.neynar.com/docs/feed-for-you-w-external-providers
 Retrieve a personalized For You feed for a user
 
 <Info>
-  ### Related API reference [here](/reference/fetch-feed-for-you)
+  ### Related API reference [Fetch Feed for You](/reference/fetch-feed-for-you)
 </Info>
 
 **Neynar is set as the default provider**. To choose a different provider, simply pass in a different value in the `provider` field. `openrank` is set as the default. (`karma3` is an older name for `openrank` --kept here for backwards compatiblity--)
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ebf775c00b539ab654403f7596853fe4" width="384" height="272" data-path="images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=64c2a4d111de01f35ecec6e03f4511ca 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b45f2b37b8b6228852dc3ebc1396e757 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a1ac32592ed23841b515c50c9db37d7a 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ee2d7b3edbb534354b2c14ec73c342d0 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=faf12b1b18e4f64b4d8d960e7c939df2 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7f9b2623a50722421a49340458bf015cd353dd56d391da5541a28a346f1e16ab-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a90a7f318114fcb5ab004e8cc252224b 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 If you pick `mbd` as provider, you can further customize your feed by passing in additional filter values in an optional`filters` object inside the `provider_metadata` field in the request e.g.
@@ -1894,7 +3767,7 @@ Source: https://docs.neynar.com/docs/fetch-casts-by-embed-in-farcaster
 Show Farcaster casts that have attachments with Neynar
 
 <Info>
-  ### Related API reference [here](/reference/fetch-feed)
+  ### Related API reference [Fetch Feed](/reference/fetch-feed)
 </Info>
 
 This guide demonstrates how to use the Neynar SDK to casts that contain a specific embed (eg. cast linking to github.com or youtube.com).
@@ -2085,7 +3958,7 @@ There you go, fetching casts with specific embeds in Farcaster with Neynar SDK!
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -2227,7 +4100,17 @@ To implement this API call in a JavaScript environment using the Neynar SDK, fol
 
 Users are more likely to trade / take onchain actions when they get social proof. Facebook proved this long ago when they started showing "X, Y, Z like this page" above an ad. The same holds true in crypto.
 
-For further information, refer to the [Neynar API Documentation](/reference/fetch-relevant-fungible-owners). If you have any questions or need support, feel free to reach out to us on [Telegram](https://t.me/rishdoteth).
+For further information, refer to the [Neynar API Documentation](/reference/fetch-relevant-fungible-owners). If you have any questions or need support, feel free to reach out to us on [Slack](https://neynar.com/slack).
+
+
+# Relevant Holders for Coins
+Source: https://docs.neynar.com/docs/fetch-relevant-holders-for-coin-on-base
+
+This guide provides a comprehensive overview of how to use the Neynar API to fetch relevant holders of a fungible token.
+
+<Info>
+  This doc has been updated. See [Relevant owners](/docs/fetch-relevant-holders-for-coin)
+</Info>
 
 
 # Fetch signers
@@ -2350,7 +4233,7 @@ This guide demonstrates how to get a list of signers for an account if the devel
   <Step title="Sign and Verify the Message">
     The `fetchSigners` function handles the signing process and fetches signers:
 
-    **Note:** The `address` should be the `custody_address` of the farcaster account ([Check custody\_address here](/reference/fetch-bulk-users))
+    **Note:** The `address` should be the `custody_address` of the farcaster account ([Check custody\_address in User API](/reference/fetch-bulk-users))
 
     <CodeGroup>
       ```javascript Javascript
@@ -2412,7 +4295,7 @@ This guide demonstrates how to get a list of signers for an account if the devel
   ```
 </CodeGroup>
 
-For additional help, [feel free to contact us](https://t.me/rishdoteth).
+For additional help, [feel free to contact us](https://neynar.com/slack).
 
 
 # Fetch Signers - Frontend (Wallet Integration)
@@ -2524,7 +4407,7 @@ This guide demonstrates how to get a list of signers for an account if the devel
     **Note:**
 
     1. Neynar API should ideally be accessed from the backend
-    2. The `address` should be the `custody_address` of the farcaster account ([Check custody\_address here](/reference/fetch-bulk-users))
+    2. The `address` should be the `custody_address` of the farcaster account ([Check custody\_address in User API](/reference/fetch-bulk-users))
 
     <CodeGroup>
       ```javascript Javascript
@@ -2586,19 +4469,21 @@ This guide demonstrates how to get a list of signers for an account if the devel
   ```
 </CodeGroup>
 
-For additional help, [feel free to contact us](https://t.me/rishdoteth).
+For additional help, [feel free to contact us](https://neynar.com/slack).
 
 
 # Fetch & Display Farcaster Feeds with Neynar API
 Source: https://docs.neynar.com/docs/fetching-casts-from-memes-channel-in-farcaster
 
-Show casts from a Farcaster channel with Neynar
+Complete guide to fetching and displaying casts from specific Farcaster channels using Neynar SDK. Learn how to retrieve channel feeds, filter content by channel IDs, and build engaging social media applications with real-time Farcaster data.
 
 <Info>
-  ### Related API reference [here](/reference/fetch-feed-by-channel-ids)
+  ### Related API reference [Fetch Feed by Channel IDs](/reference/fetch-feed-by-channel-ids)
 </Info>
 
 Channels are "subreddits inside Farcaster." Technically, a channel is a collection of casts that share a common channel\_id. For example, the [memes channel](https://warpcast.com/~/channel/memes) is a collection of casts that share the channel\_id `memes`.
+
+## Fetching Casts from a Channel
 
 This guide demonstrates how to use the Neynar SDK to fetch casts from a channel.
 
@@ -2721,18 +4606,20 @@ There you go! You now know how to fetch casts from a Farcaster channel with Neyn
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
 # Notifications in Channel
 Source: https://docs.neynar.com/docs/fetching-channel-specific-notification-in-farcaster
 
-Show notifications from a specific channel for a Farcaster user
+Learn how to fetch channel-specific notifications for Farcaster users using Neynar API. Build focused notification systems that filter alerts by specific channels and parent URLs, perfect for channel-focused Farcaster clients and applications.
 
 <Info>
   ### Related APIs: (1) [For user by channel](/reference/fetch-channel-notifications-for-user) (2) [For user by parent\_urls](/reference/fetch-notifications-by-parent-url-for-user)
 </Info>
+
+## Fetching Channel-Specific Notifications
 
 Say you have a Farcaster client focusing on a specific channel, and you want to fetch notifications for a specific FID for that specific channel. We got you covered!
 
@@ -3096,7 +4983,7 @@ That's it, no more wrangling with SQL queries or whatever bespoke solution to ge
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -3208,14 +5095,16 @@ They both resolve to:
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
-# Follow NFT Holders
+# Follow NFT Owners on Farcaster Using Neynar
 Source: https://docs.neynar.com/docs/following-all-farcaster-users-owning-cryptopunk
 
-How to follow all Farcaster users who own a certain NFT
+Comprehensive tutorial on how to automatically follow all Farcaster users who own specific NFTs like CryptoPunks. Learn to build Web3 social features by combining Farcaster social graphs with NFT ownership data using Neynar's powerful APIs.
+
+## How to Follow Farcaster Users Owning a Specific NFT
 
 This guide demonstrates how to follow Farcaster users who own a specific NFT.
 
@@ -3315,11 +5204,250 @@ That's it! You can now follow users who own a specific NFT easily with the Neyna
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
-# From Kafka Stream
+# Farcaster Frames with Analytics using Neynar & Framejs
+Source: https://docs.neynar.com/docs/framejs-farcaster-frames
+
+In this guide, we’ll learn how to make a frame with the neynar SDK and Framejs, within a few minutes! For this demo, it will be a simple rock-paper-scissors game but it will give you an idea of how to create multi-page frames, interact with buttons, and get analytics for your frame with no extra effort.
+
+Let's get started!
+
+## Creating a new frames project
+
+We will use Next.js to build the frame in this guide, but feel free to use anything else if you want!
+
+Enter this command in your terminal to create a new app:
+
+<CodeGroup>
+  ```powershell PowerShell
+  yarn create frames
+  ```
+</CodeGroup>
+
+Enter a name for your project, and choose the next template, and it will spin up a new project for you. Once the project is created install the dependencies:
+
+<CodeGroup>
+  ```powershell PowerShell
+  cd <project_name>
+  bun install
+  ```
+</CodeGroup>
+
+### Using the neynar middleware
+
+Create a new file `frame.ts` and add the following:
+
+<CodeGroup>
+  ```typescript frame.ts
+  import { neynarValidate } from "frames.js/middleware/neynar";
+  import { createFrames } from "frames.js/next";
+
+  export const frames = createFrames({
+    basePath: "/",
+    middleware: [
+      neynarValidate({
+        API_KEY: process.env.NEYNAR_API_KEY!,
+      }),
+    ],
+  });
+  ```
+</CodeGroup>
+
+This creates an instance of the frame which uses neynarValidate as a middleware that we can re use in all the pages.
+
+<Info>
+  ### Make sure to update the API key to your API key to get analytics
+</Info>
+
+### Creating the frame home page
+
+Create a new file `route.tsx` in the `app` folder and add the following:
+
+<CodeGroup>
+  ```typescript route.tsx
+  import { Button } from "frames.js/next";
+  import { frames } from "../frames";
+
+  const handleRequest = frames(async (ctx) => {
+    return {
+      target: "/result",
+      image: (
+        <div
+          style={{
+            alignItems: "center",
+            background: "black",
+            backgroundSize: "100% 100%",
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "nowrap",
+            height: "100%",
+            justifyContent: "center",
+            textAlign: "center",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              color: "white",
+              fontSize: 60,
+              fontStyle: "normal",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.4,
+              marginTop: 30,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            Choose your weapon
+          </div>
+        </div>
+      ),
+      buttons: [
+        <Button key="rock" action="post" target="/result">
+          Rock
+        </Button>,
+        <Button key="paper" action="post" target="/result">
+          Paper
+        </Button>,
+        <Button key="scissors" target="/result" action="post">
+          Scissors
+        </Button>,
+      ],
+    };
+  });
+
+  export const GET = handleRequest;
+  export const POST = handleRequest;
+  ```
+</CodeGroup>
+
+This will render an image saying choose your weapon and three buttons saying rock paper and scissors. When any of these buttons are clicked a request to the `/result` route is made which we define in the `target` prop.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/23b5a01-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2c630ce9dbbdf9018cffc688ac32348e" alt="Frame home page" width="1706" height="878" data-path="images/docs/23b5a01-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/23b5a01-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=43302488b03847c66393264e02aac8ab 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/23b5a01-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0d6a22024e55cc12e5352d0f005cc31e 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/23b5a01-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=be256feb8f8724e085590da195eba558 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/23b5a01-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3b0a66707e339a541ee5db35c385093c 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/23b5a01-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=eb5c6d64dd709934a413395f15826d19 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/23b5a01-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=39455e62fa1099cae6345ae4ef2ee488 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+<Info>
+  ### Make sure that you sign in using your warpcast account, so that the requests can be validated
+</Info>
+
+Now, let's build the `/result` page. Create a new file called `result/route.tsx`
+
+<CodeGroup>
+  ```typescript index.tsx
+  import { frames } from "@/frames";
+  import { Button } from "frames.js/next";
+
+  const handleRequest = frames(async (ctx) => {
+    const rand = Math.floor(Math.random() * 3);
+    const choices = ["rock", "paper", "scissors"];
+    const userChoice = choices[(Number(ctx.pressedButton?.index) || 1) - 1];
+    const computerChoice = choices[rand];
+    let msg = "";
+
+    if (userChoice === computerChoice) {
+      msg = "draw";
+    }
+
+    if (
+      (userChoice === "rock" && computerChoice === "scissors") ||
+      (userChoice === "paper" && computerChoice === "rock") ||
+      (userChoice === "scissors" && computerChoice === "paper")
+    ) {
+      msg = "You win";
+    }
+
+    if (
+      (userChoice === "rock" && computerChoice === "paper") ||
+      (userChoice === "paper" && computerChoice === "scissors") ||
+      (userChoice === "scissors" && computerChoice === "rock")
+    ) {
+      msg = "You lose";
+    }
+
+    return {
+      action: "/frames",
+      image: (
+        <div
+          style={{
+            alignItems: "center",
+            background: "black",
+            backgroundSize: "100% 100%",
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "nowrap",
+            height: "100%",
+            justifyContent: "center",
+            textAlign: "center",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              color: "white",
+              fontSize: 60,
+              fontStyle: "normal",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.4,
+              marginTop: 30,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+              display: "flex",
+            }}
+          >
+            {userChoice} vs {computerChoice}
+          </div>
+
+          <div
+            style={{
+              color: "white",
+              fontSize: 60,
+              fontStyle: "normal",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.4,
+              marginTop: 30,
+              padding: "0 120px",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {msg}
+          </div>
+        </div>
+      ),
+      buttons: [<Button action="post">Play again</Button>],
+    };
+  });
+
+  export const GET = handleRequest;
+  export const POST = handleRequest;
+  ```
+</CodeGroup>
+
+Here, we first get the button index from the ctx and use it to get the user's choice. We have then added some logic for generating a random choice for the game. Then, in the image we display the two choices and the result of the game. We have also added a play again game which simply pushes the user to the `/` route.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d061b3f-Mov_to_Gif_conversion.gif?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e9b7644d299c3e7c6665f82c3289a7fb" alt="Frame result page" width="2880" height="1800" data-path="images/docs/d061b3f-Mov_to_Gif_conversion.gif" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d061b3f-Mov_to_Gif_conversion.gif?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7ab4dc99349e6a43327ed3ce5cfea538 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d061b3f-Mov_to_Gif_conversion.gif?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=44bb95aa7f63b112040f31c8123c8e72 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d061b3f-Mov_to_Gif_conversion.gif?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8dbbf13fe9aa4d970aff497ae975a5a0 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d061b3f-Mov_to_Gif_conversion.gif?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d0a0b7187e97b0a960bfb9eed510c8d2 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d061b3f-Mov_to_Gif_conversion.gif?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=70db0d74dbc5f5fd4370c94ce8579f5e 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d061b3f-Mov_to_Gif_conversion.gif?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=54f63058b2668c72f5eed2aacf6c613e 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Analytics
+
+Since we are using neynar middleware with framejs, we also get analytics out of the box. Head over to the usage tab and click on the frame that you are currently using. It will provide you with various analytics like total interactors, interactions per cast, etc.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=da3d7ed1857d3ffc193a2c1a9870caf9" alt="Frame analytics" width="2712" height="1548" data-path="images/docs/713fe83-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d3edb2c3fa541221d74cdd7474798729 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=44233f30649ac573669b66e25035d104 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=af017201dbc47a7734002f87f4faa69b 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=481b9938eb8af2a40cef3e4a2ba92a87 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b51ddaea869218e5eeecc9afdaac0e41 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/713fe83-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0eaf75f2c7c1f0d0fd4a2f9b04c8afcf 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Conclusion
+
+This guide taught us how to create a rock-paper-scissors game on Farcaster frames using frames.js!
+
+Lastly, please share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
+
+
+# Kafka Stream: Real-Time Farcaster Events via Neynar
 Source: https://docs.neynar.com/docs/from-kafka-stream
 
 Ingest hydrated events from a hosted Kafka stream (as compared to dehydrated events from gRPC hub)
@@ -3337,12 +5465,12 @@ With Kafka, you can subscribe to the same data that we use for sending webhook n
 If you’re using Hub gRPC streaming, you’re getting dehydrated events that you have to put together yourself later to make useful (see [here](https://warpcast.com/rish/0x7c2997ec) for example). With Neynar’s Kafka stream, you get a fully hydrated event (e.g., [user.created](/docs/from-kafka-stream#data-schema)) that you can use in your app/product immediately. See the example between the gRPC hub event and the Kafka event below.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png" alt="Kafka stream" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=cc1729266d620b61d194153e1216d225" alt="Kafka stream" width="2057" height="1322" data-path="images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=607bd1f8a21c8bfc206e4b4eba22456c 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9beac2d5c0da4b9a70fdac13b588e72b 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=08bca7e45da1e2b7ccae489099d9854a 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=680f484193182b6e958f04c13d5dab1a 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=eff5df5045255de366d1f3fa414a65fd 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/a6a0e1902416b32b41fc096276cf333c08ed30429956f9708586d2910942c8ee-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ec64b9e315d2f7121d2e6c7f96712814 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ## How
 
-* [Reach out](https://t.me/rishdoteth), we will create credentials for you and send them via 1Password.
+* [Reach out](https://neynar.com/slack), we will create credentials for you and send them via 1Password.
 * For authentication, the connection requires `SASL/SCRAM SHA512`.
 * The connection requires TLS (sometimes called SSL for legacy reasons) for encryption.
 * `farcaster-mainnet-events` is the aggregated topic that contains all events.
@@ -3827,12 +5955,20 @@ The topics you see will vary depending on your access.
 </CodeGroup>
 
 
-# Getting Started
+# Build Farcaster Apps with Neynar SDK & API
 Source: https://docs.neynar.com/docs/getting-started-with-neynar
 
-Start building on Farcaster with Neynar
+Complete beginner's guide to building on Farcaster with Neynar
+
+## Introduction
 
 Farcaster is a protocol for building decentralized social apps. Neynar makes it easy to build on Farcaster.
+This tutorial covers
+
+* fundamentals of Farcaster protocol
+* getting your Neynar API key
+* understanding core concepts like FIDs and Casts
+* tutorial steps to start developing social applications
 
 ## Basic understanding of Farcaster
 
@@ -3858,15 +5994,17 @@ In this tutorial, we will learn how to use the above primitives to fetch a simpl
 
 ## Get Neynar API key
 
-Don't have an API key yet? Click "Subscribe" on one of the plans below
+Don't have an API key yet? [Create an account](https://neynar.com) to get started.
 
-Upon successful payment, we'll send you an email. Once the email arrives, you'll be able to sign in to the [Developer Portal](https://dev.neynar.com)
+Don't hesitate to reach out to us on our [channel](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack) with any questions!
 
-Don't hesitate to reach out to us on our [channel](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth) with any questions!
+<Info>
+  ### If building a mini app, you can go straight to [Set up mini app in \< 60 s](/docs/create-farcaster-miniapp-in-60s)
+</Info>
 
 ## Set up Neynar SDK
 
-Neynar [`nodejs` SDK](https://github.com/neynarxyz/nodejs-sdk) is an easy way to use the APIs. This section must only be done once when setting up the SDK for the first time.
+Neynar [`nodejs` SDK](https://github.com/neynarxyz/nodejs-sdk) is an easy way to use the APIs. This section only needs to be done once when setting up the SDK for the first time.
 
 To install the Neynar TypeScript SDK:
 
@@ -4092,9 +6230,9 @@ It should show you a response like the one below:
 
 ## You're ready to build!
 
-Now that you can fetch user and cast data, you're ready to dive in further and start making your first Farcaster application. We have numerous guides available [here](/docs), and our complete API reference is [here](/reference).
+Now that you can fetch user and cast data, you're ready to dive in further and start making your first Farcaster application. Read through our [tutorials](/docs) and [API reference](/reference) for more.
 
-If you have questions or feedback, please contact [rish](https://warpcast.com/rish) on Farcaster or [Telegram](https://t.me/rishdoteth) .
+If you have questions or feedback, please reach out to us on our [Developer Slack](https://join.slack.com/t/neynarcommunity/shared_invite/zt-3a4zrezxu-ePFVx2wKHvot1TLi2mVHkA) .
 
 
 # Storage Units Allocation
@@ -4112,12 +6250,12 @@ The specific allocation of storage per unit varies depending on the type of data
 
 Here's the list of storage allocations per unit:
 
-* 5000 cast messages
-* 2500 reaction messages
-* 2500 link messages
-* 50 user\_data messages
-* 25 verifications messages
-* 5 username\_proof messages
+* 100 cast messages
+* 200 reaction messages
+* 200 link messages
+* 25 user\_data messages
+* 5 verifications messages
+* 2 username\_proof messages
 
 The Storage Registry contract controls and tracks the allocation. This contract records the storage allocated to each fid, denominated in integer units.
 
@@ -4226,7 +6364,7 @@ That's it! You can now look at the storage usage and allocation of any Farcaster
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -4450,6 +6588,162 @@ Submit the required data to create the Farcaster account.
 By following these steps, you can create an account using the user's wallet. (No mnemonic required)
 
 
+# Frame Validation
+Source: https://docs.neynar.com/docs/how-to-a-frame-action-against-farcaster-hub-with-neynar-api
+
+Validate incoming frame actions to get genuine data
+
+Frames are mini-apps inside Farcaster casts. To read more about frames, check out the [Frames documentation](https://docs.farcaster.xyz/learn/what-is-farcaster/frames).
+
+Frame actions are POST request sent to a Frame server, and is unauthenticated by default. Checking the POST request payload against the Hub is a necessary step to ensure the request is valid.
+
+This guide demonstrates how to verify a frame action payload against the Hub with Neynar SDK.
+
+Check out this [Getting started guide](/docs/getting-started-with-neynar) to learn how to set up your environment and get an API key.
+
+First, initialize the client:
+
+<CodeGroup>
+  ```javascript Javascript
+  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
+
+  import { FeedType, FilterType } from "@neynar/nodejs-sdk/build/api/index.js";
+
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const config = new Configuration({
+    apiKey: process.env.NEYNAR_API_KEY,
+  });
+  const client = new NeynarAPIClient(config);
+  ```
+</CodeGroup>
+
+Frame server hosts frames and handles Frame actions. Here's what POST request payload looks like for a Frame action:
+
+<CodeGroup>
+  ```javascript Javascript
+  const payload = {
+    untrustedData: {
+      fid: 4286,
+      url: "https://frame-server-example.com",
+      messageHash: "0x8e95825cca8e81db6b9bd64bfdf626f7f172f02e",
+      timestamp: 1707640145000,
+      network: 1,
+      buttonIndex: 1,
+      castId: {
+        fid: 4286,
+        hash: "0x0000000000000000000000000000000000000001",
+      },
+    },
+    trustedData: {
+      messageBytes:
+        "0a60080d10be2118d1bee82e20018201510a3268747470733a2f2f726e766d622d3130332d3132312d3133382d3131332e612e667265652e70696e6767792e6f6e6c696e6510011a1908be211214000000000000000000000000000000000000000112148e95825cca8e81db6b9bd64bfdf626f7f172f02e1801224096dd456e2752a358b33e19cfa833478974ce53379939e721e2875df14df4237a3ad3c9c9a27768ab59ea360df34893111c9aadc819a972d8ffd5f66976ffc00328013220836bf050647d18d304124823aaefa7c82eef99cbab2a120d8a8fe8e6d391929d",
+    },
+  };
+  ```
+</CodeGroup>
+
+Anyone can spoof the request and send it to the Frame server. The check whether it's a valid request (ie. fid 4286 pressing buttonIndex 1 on a specific cast), we need to verify the request against the Hub.
+
+<CodeGroup>
+  ```javascript Javascript
+  const result = await client.validateFrameAction({
+    messageBytesInHex: payload.trustedData.messageBytes,
+  });
+  console.log(result);
+  ```
+</CodeGroup>
+
+<CodeGroup>
+  ```json json
+  {
+    "valid": true,
+    "action": {
+      "object": "validated_frame_action",
+      "interactor": {
+        "object": "user",
+        "fid": 4286,
+        "custody_address": "0x0076f74cc966fdd705ded40df8ab86604e4b5759",
+        "username": "pixel",
+        "display_name": "vincent",
+        "pfp_url": "https://lh3.googleusercontent.com/WuVUEzf_r3qgz3cf4mtkXpLat5zNZbxKjoV-AldwfCQ8-_Y5yfWScMBEalpvbVgpt4ttXruxTD9GM983-UJBzMil5GRQF1qZ_aMY",
+        "profile": {},
+        "follower_count": 34997,
+        "following_count": 905,
+        "verifications": [
+          "0x0076f74cc966fdd705ded40df8ab86604e4b5759",
+          "0xb7254ce5cb61f69b3fc120b85f0f6b90d871036c"
+        ],
+        "verified_addresses": {
+          "eth_addresses": [
+          	"0x0076f74cc966fdd705ded40df8ab86604e4b5759",
+  	        "0xb7254ce5cb61f69b3fc120b85f0f6b90d871036c"
+          ],
+        	"sol_addresses": [
+            "7rhxnLV8C77o6d8oz26AgK8x8m5ePsdeRawjqvojbjnQ",
+            "8g4Z9d6PqGkgH31tMW6FwxGhwYJrXpxZHQrkikpLJKrG"
+          ],
+        },
+        "active_status": "active"
+      },
+      "tapped_button": {
+        "index": 1
+      },
+      "input": {
+        "text": ""
+      },
+      "url": "https://frame-server-example.com",
+      "cast": {
+        "object": "cast_dehydrated",
+        "hash": "0x0000000000000000000000000000000000000001",
+        "fid": 4286
+      },
+      "timestamp": "2024-02-11T08:29:05.000Z"
+    },
+    "signature_temporary_object": {
+      "note": "temporary object for signature validation, might be removed in future versions. do not depend on this object, reach out if needed.",
+      "hash": "0x8e95825cca8e81db6b9bd64bfdf626f7f172f02e",
+      "hash_scheme": "HASH_SCHEME_BLAKE3",
+      "signature": "lt1FbidSo1izPhnPqDNHiXTOUzeZOech4odd8U30I3o608nJondoq1nqNg3zSJMRHJqtyBmpctj/1fZpdv/AAw==",
+      "signature_scheme": "SIGNATURE_SCHEME_ED25519",
+      "signer": "0x836bf050647d18d304124823aaefa7c82eef99cbab2a120d8a8fe8e6d391929d"
+    }
+  }
+  ```
+</CodeGroup>
+
+And that's it, a valid Frame action! You've successfully verified a frame action payload against the Hub with Neynar SDK. Note that frame payloads are only available in responses, not in initial requests. Attempts to fetch a payload during a request will result in an error. If you want to fetch cast while doing frame validation, refer to our [How to get cast information from URL](/docs/how-to-get-cast-information-from-url) guide.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
+# Validate Farcaster Frames Using Neynar SDK
+Source: https://docs.neynar.com/docs/how-to-build-farcaster-frames-with-neynar
+
+Build Farcaster frames 10x faster than starting from scratch with Neynar's frame validation API. Learn to validate frame actions, get user interaction details, and test frames locally with ngrok integration for rapid development.
+
+## How to Validate Farcaster Frames
+
+Building a new Farcaster Frame? Read the [Farcaster Frames Specification](https://warpcast.notion.site/Farcaster-Frames-4bd47fe97dc74a42a48d3a234636d8c5) to get started.
+
+Once you have set up your Frame server with the right meta tags, you will want to know which users interacted with your Frame so that you can take the next appropriate action.
+
+1. Use [Validate frame action](/reference/validate-frame-action) to validate the incoming user interaction and get details about the interacting user, cast author and cast itself
+2. To test Frames on your local machine, set up [ngrok](https://ngrok.com/download) and use ngrok as your Frame's POST url.
+
+More open source Frame resources from @base in [onchaintoolkit](https://github.com/coinbase/onchainkit?tab=readme-ov-file#getframevalidatedmessage) <Icon icon="circle" iconType="solid" />
+
+Now start making some frames and let us know if you have questions at [@neynar](https://warpcast.com/~/channel/neynar)! <Icon icon="planet-ringed" iconType="solid" />
+
+<Frame caption="Example $degen related Frame built using Neynar">
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e9ee284-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a4c1a818c0f06f17c5b00e7d397f4086" width="1222" height="948" data-path="images/docs/e9ee284-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e9ee284-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=85e39a4882bc39abc539e097e000d4da 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e9ee284-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a8865a8c8e2561580ecbb48f96d037f4 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e9ee284-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=4c30d59ee844ae30e9ab76eed0ea8ce0 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e9ee284-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=4a0677db98778ee92a9ec083c3db5c7a 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e9ee284-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f3ba03ddad5e656a181f4bd154cdd332 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e9ee284-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=4536eb15f6d62d153c2c1b7db6d9e663 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+
 # Choose Among Data Products
 Source: https://docs.neynar.com/docs/how-to-choose-the-right-data-product-for-you
 
@@ -4472,7 +6766,31 @@ Developers can focus on what they are building instead of running a hub and repl
 | [Kafka stream](/docs/from-kafka-stream)                                            | Good real time complement to services like Parquet -- backfill with Parquet and ingest real time with Kafka stream                                                        | Need to set up Kafka ingestion. See open source code [here](/docs/from-kafka-stream).                                             |
 
 
-# React client
+# How to Contribute to @neynar/nodejs-sdk
+Source: https://docs.neynar.com/docs/how-to-contribute-to-neynarnodejs-sdk
+
+Step-by-step guide for contributing to the Neynar Node.js SDK - from setup to submitting pull requests
+
+<CodeGroup>
+  ```bash Shell
+  git clone [email protected]:neynarxyz/nodejs-sdk.git
+  ```
+</CodeGroup>
+
+<CodeGroup>
+  ```bash Shell
+  git submodule update --init --recursive
+  ```
+</CodeGroup>
+
+<CodeGroup>
+  ```bash Shell
+  yarn install
+  ```
+</CodeGroup>
+
+
+# Create a Farcaster Client with Next.js
 Source: https://docs.neynar.com/docs/how-to-create-a-client
 
 This guide will look at creating a Farcaster client using Next.js and the Neynar React SDK.
@@ -4508,7 +6826,7 @@ Create a new next.js app using the following command:
 You can choose the configuration based on your personal preference, I am using this config for the guide:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/c0af43f-image.png" alt="Create Next.js app" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b9d898c07a54e7cef78e019a01984d78" alt="Create Next.js app" width="1538" height="1238" data-path="images/docs/c0af43f-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7ec686313a7d4d4cfbee42902e7bbe56 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3897e222016c5eef86ced148d584902f 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=37f4facc47da7e3eddf6340c28023787 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3a55dc0d7851f486b13abfeba13156f4 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=58784644a48e3f29fd74b8718735474e 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4bedde8d5454ff86257b3457add84432 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Once the app is created, install the packages that we are going to need for the command:
@@ -4571,7 +6889,7 @@ We are passing some settings here like `clientId`, `defaultTheme` and `eventsCal
 * `clientId`: This is going to be the client ID you get from your neynar, add it to your `.env.local` file as `NEXT_PUBLIC_NEYNAR_CLIENT_ID`.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/bde5490-image.png" alt="Neynar client ID" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c44bb9404a8361f45b82f97d08e9feb8" alt="Neynar client ID" width="1522" height="1872" data-path="images/docs/bde5490-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4ff5bf38fa38e4de94c06ad0fcbb6970 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a222ad17c18b5f663e6f04e824186fa3 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=94a0a2869773842d26e582b557d6c4a1 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9586396fe163aadcfbd13b91e5f962bb 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=52749ddd7e277cfab691a1c452fdc42c 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e0ceb60805af565ad977367fc2e567c7 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 <Info>
@@ -4597,8 +6915,8 @@ So, create a new `components/Header.tsx` file and add the following:
   export const Header: FC = () => {
     return (
       <div className="flex items-center justify-between px-16 pt-4 text-white">
-        <Link href="/" className="text-3xl font-bold">
-          NeynarClient
+                <Link href="/" className="text-3xl" style={{fontWeight: 500}}>
+          FarCaster App
         </Link>
 
         <NeynarAuthButton className="right-4 top-4" />
@@ -4650,7 +6968,7 @@ We'll add the header to the `layout.tsx` file since we are going to need it on a
 If you head over to your app you'll be able to see a sign-in button on the screen. Go ahead and try signing in!
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/4813dc2-image.png" alt="Sign-in button" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2aefa20261f34feab92e7275ff564047" alt="Sign-in button" width="396" height="196" data-path="images/docs/4813dc2-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=959840c686b273f0c270c73edb8aca02 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9071c020d137f8d6f4832b8915186ea8 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d19a81152b50ab7aebc0a958d7598aa1 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4499ea812b301b53f0d7ad7d96e5b48f 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0f52430ccff26d89a8d30693ab48d3c7 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=03bb8c35a195c8acf279b800acd94895 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Now that our sign-in button is working let's start working on showing the feed!
@@ -4686,7 +7004,7 @@ In the `page.tsx` file add the following:
 Here, we are using the `NeynarFeedList` component to show the trending casts if the user is not signed in, but, if they are signed in we show the following feed based on their fid.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png" alt="Feed" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4c67b552827eef512c5398145d12c26d" alt="Feed" width="1402" height="2702" data-path="images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9b857920526393617ffd0759ba839001 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=18ffe474816f99cb7b2ef8d670554142 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2ded674298117f56f4617c8bf06f75e8 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=1b39ad42faf062a5145f51a1f6c6db43 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=428f14c016317ed0702dace7fbe7406e 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/acd3550a3a60ac485499247eb069ce874e0db21db2027cb12515e2bb5b28e437-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3ae68e0c7ba26a8c9a4de01ef7fa6e4a 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Now, let's also show the list of channels that the user is following.
@@ -4771,7 +7089,7 @@ Let's now use it on the home page. Head back to the `page.tsx` file and add the 
       <main className="flex min-h-screen p-16">
         {user && (
           <div className="flex flex-col">
-            <h1 className="text-3xl font-bold">Channels</h1>
+            <h1 className="text-3xl" style={{fontWeight: 500}}>Channels</h1>
             <div className="flex flex-col">
               {channels &&
                 channels.channels.map((channel: Channel) => (
@@ -4799,7 +7117,7 @@ Let's now use it on the home page. Head back to the `page.tsx` file and add the 
 Here, we are now fetching the list of channels that the user follows and creating links with the name of the channel. These link to another page which we are yet to build but you should be able to see the list of channels now!
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png" alt="Channels" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=59f239715e764d32cc658a5f51938c7d" alt="Channels" width="2858" height="1562" data-path="images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=882c7dbcd7ba102faa95d0a6759e206b 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=62a338d9d4dd02cbadadcdca686684b0 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6d388fc6f7e87f2312306b53b52113aa 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f822302eb294c98b4beda5189d5cc1c3 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=11dc94622728bf15022f22b170854914 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/cdd582228164912db3361af2e70daa8445d2d53e2052b7af9a61c05dfe3f4ce5-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6c9fc63666f469c9e656301fd9ef03d4 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Now, let's build out the channel page as well which will show the feed of a specific channel.
@@ -4817,7 +7135,7 @@ Create a new `channel/[channelId]/page.tsx` file in the `app` folder and add the
   }) {
     return (
       <main className="mt-4 flex min-h-screen w-full flex-col items-center justify-between p-24">
-        <h1 className="text-3xl font-bold mb-4">{channelId}</h1>
+        <h1 className="text-3xl mb-4" style={{fontWeight: 500}}>{channelId}</h1>
         <NeynarFeedList
           feedType="filter"
           channelId={channelId}
@@ -4846,7 +7164,7 @@ Here, you can see that we are importing the component from a `@/components/Neyna
 This will filter the feed based on the channelId and show only the casts made in that channel. If you go ahead and click on one of the channels you'll be able to see something like this:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png" alt="Channel" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=321758db5be4ad5207951ae0f69815ef" alt="Channel" width="1480" height="1720" data-path="images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9756db66cbc8d533cadc39334fddb421 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f8799d137af111d2ed48a8ef1ec7e897 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=36c6f15e70d217fee51fd7e64a89c698 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=05d038044a6b0e43bfe92804c11a9c42 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3fbafd094480a1aa42006c568f65cf4e 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1b15c23ff0320c5f00d0008bd89f91e4ae660bc9a325604050131c8439c3820e-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c61bd51ab0ad9174cb90ffd0c44d3db1 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ### Building user profiles
@@ -4894,20 +7212,20 @@ Create a new file `profile/[username]/page.tsx` in the `app` folder and add the 
 Here, I am first resolving the username in the path to get the user object which can be later used to get the fid of the user. Then, we are displaying the `ProfileCard` and the `FeedList` filtered based on the user's fid. If you go to /profile/username then you'll be able to see the user's profile!
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png" alt="Profile" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0944a31cbd260d148ce5a7ebba97be8b" alt="Profile" width="1444" height="2678" data-path="images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=04ef887196f38ac49334ab0ea1cb60bc 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=6efe02ef7c5b51f94833ea10673d214a 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d48fbd820323075c7603f6ca667da1b4 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4ddf49fc104de776811248fb8304b9cf 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=90454906952b5a50a16dbcd4d4009e18 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6cd72b1c1895a602369b17b0014d2efad187b2c7ecdc84b674cd26a898b1348c-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9aa525d166c06eb06e9c7a3fdb806b15 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ## Conclusion
 
 In this tutorial, we successfully built a Farcaster client with Next.js and the Neynar React SDK. Along the way, we covered essential features such as user authentication, creating feeds, fetching channels, and building user profiles. These steps give you a solid foundation to further enhance your client by adding more advanced features or customizing it to meet your specific needs.
 
-To explore the full implementation, visit the [GitHub repository](https://github.com/avneesh0612/neynar-client). If you have any questions or want to share your progress, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth).
+To explore the full implementation, visit the [GitHub repository](https://github.com/avneesh0612/neynar-client). If you have any questions or want to share your progress, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack).
 
 
-# Create Via Script
+# Create Farcaster Bots via Script Using Neynar SDK
 Source: https://docs.neynar.com/docs/how-to-create-a-farcaster-bot
 
-Create a Farcaster bot on Neynar in a few quick steps
+Complete guide to creating Farcaster bots on Neynar with automated scripts. Learn to set up bot accounts, manage dedicated signers, and deploy automated social interactions using Neynar SDK with ready-to-use examples and templates.
 
 <Info>
   ### 1. If you need to create a new bot / agent account, see [Create Farcaster bot (UI)](/docs/create-farcaster-bot-ui) instead
@@ -4976,7 +7294,7 @@ Before running the bot, you need to generate a signer and get it approved via an
 
   <Step>
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png" alt="Login to your Neynar dev portal" />
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=961e0c13bb6852ec428aa7d657387ddb" alt="Login to your Neynar dev portal" width="2012" height="230" data-path="images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a58e4db20c1b2174c7d6f948a5d25e04 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c66b63312b44bd8e81e42e629e9cf2db 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=fb6b8760fd7915aec353982044839d9c 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=822fc0e61bc0b06d27c7f4873d40405e 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=23550d0b9580aec7fcfc344dffaf8761 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c4e898688e9c165b0be84280f7f4aa3ba65d7041448a3e8d22e2dbd7ac58309a-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0611c542740815273a70890c8f86cc8b 2500w" data-optimize="true" data-opv="2" />
     </Frame>
 
     Click the Sign in With Neynar button
@@ -5052,7 +7370,176 @@ Before running the bot, you need to generate a signer and get it approved via an
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
+# How to Create a Farcaster Channel Feed
+Source: https://docs.neynar.com/docs/how-to-create-a-feed-based-on-an-array-of-farcaster-users-copy
+
+Create a feed for any channel (i.e. parent_url) on Farcaster protocol
+
+<Info>
+  ### API endpoint
+
+  This tutorial uses the [GET v2/feed](/reference/fetch-user-following-feed) endpoint
+</Info>
+
+Imagine you want to create a feed for casts in the Neynar channel. Casts on the Farcaster protocol can be under any `parent_url`, `parent_url`s are just arbitrary strings. Different clients choose to show their chosen list of `parent_urls` and some clients like Warpcast refer to them as "channels".
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1f4a877-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e4cdc50fd55e9f2a1691e3d828e3f0c2" alt="channel feed" width="2494" height="2060" data-path="images/docs/1f4a877-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1f4a877-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=09d20647be2f15ad498524cbe9ec75b1 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1f4a877-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e35983ff2bd976235891ff5141f66e9f 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1f4a877-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2e6e2ca61bc5b82e2d1573a2a038bcc7 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1f4a877-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e38fcfb4782516130fb45a79fc3b12db 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1f4a877-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9759dea73c267ab5abc61e560f72a082 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1f4a877-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=837b7def7bbb2d4a342c60897215d0a9 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Create a channel feed
+
+In this example, we will try to create a feed for the Neynar channel. If you are looking for the `parent_url`s for the channels on Warpcast, you can find them in the [Farcaster Channels Repository](https://github.com/neynarxyz/farcaster-channels/blob/main/warpcast.json). You will need the right `parent_url` to fetch channel data.
+
+#### Ensure you have the right environment setup
+
+Make sure to have node.js, typescript (ts) and yarn installed on your machine
+
+* Install [node.js and npm](https://nodejs.org/en/download/)
+* Install [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+* Install [ts-node](https://www.npmjs.com/package/ts-node#installation) globally
+
+#### Create a new typescript file with the right imports
+
+```js
+import { NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
+import { AxiosError } from "axios";
+
+import {
+  FeedType, FilterType,
+} from "@neynar/nodejs-sdk/build/neynar-api/neynar-v2-api";
+```
+
+#### Initialize the client
+
+```bash
+const client = new NeynarAPIClient("API_KEY");
+```
+
+#### Call `fetchFeedPage` function to get feed
+
+```js
+(async () => {
+  try {
+    const cast =
+      await client.fetchFeedPage(FeedType.Filter, {
+        filterType: FilterType.ParentUrl,
+        parentUrl: "chain://eip155:1/erc721:0xd4498134211baad5846ce70ce04e7c4da78931cc",
+        limit: 1, // change to however many casts you want to fetch at once (max 100)
+        withRecasts: true,
+      });
+    console.log(JSON.stringify(cast));
+  } catch (error) {
+    // isApiErrorResponse can be used to check for Neynar API errors
+    // handle errors accordingly
+    if (isApiErrorResponse(error)) {
+      console.log("API Error", error.response.data);
+    } else {
+      console.log("Generic Error", error);
+    }
+  }
+})();
+```
+
+#### Run your new .ts file
+
+* Navigate to the right folder in your terminal e.g. `cd ./test-sdk`
+* Run script by typing `yarn start` into the terminal
+
+#### You should now see an output like this
+
+```json
+{
+  "casts": [
+    {
+      "hash": "0xfb5f785e80cab58bb3ca9f3087b812d320846043",
+      "thread_hash": "0xfb5f785e80cab58bb3ca9f3087b812d320846043",
+      "parent_hash": null,
+      "parent_url": "chain://eip155:1/erc721:0xd4498134211baad5846ce70ce04e7c4da78931cc",
+      "parent_author": {
+        "fid": null
+      },
+      "author": {
+        "object": "user",
+        "fid": 976,
+        "custody_address": "0xae6706fe1cb6887e5ed9b2e7e64ba78ba9c5e785",
+        "username": "ba",
+        "display_name": "Ben Adamsky",
+        "pfp_url": "https://i.seadn.io/gae/-pmvC99Hw8fLjFKEIT3GxNs7qBhivAAUlIuVNXAykd06pUWSiAsypeLL8Q28dkjRtgXtNp07dLECv2p9P5MiqTrcmCR9OyYnAmO27Q?w=500&auto=format",
+        "profile": {
+          "bio": {
+            "text": "surveyooor @survey x @ponder, eng @ freeport.app, benadamsky.com",
+            "mentioned_profiles": []
+          }
+        },
+        "follower_count": 472,
+        "following_count": 345,
+        "verifications": [
+          "0x64ff33b653b26edcb4644e27d3720f3c653f8371"
+        ],
+        "active_status": "active"
+      },
+      "text": "Added the fid of each channel lead on the farcaster channels directory, I hope this is useful to other devs too!\n\nhttps://github.com/neynarxyz/farcaster-channels",
+      "timestamp": "2023-11-15T21:42:45.000Z",
+      "embeds": [
+        {
+          "url": "https://github.com/neynarxyz/farcaster-channels"
+        }
+      ],
+      "reactions": {
+        "likes": [
+          {
+            "fid": 6546,
+            "fname": "artlu"
+          },
+          {
+            "fid": 10259,
+            "fname": "alexgrover"
+          },
+          {
+            "fid": 299,
+            "fname": "stout"
+          },
+        ],
+        "recasts": [
+          {
+            "fid": 616,
+            "fname": "dylsteck"
+          },
+          {
+            "fid": 2455,
+            "fname": "notdevin.eth"
+          },
+          {
+            "fid": 194,
+            "fname": "rish"
+          }
+        ]
+      },
+      "replies": {
+        "count": 2
+      },
+      "mentioned_profiles": []
+    }
+  ],
+  "next": {
+    "cursor": "eyJ0aW1lc3RhbXAiOiIyMDIzLTExLTE1IDIxOjQyOjQ1LjAwMDAwMDAifQ=="
+  }
+}
+```
+
+**You get all the data in one request, making it easy to display or use in your next operation.** If you want to try getting a live response, head over to our API page for [v2/feed](/reference/fetch-user-following-feed).
+
+You can take the cursor from the output and pass it in the next request to the SDK to page to the next set of results.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -5069,7 +7556,7 @@ Currently, this API is allowlisted. Please get in touch with us if you wish to a
   Related API: [Register new account](/reference/register-account)
 </Info>
 
-This guide enables developers to seamlessly create and register new user accounts on Farcaster through Neynar. This API is allowlisted so if you're interested in using it, reach out to [@rish](https://t.me/rishdoteth) . By the end, you will:
+This guide enables developers to seamlessly create and register new user accounts on Farcaster through Neynar. This API is allowlisted so if you're interested in using it, reach out to [@rish](https://neynar.com/slack) . By the end, you will:
 
 * Claim and register a new user account.
 * Assign a fname and username to the new user account.
@@ -5078,7 +7565,7 @@ This guide enables developers to seamlessly create and register new user account
 
 ### Prerequisites
 
-* Ensure you're allowlisted for the [Register new user](/reference/register-new-user) API (contact [rish](https://t.me/rishdoteth) if needed)
+* Ensure you're allowlisted for the [Register new user](/reference/register-new-user) API (contact [rish](https://neynar.com/slack) if needed)
 * Installation of [curl](https://developer.zendesk.com/documentation/api-basics/getting-started/installing-and-using-curl/#installing-curl), [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable), and [Node.js and npm](https://nodejs.org/en/download/).
 
 <Tip>
@@ -5240,28 +7727,134 @@ node generate-required-parameters.js
 
 You'll receive output containing several values, including `deadline`, `requested_user_custody_address`, `fid`, `signature`
 
-## Step 3: Ask the user to pick their fname (optional)
+## Step 3: Add a managed signer to new account (optional)
+
+If you want to add a [managed signer](https://docs.neynar.com/docs/which-signer-should-you-use-and-why) to the new account during registration, you can include signer details in the registration request. This allows your application to manage the account on behalf of the user.
+
+### Create a Signer
+
+First, create a signer using the [Create Signer API](https://docs.neynar.com/reference/create-signer):
+
+<CodeGroup>
+  ```bash Shell
+  curl --location 'https://api.neynar.com/v2/farcaster/signer' \
+  --header 'api_key: NEYNAR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{}' 
+  ```
+</CodeGroup>
+
+This will return a `signer_uuid` and `public_key` that you'll need for the next step.
+
+### Generate Signed Key Request Metadata Signature
+
+Use the following script to generate the `signed_key_request_metadata_signature` needed for the registration request.
+
+<CodeGroup>
+  ```javascript Javascript
+  // generate-signed-key-request-metadata-signature.js --> Filename
+
+  const { bytesToHex, hexToBytes } = require('viem');
+  const { mnemonicToAccount } = require('viem/accounts');
+  const { ViemLocalEip712Signer } = require('@farcaster/core');
+
+  (async () => {
+    /**_ Get public_key and signer_uuid of the signer _**/
+    const signer_uuid = 'bb81ddbb-8c4f-4a61-94ad-6a82fc2e3e6d'; // From CREATE signer API
+    const key = '0x900ac01061e15e11d332796e9ebbece5b46afdac4a1b641e82f3e344371433a4'; // From CREATE signer API
+
+    /*** Get account ***/
+    const fid = 0; // Your app's FID
+    const account = mnemonicToAccount(''); // Your app's Mnemonic
+
+    const signer = new ViemLocalEip712Signer(account);
+
+    /*** Generating a Signed Key Request signature ***/
+    const deadline = Math.floor(Date.now() / 1000) + 86400;
+
+    console.log('signer_uuid', signer_uuid);
+    console.log('\napp_fid', fid);
+    console.log('\ndeadline', deadline);
+
+    const signed_key_request_metadata = await signer.getSignedKeyRequestMetadata({
+      requestFid: fid,
+      key: hexToBytes(key),
+      deadline,
+    });
+
+    if (!signed_key_request_metadata.isOk()) {
+      console.log('Error getting signed key request metadata');
+      return;
+    }
+
+    const signed_key_req_metadata_sig = bytesToHex(
+      signed_key_request_metadata.value
+    );
+
+    console.log('\nsigned_key_req_metadata_sig', signed_key_req_metadata_sig);
+
+  })();
+
+  ```
+</CodeGroup>
+
+### Install Additional Dependencies
+
+<CodeGroup>
+  ```Text yarn
+  yarn add @farcaster/core
+  ```
+
+  ```Text npm
+  npm install @farcaster/core
+  ```
+</CodeGroup>
+
+This script will output the `signed_key_request_metadata_signature` along with the `signer_uuid`, `app_fid`, and `deadline` that you'll include in the registration request.
+
+## Step 4: Ask the user to pick their fname (optional)
 
 Client applications should ask users to pick a username for their Farcaster account. The [fname availability API](/reference/is-fname-available) should be used to check if their chosen username is available. The fname should match the following regex - `/^[a-z0-9][a-z0-9-]{0,15}$/`. Official regex defined in the [farcaster/core](https://github.com/farcasterxyz/hub-monorepo/blob/a6367658e5c518956a612f793bec06eef5eb1a35/packages/core/src/validations.ts#L20) library
 
-## Step 4: Register the User
+## Step 5: Register the User
 
 Construct a POST request with the generated parameters to finalize the user's registration.
 
 ### Finalize Registration
 
-```json
-curl --location 'https://api.neynar.com/v2/farcaster/user' \
---header 'api_key: NEYNAR_API_KEY' \
---header 'Content-Type: application/json' \
---data '{
-	"deadline": "DEADLINE_FROM_SCRIPT",
-	"requested_user_custody_address": "CUSTODY_ADDRESS_FROM_SCRIPT",
-	"fid": 0,
-	"signature": "SIGNATURE_FROM_SCRIPT",
-	"fname": "desired-username"
-}'
-```
+<CodeGroup>
+  ```bash Without Managed Signer
+  curl --location 'https://api.neynar.com/v2/farcaster/user' \
+  --header 'api_key: NEYNAR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  	"deadline": "DEADLINE_FROM_SCRIPT",
+  	"requested_user_custody_address": "CUSTODY_ADDRESS_FROM_SCRIPT",
+  	"fid": 0,
+  	"signature": "SIGNATURE_FROM_SCRIPT",
+  	"fname": "desired-username"
+  }'
+  ```
+
+  ```bash With Managed Signer
+  curl --location 'https://api.neynar.com/v2/farcaster/user' \
+  --header 'api_key: NEYNAR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  	"signer": {
+  		"uuid": "SIGNER_UUID_FROM_SIGNER_SCRIPT",
+  		"signed_key_request_metadata_signature": "SIGNED_KEY_REQUEST_SIGNATURE_FROM_SIGNER_SCRIPT",
+  		"app_fid": APP_FID_SIGNER_SCRIPT,
+  		"deadline": DEADLINE_FROM_SIGNER_SCRIPT
+  	},
+  	"deadline": "DEADLINE_FROM_SCRIPT",
+  	"requested_user_custody_address": "CUSTODY_ADDRESS_FROM_SCRIPT",
+  	"fid": 0,
+  	"signature": "SIGNATURE_FROM_SCRIPT",
+  	"fname": "desired-username"
+  }'
+  ```
+</CodeGroup>
 
 ### Responses
 
@@ -5275,7 +7868,21 @@ curl --location 'https://api.neynar.com/v2/farcaster/user' \
     		"signer_uuid": "35b0bbd5-4e20-4213-a30c-4183258a73ab",
     		"status": "APPROVED",
     		"public_key": "0x123412341234123412341234123412341234"
-    }
+    },
+    "signers": [
+        {
+          "fid": 0,
+          "signer_uuid": "35b0bbd5-4e20-4213-a30c-4183258a73ab",
+          "status": "APPROVED",
+          "public_key": "0x123412341234123412341234123412341234"
+        },
+        {
+          "fid": 0,
+          "signer_uuid": "9f6efd31-97a7-4fbe-b7e8-259871da8745",
+          "status": "APPROVED",
+          "public_key": "0x1234123412341234123412332322323232323"
+        }
+      ]
   }
 
   ```
@@ -5312,9 +7919,148 @@ curl --location 'https://api.neynar.com/v2/farcaster/user' \
   ```
 </CodeGroup>
 
-## Step 5: Profile setup (optional)
+## Step 6: Profile setup (optional)
 
-Using the approved signer\_uuid from the response in Step 4, you can ask the user to update their profile by picking a profile photo, display name, bio, and more.
+Using the approved signer\_uuid from the response in Step 5, you can ask the user to update their profile by picking a profile photo, display name, bio, and more.
+
+
+# Dynamic Frame Creation
+Source: https://docs.neynar.com/docs/how-to-create-frames-using-the-neynar-sdk
+
+Take a look at how to create frames on the fly using our SDK
+
+<Info>
+  ### Refers to this set of APIs: [Create frame](/reference/publish-neynar-frame)
+</Info>
+
+In this guide, we’ll look at creating Farcaster frames with the neynar SDK without worrying about creating a new web app, hosting it, and all the hassle. Just write the code for your frame, call the API to publish, and you're done! This can be useful in many places, especially if you want to generate frames on the fly.
+
+## Creating a new node app
+
+Create a new app by entering the following commands in your terminal:
+
+<CodeGroup>
+  ```powershell PowerShell
+  mkdir frames-node
+  cd frames-node
+  npm init
+  ```
+</CodeGroup>
+
+We are going to need the `@neynar/nodejs-sdk`, so let’s install that as well:
+
+<CodeGroup>
+  ```powershell PowerShell
+  yarn add @neynar/nodejs-sdk
+  ```
+</CodeGroup>
+
+## Creating the frame
+
+Once the project is created and the packages are installed, you can open it in your favorite editor and create a new `script.js` file and add the following:
+
+<CodeGroup>
+  ```javascript script.js
+  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
+
+  const main = async () => {
+    const config = new Configuration({
+    apiKey: process.env.NEYNAR_API_KEY,
+  });
+
+  const neynarClient = new NeynarAPIClient(config);
+
+    const creationRequest = {
+      name: "gm",
+      pages: [
+        {
+          image: {
+            url: "https://remote-image.decentralized-content.com/image?url=https%3A%2F%2Fipfs.decentralized-content.com%2Fipfs%2Fbafybeifjdrcl2p4kmfv2uy3i2wx2hlxxn4hft3apr37lctiqsfdixjy3qi&w=1920&q=75",
+            aspect_ratio: "1.91:1",
+          },
+          title: "Neynar NFT minting frame",
+          buttons: [
+            {
+              action_type: "mint",
+              title: "Mint",
+              index: 1,
+              next_page: {
+                mint_url:
+                  "eip155:8453:0x23687d295fd48db3e85248b734ea9e8fb3fced27:1",
+              },
+            },
+          ],
+          input: {
+            text: {
+              enabled: false,
+            },
+          },
+          uuid: "gm",
+          version: "vNext",
+        },
+      ],
+    };
+
+    const frame = await neynarClient.publishNeynarFrame(creationRequest);
+    console.log(frame);
+  };
+
+  main();
+  ```
+</CodeGroup>
+
+Make sure to pass your API key in the NeynarAPIClient. Ideally, you should store your API keys in env variables.
+
+This is a simple NFT minting frame here. The `publishNeynarFrame` function accepts an object with a bunch of parameters. Let's take a look at what they are:
+
+* `name`: This will be the name of your frame, and it will be visible only to you on your [dashboard](https://neynar.com/nfs/frames)
+* `pages`: This will be an array of the pages to display on the frame; the parameters here are just what you would typically pass in a frame, like image, title, buttons, input, version, etc.
+* `next_page`: This is where you define what happens when you click the button. Since we are creating an NFT minting frame, it contains the `mint_url`. But you can pass in `redirect_url` to redirect to a new page or `uuid` of a new page, to change the current frame page.
+* mint\_url: This is a string I created using data from a collection on [zora](https://zora.co). The string should be of the form "eip155:chainId:contractAddress:tokenID". The contract address and token ID can be found from the Zora share URL, which looks somewhat like this [https://zora.co/collect/base:0x23687d295fd48db3e85248b734ea9e8fb3fced27/1](https://zora.co/collect/base:0x23687d295fd48db3e85248b734ea9e8fb3fced27/1); you can check out the corresponding `chainId` of your chain on [ChainList](https://chainlist.org/?search=). For example, `chainId` for the base mainnet chain is 8453.
+
+Once you have updated all your metadata and API key, run the script by using the command:
+
+<CodeGroup>
+  ```powershell PowerShell
+  node script.js
+  ```
+</CodeGroup>
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4aff09d-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=18ba0cf30919a70c614e25ffbd7f8f3d" alt="Frame creation" width="878" height="548" data-path="images/docs/4aff09d-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4aff09d-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=46e80e6707a12e4eccb68eceec628666 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4aff09d-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=525603cac4a18a045390796d06eb2580 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4aff09d-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=72bc9a3d747999ceb82a9ae0894a2bd8 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4aff09d-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=6996e30f78d3d14277a16606fe083b18 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4aff09d-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3b033c14194ea1d97d7e65dce6b256da 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4aff09d-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=7311ea1bf07acd00f4f3a13f68adb78b 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+It should return an object similar to this when you run your script, copy the link from here and enter it on the [Warpcast validator](https://warpcast.com/~/developers/frames). Enter your URL and you can inspect the properties of your frame here.
+
+<Info>
+  ### Mint button won't work in the validator, to test out the mint button you'll need to create a new cast
+</Info>
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/de63076-SCR-20240403-pytu.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=133a08b3ed7f064701a59d8bb779a9ad" alt="Frame creation" width="2210" height="1722" data-path="images/docs/de63076-SCR-20240403-pytu.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/de63076-SCR-20240403-pytu.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a6eb3a0968375da3596435fbea002b1e 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/de63076-SCR-20240403-pytu.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=7496b5d23de00d801b68dddb2a681758 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/de63076-SCR-20240403-pytu.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=12b137b2320b5407fe2b737d88d2d752 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/de63076-SCR-20240403-pytu.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=5b1445b743378ce5ad41cab0f37fe58a 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/de63076-SCR-20240403-pytu.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=9e3ef714d69c9db8cbe8e0a7543b36ae 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/de63076-SCR-20240403-pytu.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=25eeb5361a209b824bb19cd38455f0af 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+If everything looks good, you can create your cast and share your cast with the world!
+
+Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
+
+
+# How to create frames without code using Frames studio
+Source: https://docs.neynar.com/docs/how-to-create-frames-without-code-using-frames-studio
+
+In this guide, we’ll take a look at how to create Farcaster frames without writing a single line of code, using our Frames studio.
+
+Head over to your [Neynar dashboard](https://dev.neynar.com/frames) and click on Frame studio
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e06e777-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=e047b866d337ed90e98e874d4177f111" alt="Frame studio neynar" width="500" height="652" data-path="images/docs/e06e777-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e06e777-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=6e021e176778df13cf058be5aee6616b 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e06e777-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=c060e1ab62733ce91d9ac7dd48326030 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e06e777-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=0beee05097fb3a52237afed94095edcd 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e06e777-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2b6720369bd7d2df1c5266e6e4c7b807 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e06e777-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ceb72ffd3e9cbf1c6045e4c870450b76 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e06e777-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=47aede90d234b1c88b70555bdf8afd9f 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Here, you can either create a new frame from scratch or choose one of our existing templates
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/aac41b4-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=46352206de01865a5401c39c1f6413c1" alt="Frame studio neynar" width="3696" height="2482" data-path="images/docs/aac41b4-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/aac41b4-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a95a77d7611a814185ed4994e172cbed 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/aac41b4-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5b8e98306038f26ac4565f23285ae7be 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/aac41b4-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=143e7c39e59969fcd28e3e4068d91d05 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/aac41b4-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=23ee5351ad2fcccf56972e46cb697531 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/aac41b4-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=979445f10d6dbfc60a1c1ae57ec561d3 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/aac41b4-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3d85719f753ad5b65dba4e7b5a075a5b 2500w" data-optimize="true" data-opv="2" />
+</Frame>
 
 
 # Programmatic Webhooks
@@ -5383,12 +8129,12 @@ Once the project is created and the packages are installed, you can open it in y
   ```
 </CodeGroup>
 
-This simple script uses the neynarClient to publish a webhook with a name, url and subscription parameter. The webhook will call the target URL every time the subscribed event occurs. Here, I've chosen all the casts created with degen present in the text. You can select the regex or type of subscription according to your use. You can also subscribe to multiple events here at once! You can take a look at all the possible ways [here](/reference/publish-webhook).
+This simple script uses the neynarClient to publish a webhook with a name, url and subscription parameter. The webhook will call the target URL every time the subscribed event occurs. Here, I've chosen all the casts created with degen present in the text. You can select the regex or type of subscription according to your use. You can also subscribe to multiple events here at once! You can take a look at all the possible ways in [Publish Webhook API](/reference/publish-webhook).
 
 You can get the neynar api key that we are using to initialise the client from the neynar dashboard.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/794cfad-image.png" alt="Neynar API Key" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4b72f6261afde6d5da380fa53c94c3d9" alt="Neynar API Key" width="2512" height="2652" data-path="images/docs/794cfad-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=35ae5234dc0c3a65f902bcf27ff011ed 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=352cca2264c7ba35f841569e9d3ccca2 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=07414bf08a7d03b104cbf06bfea2d0b4 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=41593aaaedee0d13e2fe30a129794d1e 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=28707b4aac6500c141054ad0a38d5fcb 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/794cfad-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e1cfcefd9288fae24642c6a3a73c1e5a 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Add the api key in a `.env` file with the name `NEYNAR_API_KEY`.
@@ -5429,31 +8175,31 @@ This will spin up a server on localhost:3000 and log the request body every time
 Copy the URL you got from ngrok and replace it with `YOUR_NGROK_URL_HERE` in the previous script. Once you've done that, run the script using `bun run script.ts` and it should create a webhook for you like this:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/c8a7d49-image.png" alt="Webhook Created" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c8a7d49-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=72fed79be8647018e3083a9bc66bee2d" alt="Webhook Created" width="1504" height="728" data-path="images/docs/c8a7d49-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c8a7d49-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0b43541c68921a5d73864e069aa892c0 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c8a7d49-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=55d6860b68009b36964ac35b40656fc7 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c8a7d49-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4f6d153e9f185accb1a9cf79ed1106b5 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c8a7d49-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4e061ed7f8776cf045a4c0cd501a57dd 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c8a7d49-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=1e484fe316cd33872a841ec327563071 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c8a7d49-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a6af7bfffdcc048446d5da9c89a32d97 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Once the webhook is created, you'll start seeing logs on your server, which means that our webhook is working successfully!
 
 ## Conclusion
 
-Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
-# Customize SIWN
+# Customize SIWN - Neynar API
 Source: https://docs.neynar.com/docs/how-to-customize-sign-in-with-neynar-button-in-your-app
 
-Customize the Farcaster sign in experience for your users
+Comprehensive guide to customizing Sign In With Neynar (SIWN) for seamless Farcaster authentication. Learn to customize the sign-in experience, integrate write access permissions, and connect user accounts to your app in minutes with custom styling and branding.
 
 <Info>
   ### Sign In with Neynar (SIWN) is the easiest way to let users connect their Farcaster account to your app
 
-  See [here](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) on how to integrate in less than a min.
+  See [SIWN: Connect Farcaster Accounts](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) on how to integrate in less than a min.
 </Info>
 
 This guide shows you how to customize the sign in experience for your users. The SIWN button on your app can be customized as you see fit. Below is how it shows up by default:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/718bcb0-image.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/718bcb0-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=89501268b4980a598cb1d180df035fbd" width="770" height="206" data-path="images/docs/718bcb0-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/718bcb0-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=172501c0b68ed820afbd0d660c53c7ba 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/718bcb0-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6d737630a9ae33bb3cecbd2591ac5074 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/718bcb0-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9188134db2d87b1369bba7ebc19eb2d0 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/718bcb0-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c46cb91585bf6ab78a1addaafaf3fce9 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/718bcb0-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6bad72dc12c6714fc707f3d87291f9f0 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/718bcb0-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=1e9a4d71e1e9cf69729d3110fd9f80d5 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Check [demo.neynar.com](https://demo.neynar.com) to try out live customizations. Below are some of the attributes you can change in the code when integrating:
@@ -5555,14 +8301,222 @@ Check [demo.neynar.com](https://demo.neynar.com) to try out live customizations.
 * **Note:** size of the logo should be adjusted within svg itself
 
 
-# Mutual Follows/Followers
+# Overview
+Source: https://docs.neynar.com/docs/how-to-embed-farcaster-frames-in-your-app-with-neynar
+
+Host Frames on your product and let users interact with them directly
+
+If you are hosting a Frame on your product (you can, they are not Warpcast specific!), you can
+
+1. Fetch a feed of all Frames using our [/feed/frames API](/reference/fetch-frames-only-feed)
+2. Let users connect Farcaster to your product with [Sign In with Neynar](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) or use [dedicated signers](/docs/write-to-farcaster-with-neynar-managed-signers) on our Enterprise plan
+3. Let users create Frame actions on your product directly using [Neynar Frame Action POST API](/reference/post-frame-action)
+4. To test Frames on your local machine, set up [ngrok](https://ngrok.com/downloads/mac-os) and use ngrok as your Frame's POST URL.
+
+<Frame caption="Example Frame hosted on Supercast with Neynar">
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9276e29-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=10b7edbc3fa41609c2bed4892b23d410" width="1234" height="1300" data-path="images/docs/9276e29-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9276e29-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f0c12c9056431f0b61250ef51f32f61a 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9276e29-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=55f4d0a77a12c22384fff2b09f935e84 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9276e29-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=208ab8f6fe1f9b531bf19b6991aa43f5 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9276e29-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=71184db66237330c1619fcafaa639809 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9276e29-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=92e005445216f7802bfccc0e7c9db12c 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9276e29-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f17b9c98eec6a0b93be65af43e4114d4 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+
+# How to Create a Feed Based on an Array of Farcaster Users
+Source: https://docs.neynar.com/docs/how-to-fetch-farcaster-feed-for-a-given-user-copy
+
+Create a feed based on a given input of Farcaster users
+
+<Info>
+  ### API endpoint
+
+  This tutorial uses the [GET v2/feed](/reference/fetch-user-following-feed) endpoint
+</Info>
+
+Imagine you want to create a custom list of users in your app and show a feed of casts based on users in the list, similar to Twitter lists.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=8bfc18dc93af2e987d3ccbcc5b47fe11" alt="feed" width="2494" height="2062" data-path="images/docs/007fd1a-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cc667740d05377a3122287c12d91ff57 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2fd94433e04e93838b35002266ae0d6d 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9cda6f45159d7885b93b36f571dbdec0 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=066c64a0a7c5bd13386fcf777252370a 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=bc9cd700c8ddf8b24db782a07c544959 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f012b1f48f705f17337b3bda2b25fae1 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Create a feed given a list of users
+
+In this example, we will try to feed for fids 1, 2 and 3. If you know someone's username, you can find their fid from our [user endpoint](/reference/search-user).
+
+#### Ensure you have the right environment setup
+
+Make sure to have node.js, typescript (ts) and yarn installed on your machine
+
+* Install [node.js and npm](https://nodejs.org/en/download/)
+* Install [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+* Install [ts-node](https://www.npmjs.com/package/ts-node#installation) globally
+
+#### Create a new typescript file with the right imports
+
+```js
+import { NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
+import { AxiosError } from "axios";
+
+import {
+  FeedType, FilterType,
+} from "@neynar/nodejs-sdk/build/neynar-api/neynar-v2-api";
+```
+
+#### Initialize the client
+
+```js
+const client = new NeynarAPIClient("API_KEY");
+```
+
+#### Call `fetchFeedPage` function to get feed
+
+```js
+(async () => {
+  try {
+    const cast =
+      await client.fetchFeedPage(FeedType.Filter, {
+        filterType: FilterType.Fids,
+        fids: "1,2,3",
+        limit: 1, // change to however many casts you want to fetch at once (max 100)
+        withRecasts: true,
+      });
+    console.log(JSON.stringify(cast));
+  } catch (error) {
+    // isApiErrorResponse can be used to check for Neynar API errors
+    // handle errors accordingly
+    if (isApiErrorResponse(error)) {
+      console.log("API Error", error.response.data);
+    } else {
+      console.log("Generic Error", error);
+    }
+  }
+})();
+```
+
+#### Run your new .ts file
+
+* Navigate to the right folder in your terminal e.g. `cd ./test-sdk`
+* Run script by typing `yarn start` into the terminal
+
+#### You should now see an output like this
+
+```json
+{
+  "casts": [
+    {
+      "hash": "0x46db48a011698758bfb9b1f77c07596249e277ef",
+      "thread_hash": "0x46db48a011698758bfb9b1f77c07596249e277ef",
+      "parent_hash": null,
+      "parent_url": "chain://eip155:7777777/erc721:0xe96c21b136a477a6a97332694f0caae9fbb05634",
+      "parent_author": {
+        "fid": null
+      },
+      "author": {
+        "object": "user",
+        "fid": 3647,
+        "custody_address": "0x54faa8c0c270093fcd0f0c4b29ace4d5426113b7",
+        "username": "iamnick.eth",
+        "display_name": "Nick Smith",
+        "pfp_url": "https://i.seadn.io/gcs/files/8583feea8a3465788d84367a92d80512.png?w=500&auto=format",
+        "profile": {
+          "bio": {
+            "text": "Building withfam.xyz Prev. Co-founder @ talisman.xyz ✴︎ Member @ FWB, Builder DAO, The Park ✷",
+            "mentioned_profiles": []
+          }
+        },
+        "follower_count": 482,
+        "following_count": 149,
+        "verifications": [
+          "0x0f9b1b68f848cb65f532bc12825357201726d3d2"
+        ],
+        "active_status": "active"
+      },
+      "text": "https://x.com/iamnickdoteth/status/1724238126884024629?s=20\n\nBoiler Room, but make it onchain\n\nwe're forming a squad. HMU if you're interested",
+      "timestamp": "2023-11-17T01:22:25.000Z",
+      "embeds": [
+        {
+          "url": "https://x.com/iamnickdoteth/status/1724238126884024629?s=20"
+        }
+      ],
+      "reactions": {
+        "likes": [
+          {
+            "fid": 191213,
+            "fname": "stringtheory69"
+          },
+          {
+            "fid": 13870,
+            "fname": "0xsatori.eth"
+          },
+          {
+            "fid": 8,
+            "fname": "jacob"
+          },
+          {
+            "fid": 195091,
+            "fname": "greyseymour"
+          },
+          {
+            "fid": 7715,
+            "fname": "royalaid"
+          },
+          {
+            "fid": 1407,
+            "fname": "zinger"
+          },
+          {
+            "fid": 3115,
+            "fname": "ghostlinkz"
+          },
+          {
+            "fid": 2,
+            "fname": "varunsrin.eth"
+          }
+        ],
+        "recasts": [
+          {
+            "fid": 191213,
+            "fname": "stringtheory69"
+          },
+          {
+            "fid": 7715,
+            "fname": "royalaid"
+          },
+          {
+            "fid": 2,
+            "fname": "varunsrin.eth"
+          }
+        ]
+      },
+      "replies": {
+        "count": 3
+      },
+      "mentioned_profiles": []
+    }
+  ],
+  "next": {
+    "cursor": "eyJ0aW1lc3RhbXAiOiIyMDIzLTExLTE3IDAxOjIyOjI1LjAwMDAwMDAifQ=="
+  }
+}
+```
+
+**You get all the data in one request, making it easy to display or use in your next operation.** If you want to try getting a live response, head over to our API page for [v2/feed](/reference/fetch-user-following-feed).
+
+You can take the cursor from the output and pass it in the next request to the SDK to page to the next set of results.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
+# Find Mutual Follows and Followers in Farcaster Using Neynar SDK
 Source: https://docs.neynar.com/docs/how-to-fetch-mutual-followfollowers-in-farcaster
 
-Find mutual follows with another Farcaster user
+Learn how to find mutual follows and followers between Farcaster users using Neynar API. Build social discovery features like 'Followed by X users you follow' similar to Twitter, with comprehensive examples and SDK integration for enhanced user connections.
 
 <Info>
   ### This guide refers to [this API](/reference/fetch-relevant-followers)
 </Info>
+
+## How to Find Mutual Follows and Followers
 
 On X (Twitter) profile page, there is a "Followed by A, B, C, and 10 others you follow". This guide demonstrates how to use the Neynar SDK to make the same thing but for Farcaster.
 
@@ -5701,7 +8655,246 @@ That's it! You can use this to make a "Followed by A, B, C, and 10 others you fo
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
+# How to fetch notifications for a Farcaster user
+Source: https://docs.neynar.com/docs/how-to-fetch-notification-for-a-user
+
+Fetch all notifications for a given fid
+
+<Info>
+  ### API endpoint
+
+  This tutorial uses the [GET v2/notifications](/reference/fetch-all-notifications) endpoint
+</Info>
+
+Show follow, like, recast, reply, quote and mention notifications for a given user.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/ab5bf6b-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9bb961fe846bc155ff68c6d1117a9b79" alt="notifications" width="2502" height="2048" data-path="images/docs/ab5bf6b-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/ab5bf6b-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=10308ca973b05819a72ff7ab3bd859e6 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/ab5bf6b-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=84a6cb29730ba25dbce6fa00e70f1d0a 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/ab5bf6b-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=228af73ee6f1994b96ce2d6e4b1208cb 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/ab5bf6b-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7bb155f8a6c5ffa6ea6464d6a8bbe9da 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/ab5bf6b-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4a99d5cea28d21a9ffc8ab7deea547e7 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/ab5bf6b-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0b65dcca3b0568ad1ecc751ce377b281 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Get notifications for a given user `fid`
+
+In this example, we will try to create a notifications page for the given user.
+
+### Prerequisites
+
+* Install [Node.js](https://nodejs.org/en/download/package-manager)
+* Optional: Install [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable) (Alternatively, npm can be used)
+
+### Project Setup
+
+**Initialize Project Directory**
+
+<CodeGroup>
+  ```bash Shell
+  mkdir fetch-notifications-for-a-user
+  cd fetch-notifications-for-a-user
+  ```
+</CodeGroup>
+
+**Install Neynar SDK along with typescript**
+
+Install using npm
+
+<CodeGroup>
+  ```bash Shell
+  npm i @neynar/nodejs-sdk
+  npm i -D typescript
+  ```
+</CodeGroup>
+
+// or
+
+Install using Yarn
+
+<CodeGroup>
+  ```bash Shell
+  yarn add @neynar/nodejs-sdk
+  yarn add -D typescript
+  ```
+</CodeGroup>
+
+**Initialize typescript environment**
+
+<CodeGroup>
+  ```bash Shell
+  npx tsc --init
+  ```
+</CodeGroup>
+
+### Implementation
+
+Create index.ts file at root level
+
+<CodeGroup>
+  ```bash Shell
+  touch index.ts
+  ```
+</CodeGroup>
+
+Add imports
+
+<CodeGroup>
+  ```typescript Typescript
+  import { NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
+  import { AxiosError } from "axios";
+  ```
+</CodeGroup>
+
+Instantiate the client
+
+<CodeGroup>
+  ```typescript Typescript
+  const client = new NeynarAPIClient("API_KEY");
+  ```
+</CodeGroup>
+
+Call `fetchAllNotifications` function to get feed
+
+<CodeGroup>
+  ```typescript Typescript
+  (async () => {
+    try {
+      const cast =
+        await client.fetchAllNotifications(194, {
+          limit: 1, // change to however many notifications you want to get at once (max 50)
+        });
+      console.log(JSON.stringify(cast));
+    } catch (error) {
+      // isApiErrorResponse can be used to check for Neynar API errors
+      // handle errors accordingly
+      if (isApiErrorResponse(error)) {
+        console.log("API Error", error.response.data);
+      } else {
+        console.log("Generic Error", error);
+      }
+    }
+  })();
+  ```
+</CodeGroup>
+
+### Running the project
+
+<CodeGroup>
+  ```bash Shell
+  npx ts-node index.ts
+  ```
+</CodeGroup>
+
+### Result
+
+#### You should now see an output like this
+
+```json
+{
+  "notifications": [
+    {
+      "object": "notification",
+      "most_recent_timestamp": "2023-11-17T01:22:43.000Z",
+      "type": "likes", // Can be "likes", "mentions", "replies", or "quotes"
+      "cast": {
+        "hash": "0x1aa36542c2dc8799dded2cde37a3c1a3840eb41f",
+        "thread_hash": "2a47ce562ff5ce5916ea9095227c5fbff9618157",
+        "parent_hash": "2a47ce562ff5ce5916ea9095227c5fbff9618157",
+        "parent_url": null,
+        "parent_author": {
+          "fid": "576"
+        },
+        "author": {
+          "object": "user",
+          "fid": 194,
+          "custody_address": "0xb95dc10483be18f7c69ddf78d4baafecc01c5530",
+          "username": "rish",
+          "display_name": "rish",
+          "pfp_url": "https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_256/https://lh3.googleusercontent.com/MEaRCAMdER6MKcvmlfN1-0fVxOGz6w98R8CrP_Rpzse9KZudgn95frTd0L0ZViWVklBj9fuAcJuM6tt7P-BRN0ouAR87NpzZeh2DGw",
+          "profile": {
+            "bio": {
+              "text": "@neynar 🪐 | nf.td/rish",
+              "mentioned_profiles": []
+            }
+          },
+          "follower_count": 8313,
+          "following_count": 470,
+          "verifications": [
+            "0x5a927ac639636e534b678e81768ca19e2c6280b7",
+            "0xe9e261852ea62150eee685807df8fe3f211310a0"
+          ],
+          "active_status": "active"
+        },
+        "text": "wtf",
+        "timestamp": "2023-11-17T00:56:01.000Z",
+        "embeds": [],
+        "reactions": {
+          "likes": [
+            {
+              "fid": 1600,
+              "fname": "yashkarthik"
+            },
+            {
+              "fid": 576,
+              "fname": "nonlinear.eth"
+            },
+            {
+              "fid": 6546,
+              "fname": "artlu.eth"
+            }
+          ],
+          "recasts": []
+        },
+        "replies": {
+          "count": 1
+        },
+        "mentioned_profiles": []
+      },
+      "reactions": [
+        {
+          "object": "likes",
+          "cast": {
+            "object": "cast_dehydrated",
+            "hash": "0x1aa36542c2dc8799dded2cde37a3c1a3840eb41f"
+          },
+          "user": {
+            "object": "user",
+            "fid": 1600,
+            "username": "yashkarthik",
+            "display_name": "Yash Karthik",
+            "pfp_url": "https://lh3.googleusercontent.com/W_MM3NN-i9OYxM3XPJjwpb5mkMLjJFZJjnEXsvrhiTwirSFhRjyAa3qTzV63ago6NkX9qeesi20hoK9fHdhiE-SqICH0vPcTm3Dl",
+            "profile": {
+              "bio": {
+                "text": "I like building cool stuff on top of Ethereum, Farcaster and GPT (dm for collab)\n\nCurrently learning C and exploring low level stuff\n\nnf.td/yashkarthik"
+              }
+            },
+            "follower_count": 585,
+            "following_count": 336,
+            "verifications": [
+              "0x33cc45d8b0336bfa830fb512b54b02a049277403"
+            ],
+            "active_status": "active"
+          }
+        },
+      ]
+    }
+  ],
+  "next": {
+    "cursor": "eyJ0aW1lc3RhbXAiOiIyMDIzLTExLTE3IDAxOjIyOjQzLjAwMDAwMDAifQ=="
+  }
+}
+```
+
+### Summary
+
+You can use this to show a notification on your client! **You get all the data in one request, making it easy to display or use in your next operation.** If you want to try getting a live response, head over to our API page for [v2/feed](/reference/fetch-user-following-feed).
+
+You can take the cursor from the output and pass it in the next request to the SDK to page to the next set of results.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -5838,22 +9031,377 @@ Ensure to handle potential errors, such as invalid FID or network issues, by wra
 By following this guide, you can efficiently fetch token balances for a user using their Farcaster FID with the Neynar API. This streamlined process eliminates the need for multiple API calls and simplifies the integration into your application.
 
 <Info>
-  ### Ready to start building? Get your subscription at [neynar.com](https://neynar.com/) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  ### Ready to start building? Get your subscription at [neynar.com](https://neynar.com/) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
-# Warpcast URLs
-Source: https://docs.neynar.com/docs/how-to-get-cast-information-from-warpcast-url
+# How to Get Cast Information for Farcaster Casts
+Source: https://docs.neynar.com/docs/how-to-get-cast-information-for-farcaster-casts
 
-Convert Warpcast URL into full cast data from Farcaster network through Neynar
+To get all information about a cast, traditionally, you have to run a hub or get access to a hosted indexer.
 
 <Info>
-  ### Related API: [Lookup cast by hash or URL](/reference/lookup-cast-by-hash-or-warpcast-url)
+  ### API endpoint
+
+  This tutorial uses the [GET v2/cast](/reference/fetch-embedded-url-metadata) endpoint
 </Info>
 
-Warpcast cast url doesn't contain all the full cast hash value, it usually looks like this: `https://warpcast.com/dwr.eth/0x029f7cce`.
+You have to fetch the raw cast data, mentioned profiles, reactions, profile of the author, etc. and stitch it back into the final cast object before you can render it or use the data in a subsequent operation. Thankfully, Neynar's SDK and APIs make this much simpler!
 
-This guide demonstrates how to fetch cast information from Warpcast cast url.
+<Frame>
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ea58d37-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=e1c923dfe653abf7ae555f9f28b198f7" alt="cast information" width="1238" height="1296" data-path="images/docs/ea58d37-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ea58d37-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ce7faff51fd59b30dc11d560eab97e1b 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ea58d37-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=964ad748880d152af1b3d5cd21454c20 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ea58d37-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=57c4e27cbb164c351a992943d4795e60 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ea58d37-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=84cdc0567f64e41b452acf91cad99442 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ea58d37-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=9793724377e993fbcb34e0a14ae38607 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/ea58d37-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ae926ef020d262fb64ffc10d422e97af 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Fetch cast information easily with Neynar SDK
+
+#### Ensure you have the right environment setup
+
+Make sure to have node.js, typescript (ts) and yarn installed on your machine
+
+* Install [node.js and npm](https://nodejs.org/en/download/)
+* Install [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+* Install [ts-node](https://www.npmjs.com/package/ts-node#installation) globally
+
+#### Create a new typescript file with the right imports
+
+<CodeGroup>
+  ```typescript index.ts
+  import { NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
+  import { AxiosError } from "axios";
+
+  import {
+    CastParamType,
+  } from "@neynar/nodejs-sdk/build/neynar-api/neynar-v2-api";
+  ```
+</CodeGroup>
+
+#### Initialize the client
+
+<CodeGroup>
+  ```typescript index.ts
+  const client = new NeynarAPIClient("API_KEY");
+  ```
+</CodeGroup>
+
+#### Call `lookUpCastByHashOrUrl` function to get cast data based on a url
+
+<CodeGroup>
+  ```typescript index.ts
+  (async () => {
+    try {
+      const cast = await client.lookUpCastByHashOrUrl(
+        'https://warpcast.com/rish/0x9288c1',
+        CastParamType.Url
+      );
+      console.log(JSON.stringify(cast));
+    } catch (error) {
+      // isApiErrorResponse can be used to check for Neynar API errors
+      // handle errors accordingly
+      if (isApiErrorResponse(error)) {
+        console.log("API Error", error.response.data);
+      } else {
+        console.log("Generic Error", error);
+      }
+    }
+  })();
+  ```
+</CodeGroup>
+
+*You can change the `CastParamType.Url` to `CastParamType.Hash` use a hash (e.g. 0x123...abc) instead to fetch cast data if you so want.*
+
+#### Run your new .ts file
+
+* Navigate to the right folder in your terminal e.g. `cd ./test-sdk`
+* Run script by typing `yarn start` into the terminal
+
+#### You should now see an output like this
+
+<CodeGroup>
+  ```json JSON
+  {
+      "cast": {
+          "hash":"0x9288c1e862aa72bd69d0e383a28b9a76b63cbdb4",
+          "thread_hash":"0x9288c1e862aa72bd69d0e383a28b9a76b63cbdb4",
+          "parent_hash":null,
+          "parent_url":"chain://eip155:7777777/erc721:0x4f86113fc3e9783cf3ec9a552cbb566716a57628",
+          "parent_author": {
+                  "fid":null
+              },
+          "author": {
+              "object":"user",
+              "fid":194,
+              "custody_address":"0xb43a7cc909d842721c288ff90b03e511a78a4a8d",
+              "username":"rish",
+              "display_name":"rish",
+              "pfp_url":"https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_256/https://lh3.googleusercontent.com/MEaRCAMdER6MKcvmlfN1-0fVxOGz6w98R8CrP_Rpzse9KZudgn95frTd0L0ZViWVklBj9fuAcJuM6tt7P-BRN0ouAR87NpzZeh2DGw",
+              "profile": {
+                  "bio": {
+                      "text":"@neynar 🪐 | nf.td/rish",
+                      "mentioned_profiles":[]
+                      }
+                  },
+              "follower_count":8253,
+              "following_count":468,
+              "verifications": [
+                  "0x5a927ac639636e534b678e81768ca19e2c6280b7",
+                  "0xe9e261852ea62150eee685807df8fe3f211310a0"
+              ],
+              "active_status":"active"
+          },
+          "app": {
+              "object": "user_dehydrated",
+              "fid": 9152,
+              "username": "warpcast",
+              "display_name": "Warpcast",
+              "pfp_url": "https://i.imgur.com/3d6fFAI.png"
+          },
+          "text":".@fun built out hatecast.xyz based on a random conversation we had about app ideas for Farcaster.\n\nThere are many things we'd love to build at @neynar if we had the time but spoiler alert: we don't. So would love to see others build these! \nhttps://paragraph.xyz/@neynar/farcaster-ideas \n\n🪐",
+          "timestamp":"2023-09-13T22:10:22.000Z",
+          "embeds": [
+              {
+                  "url":"https://paragraph.xyz/@neynar/farcaster-ideas"
+                  }
+              ],
+          "reactions": {
+              "likes": [
+                  {
+                      "fid":1285,
+                      "fname":"0xbenersing.eth"
+                  },
+                  {
+                      "fid":19315,
+                      "fname":"sonofsun"
+                  }
+              ],
+              "recasts": [
+                  {
+                      "fid":19036,
+                      "fname":"geohookah"
+                  },
+                  {
+                      "fid":13313,
+                      "fname":"008"
+                  }
+              ]
+          },
+          "replies": {
+              "count":10
+          },
+          "mentioned_profiles": [
+              {
+                  "object":"user",
+                  "fid":5620,
+                  "custody_address":"0xbee82d68f49ee2aa8408f8111db64d92e4d61971",
+                  "username":"fun",
+                  "display_name":"welter.eth",
+                  "pfp_url":"https://i.imgur.com/LE5osyF.jpg",
+                  "profile": {
+                      "bio": {
+                          "text":"building apps like FarcasterUserStats.com",
+                          "mentioned_profiles":[]
+                      }
+                  },
+                  "follower_count":1522,
+                  "following_count":207,
+                  "verifications": [
+                      "0x02ac33835070d0c90bef87c273514e67aea36ef8"
+                  ],
+                  "active_status":"active"
+              }
+          ]
+      }
+  }
+  ```
+</CodeGroup>
+
+**You get all the data in one request, making it easy to display or use in your next operation.** If you want to try getting a live response, head over to our API page for [v2/cast](/reference/fetch-embedded-url-metadata).
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
+# How to fetch Farcaster feed for a given user
+Source: https://docs.neynar.com/docs/how-to-get-cast-information-for-farcaster-casts-copy-1
+
+Fetch the casts that should appear on the home feed for a certain fid
+
+<Info>
+  ### API endpoint
+
+  This tutorial uses the [GET v2/feed](/reference/fetch-user-following-feed) endpoint
+</Info>
+
+To get the feed for a farcaster user, you traditionally, you have to run a hub or get access to a hosted indexer. You have to fetch the graph of the user, the raw cast data from that graph, mentioned profiles, reactions, profile of the authors, (long list of things...), and stitch it back into the final feed object before you can render it. Thankfully, Neynar's SDK and APIs make this much simpler!
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=8bfc18dc93af2e987d3ccbcc5b47fe11" alt="feed" width="2494" height="2062" data-path="images/docs/007fd1a-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cc667740d05377a3122287c12d91ff57 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2fd94433e04e93838b35002266ae0d6d 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9cda6f45159d7885b93b36f571dbdec0 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=066c64a0a7c5bd13386fcf777252370a 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=bc9cd700c8ddf8b24db782a07c544959 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/007fd1a-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f012b1f48f705f17337b3bda2b25fae1 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+## Fetch feed for a user easily with Neynar SDK
+
+In this example, we will try to get rish's feed who's fid is 194. If you know someone's username, you can find their fid from our [user endpoint](/reference/search-user).
+
+#### Ensure you have the right environment setup
+
+Make sure to have node.js, typescript (ts) and yarn installed on your machine
+
+* Install [node.js and npm](https://nodejs.org/en/download/)
+* Install [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+* Install [ts-node](https://www.npmjs.com/package/ts-node#installation) globally
+
+#### Create a new typescript file with the right imports
+
+```js
+import { NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
+import { AxiosError } from "axios";
+
+import {
+  FeedType,
+} from "@neynar/nodejs-sdk/build/neynar-api/neynar-v2-api";
+```
+
+#### Initialize the client
+
+```js
+const client = new NeynarAPIClient("API_KEY");
+```
+
+#### Call `fetchFeedPage` function to get feed
+
+```js
+(async () => {
+  try {
+    const cast =
+      await client.fetchFeedPage(FeedType.Following, {
+            fid: 194,
+            limit: 2, // change to however many casts you want to fetch at once (max 100)
+            withRecasts: true,
+        });
+    console.log(JSON.stringify(cast));
+  } catch (error) {
+    // isApiErrorResponse can be used to check for Neynar API errors
+    // handle errors accordingly
+    if (isApiErrorResponse(error)) {
+      console.log("API Error", error.response.data);
+    } else {
+      console.log("Generic Error", error);
+    }
+  }
+})();
+```
+
+#### Run your new .ts file
+
+* Navigate to the right folder in your terminal e.g. `cd ./test-sdk`
+* Run script by typing `yarn start` into the terminal
+
+#### You should now see an output like this
+
+```json
+{
+  "casts": [
+    {
+      "hash": "0x0d46810395803ff75221c5deac1d872db22aac99",
+      "thread_hash": "0x0d46810395803ff75221c5deac1d872db22aac99",
+      "parent_hash": null,
+      "parent_url": null,
+      "parent_author": {
+        "fid": null
+      },
+      "author": {
+        "object": "user",
+        "fid": 1287,
+        "custody_address": "0x19c29a3cea8733314e501d42f1a0d6dcb23e1b3d",
+        "username": "july",
+        "display_name": "July",
+        "pfp_url": "https://i.seadn.io/gcs/files/ed56e6b9a1b22720ce7490524db333e0.jpg?w=500&auto=format",
+        "profile": {
+          "bio": {
+            "text": "mostly creating and destroying; used to build flying cars & autonomous vehicles, now working on @faust",
+            "mentioned_profiles": []
+          }
+        },
+        "follower_count": 12787,
+        "following_count": 879,
+        "verifications": [
+          "0xdd3bf199e65bba74144a9a1c0dfaeda32b911121"
+        ],
+        "active_status": "active"
+      },
+      "app": {
+        "object": "user_dehydrated",
+        "fid": 9152,
+        "username": "warpcast",
+        "display_name": "Warpcast",
+        "pfp_url": "https://i.imgur.com/3d6fFAI.png"
+      },
+      "text": "Constantly reminded that doing anything, is really difficult. Whether it is building a product, launching a service, hosting a party, parenting, supporting parents, finding like minded friends, thinking deeply about problems - and solving them",
+      "timestamp": "2023-11-16T23:26:03.000Z",
+      "embeds": [],
+      "reactions": {
+        "likes": [
+          {
+            "fid": 557,
+            "fname": "pugson"
+          },
+          {
+            "fid": 2745,
+            "fname": "sdv"
+          },
+          {
+            "fid": 4215,
+            "fname": "sa"
+          },
+        ],
+        "recasts": [
+          {
+            "fid": 557,
+            "fname": "pugson"
+          },
+          {
+            "fid": 193173,
+            "fname": "winnykim"
+          },
+        ]
+      },
+      "replies": {
+        "count": 3
+      },
+      "mentioned_profiles": []
+    },
+  ],
+  "next": {
+    "cursor": "eyJ0aW1lc3RhbXAiOiIyMDIzLTExLTE3IDAxOjIyOjI1LjAwMDAwMDAifQ=="
+  }
+}
+```
+
+**You get all the data in one request, making it easy to display or use in your next operation.** If you want to try getting a live response, head over to our API page for [v2/feed](/reference/fetch-user-following-feed).
+
+You can take the cursor from the output and pass it in the next request to the SDK to page to the next set of results.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
+# Farcaster URLs
+Source: https://docs.neynar.com/docs/how-to-get-cast-information-from-url
+
+Convert URL into full cast data from Farcaster network through Neynar
+
+<Info>
+  ### Related API: [Lookup cast by hash or URL](/reference/lookup-cast-by-hash-or-url)
+</Info>
+
+Cast url doesn't contain all the full cast hash value, it usually looks like this: `https://farcaster.xyz/dwr.eth/0x029f7cce`.
+
+This guide demonstrates how to fetch cast information from cast url.
 
 Check out this [Getting started guide](/docs/getting-started-with-neynar) to learn how to set up your environment and get an API key.
 
@@ -5879,8 +9427,8 @@ Then fetch the cast:
 <CodeGroup>
   ```javascript Javascript
   // @dwr.eth AMA with @balajis.eth on Farcaster
-  const url = "https://warpcast.com/dwr.eth/0x029f7cce";
-  const cast = await client.lookupCastByHashOrWarpcastUrl({
+  const url = "https://farcaster.xyz/dwr.eth/0x029f7cce";
+  const cast = await client.lookupCastByHashOrUrl({
     identifier: url,
     type: CastParamType.Url,
   });
@@ -5948,7 +9496,7 @@ Obviously, you can also fetch cast by hash:
   ```javascript Javascript
   // full hash of the warpcast.com/dwr.eth/0x029f7cce
   const hash = "0x029f7cceef2f0078f34949d6e339070fc6eb47b4";
-  const cast = (await client.lookupCastByHashOrWarpcastUrl({
+  const cast = (await client.lookUpCastByHashOrUrl({
     identifier: hash,
     type: CastParamType.Hash,
   }));
@@ -5961,18 +9509,111 @@ Which will return the same result as above.
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
-# Trending Feed on Farcaster
-Source: https://docs.neynar.com/docs/how-to-get-trending-casts-on-farcaster
+# How to get relevant mints of Farcaster user
+Source: https://docs.neynar.com/docs/how-to-get-relevant-mints-of-farcaster-user
 
-Show casts trending on the Farcaster network through Neynar
+This guide demonstrates how to use the Neynar SDK to fetch all mint actions relevant to a contract address (and optionally tokenId for ERC1155s) given a user's Ethereum address.
+
+Check out this [Getting started guide](/docs/getting-started-with-neynar) to learn how to set up your environment and get an API key.
+
+First, initialize the client:
+
+<CodeGroup>
+  ```javascript Javascript
+  // npm i @neynar/nodejs-sdk
+  import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const client = new NeynarAPIClient(process.env.NEYNAR_API_KEY);
+  ```
+</CodeGroup>
+
+First we fetch the custody address for a user:
+
+<CodeGroup>
+  ```javascript Javascript
+  const FID = 3;
+  const response = await client.lookupCustodyAddressForUser(FID);
+  const custodyAddress = response.result.custodyAddress;
+  ```
+</CodeGroup>
+
+Then we fetch the relevant mints for the user:
+
+<CodeGroup>
+  ```javascript Javascript
+  // Farcats contract address
+  const contractAddress = "0x9340204616750cb61e56437befc95172c6ff6606";
+  const relevantMints = await client.fetchRelevantMints(
+    custodyAddress,
+    contractAddress
+  );
+
+  console.log(relevantMints);
+  ```
+</CodeGroup>
+
+Example output:
+
+```json
+{
+  "mints": [
+    {
+      "minter": {
+        "object": "user",
+        "fid": 129,
+        "custody_address": "0xf6fd7deec77d7b1061435585df1d7fdfd4682577",
+        "username": "phil",
+        "display_name": "phil",
+        "pfp_url": "https://i.imgur.com/sx6qqM7.jpg",
+        "profile": {
+          "bio": {
+            "text": "Building @brightmoments - an IRL NFT gallery DAO. https://brightmoments.io | @purple #15",
+            "mentioned_profiles": []
+          }
+        },
+        "follower_count": 14867,
+        "following_count": 1146,
+        "verifications": [
+          "0x18b7511938fbe2ee08adf3d4a24edb00a5c9b783",
+          "0x925afeb19355e289ed1346ede709633ca8788b25"
+        ],
+        "active_status": "active"
+      },
+      "tx_hash": "0x2ed2ebb4b048677133eda3a8609bae694d2ba730c7fa2082691f508e711b6075",
+      "block_number": 17610874,
+      "contract_address": "0x9340204616750cb61e56437befc95172c6ff6606",
+      "token_id": "353"
+    },
+    // other mints
+]
+}
+```
+
+It's that easy to get relevant mints for a Farcaster user!
 
 <Info>
-  ### Related API reference [here](/reference/fetch-trending-feed)
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
+
+
+# Trending Feed on Farcaster - Neynar API
+Source: https://docs.neynar.com/docs/how-to-get-trending-casts-on-farcaster
+
+Complete tutorial on fetching trending casts and popular content from the Farcaster network using Neynar SDK. Learn to implement trending feeds, discover viral content, and build engaging social media experiences with real-time trending algorithms and content discovery.
+
+<Info>
+  ### Related API reference [Fetch Trending Feed](/reference/fetch-trending-feed)
+</Info>
+
+## How to Get Trending Casts
 
 This guide demonstrates how to use the Neynar SDK to get trending casts on Farcaster.
 
@@ -6164,8 +9805,66 @@ It's that easy to get trending casts in Farcaster!
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
+
+
+# Frame Interactions
+Source: https://docs.neynar.com/docs/how-to-handle-frame-interactions-with-the-neynar-api
+
+In this guide, we'll go over how to use our `POST frame/action` API to handle frame interactions on your backend.
+
+If you're looking for a guide on handling frame interactions on the client side with our `@neynar/react` SDK, [see our Wownar React SDK examples](https://github.com/neynarxyz/farcaster-examples/tree/main/wownar-react-sdk#how-to-securely-implement-write-actions).
+
+<Info>
+  Before beginning, ensure that your backend has your Neynar API Key securely managed so you have safe access set up to call our API.
+</Info>
+
+## Calling the `POST frame/action` API
+
+This API route takes three inputs:
+
+* `signer_uuid`: the Neynar Signer UUID for the user who is taking the frame action, which would be retrieved through using [Sign In with Neynar](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn)
+  * **required value**
+* `cast_hash`: the hash of the cast from which the frame action is taking place
+  * optional value, defaults to `0xfe90f9de682273e05b201629ad2338bdcd89b6be`
+* `action`: the object of the frame being interacted with, including the interacted with button/action, which can normally be retrieved from the Neynar APIs
+  * **required value**
+
+Here's an example of what your POST request might look like:
+
+<CodeGroup>
+  ```Text cURL
+  curl --request POST \
+    --url https://api.neynar.com/v2/farcaster/frame/action \
+    --header 'accept: application/json' \
+    --header 'api_key:  "'"neynarAPIKey"'"\
+    --header 'content-type: application/json' \
+    --data '{
+      "signer_uuid": "'"$signerValue"'",
+      "castHash": "'"$castHash"'",
+      "action": {
+        "button": "'"$button"'",
+        "frames_url": "'"$localFrame.frames_url"'",
+        "post_url": "'"${postUrl:-$localFrame.frames_url}"'",
+        "input": {
+          "text": "'"$inputValue"'"
+        }
+      }
+    }'
+  ```
+</CodeGroup>
+
+## Handling client-side interactions
+
+There are a few frame actions that take place fully on the client-side and do not/cannot be sent to the `POST frame/action` API. Those actions are:
+
+* `post` and `redirect`: these actions should be handled on the client either as a `window.replace` or as a link to a new tab
+* `mint`and `tx`: the mint/transaction data itself should also be handled on the client, as the data from the frame object should have enough information to use in a package such as `wagmi` or `viem`. Here's an [example from our wownar-react-sdk repo](https://github.com/neynarxyz/farcaster-examples/blob/fb1546e053d73a103b82ab215c63f81fac4fb3fb/wownar-react-sdk/src/app/Screens/Home/index.tsx#L271).
+
+## Conclusion
+
+This guide went over how to handle frame interactions on your backend with the Neynar `POST frame/action` API. Make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [Warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # How to Ingest
@@ -6333,10 +10032,67 @@ You probably want to fetch the latest versions of each table the first time you 
 </CodeGroup>
 
 
-# SIWN: Connect Farcaster accounts
+# How to integrate Neynar webhooks for real-time events
+Source: https://docs.neynar.com/docs/how-to-integrate-neynar-webhooks-for-real-time-events
+
+Get real-time events for Farcaster data
+
+Incoming webhooks allow you to receive real-time notifications about Farcaster events. Consider the following use cases.
+
+1. watch a channel - get events for any new casts on a specific channel
+2. watch a user - get events for any new casts from a specific user
+3. watch a mention - get events when a specific user gets @ mentioned in a cast
+
+You’ll need to configure 2 things before you can start receiving Farcaster events via webhooks.
+
+<Tip>
+  It’s not possible to use webhooks on frontend-only apps
+</Tip>
+
+### 1. Create a webhook
+
+Create a REST API route with the POST method on your backend to handle the webhook events. It should be able to handle incoming data with `Content-Type` set to `application/json` format.
+
+To test that your webhook is set up correctly, try this curl
+
+<CodeGroup>
+  ```curl cURL
+  curl -X POST \
+  	-d '{"event" : "test"}' \
+  	-H 'Content-Type: application/json' \
+  https://api.your-farcaster-app.com/webhooks/neynar
+  ```
+</CodeGroup>
+
+### 2. Register the webhook details on the Neynar Dev Portal
+
+Set this outgoing webhook URL on the Neynar developer portal. See [How to Use Neynar Webhooks](/docs/how-to-use-neynar-webhooks) for how.
+
+`https://api.your-farcaster-app.com/webhooks/neynar`
+
+A webhook should be configured with at least 1 valid event subscription. Each webhook can support multiple event types and/or multiple subscriptions for the same type. Some subscriptions require one or more parameters to be configured before you can start receiving the relevant events.
+
+Event types supported
+
+1. `cast.created` Subscriptions supported
+
+   1. Authors - Get events for new casts & replies by a specific user
+   2. Root Parent Url - Get events for new casts & replies in a specific channel
+   3. Parent Url - Get events for new casts (but not replies) in a specific channel
+   4. Mentions - Get events when a specific user gets @ mentioned in a cast
+
+2. `user.updated` Subscriptions supported
+   1. User - Get profile update events for specific users
+
+You’re all set! You’ll start receiving events on your backend.
+
+Contact us on [Slack](https://neynar.com/slack).
+
+
+# SIWN: Connect Farcaster accounts - Neynar API
 Source: https://docs.neynar.com/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn
 
-Connect for free using Sign In with Neynar (SIWN). The app gets read and/or write access, Neynar pays for onchain registration.
+Learn how to implement Sign In With Neynar (SIWN) for seamless Farcaster authentication and authorization with read/write permissions.
 
 ## What is SIWN?
 
@@ -6344,6 +10100,26 @@ SIWN enables seamless authentication + authorization for Farcaster clients that 
 
 * Users don’t need to pay for warps to try apps
 * Developers don’t need to worry about onboarding funnel drop-offs when OP mainnet gas surges
+
+<Info title="Neynar-branded vs Developer-branded Signers">
+  Before starting, there are two reasons you might want to use one of our other signer products:
+
+  * if building a mini app
+  * if you want your own app's branding on the Farcaster approval screen (example screenshot for this below)
+
+  If either of the above use cases is true, see one of the following pages instead:
+
+  * [App auth](/docs/mini-app-authentication) if you want a built-in next.js frontend
+  * [Neynar Managed Signers](/docs/integrate-managed-signers) when building your own custom frontend
+
+  Example of Neynar brand vs another brand showing up on the approval screen:
+
+  <Frame>
+    <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/neynar-branded-signer-approval-screen.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=9d28ab8f8ad6637edb79b941e2d50ad3" alt="Neynar branded approval screen" style={{ maxWidth: '45%', marginRight: '2%' }} width="1170" height="2532" data-path="images/docs/neynar-branded-signer-approval-screen.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/neynar-branded-signer-approval-screen.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=c65748d40dbbc9b2d47011dbca5e84c7 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/neynar-branded-signer-approval-screen.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=35227f99ce50ce6e6ecc6feccbecc279 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/neynar-branded-signer-approval-screen.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=353181301aa125e3bedbf08fb7dd0e89 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/neynar-branded-signer-approval-screen.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=6fdd3a5577faa2dec9160eba44b40713 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/neynar-branded-signer-approval-screen.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=0a54fdebcaf28f63a3b37100b03e39d8 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/neynar-branded-signer-approval-screen.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=1aee17fc9241b2dde64453dc5e0eb062 2500w" data-optimize="true" data-opv="2" />
+
+    <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/developer-branded-signer-approval-screen.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=c330eaaeead76c8a3b8b2affebc2c025" alt="Developer branded approval screen" style={{ maxWidth: '45%' }} width="1170" height="2532" data-path="images/docs/developer-branded-signer-approval-screen.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/developer-branded-signer-approval-screen.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2a3d5e805d44f42760f9bfe7affc1ec7 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/developer-branded-signer-approval-screen.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=d7f64cc20590e343dbac41d136641cee 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/developer-branded-signer-approval-screen.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=61957a63206514a30c03547169181d9e 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/developer-branded-signer-approval-screen.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ea8fef13a6a38b832c27d6a2314bad41 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/developer-branded-signer-approval-screen.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=cf8f7a749718cebabdea5632c4b2603e 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/developer-branded-signer-approval-screen.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=3ecaa6ac02c39793ed40eb301b8c7b95 2500w" data-optimize="true" data-opv="2" />
+  </Frame>
+</Info>
 
 ## How to integrate SIWN?
 
@@ -6388,11 +10164,17 @@ Go to the [Neynar Developer Portal](https://dev.neynar.com) settings tab and upd
 </CodeGroup>
 
 <Info>
-  ### Example above is for web. See [here](/docs/react-implementation) for react and [here](/docs/sign-in-with-neynar-react-native-implementation) for react native.
+  ### Example above is for web. See \[React
+
+  Implementation]\(/docs/react-implementation) for react and [React Native
+  Implementation](/docs/sign-in-with-neynar-react-native-implementation) for
+  react native.
 </Info>
 
 <Tip>
-  Want to customize the button to your liking? See [How to customize Sign In with Neynar button in your app](/docs/how-to-customize-sign-in-with-neynar-button-in-your-app)
+  Want to customize the button to your liking? See [How to customize Sign In
+  with Neynar button in your
+  app](/docs/how-to-customize-sign-in-with-neynar-button-in-your-app)
 </Tip>
 
 ### Step 2: Fill in `data-client_id` in the button code
@@ -6451,7 +10233,7 @@ Query real time Farcaster data for your data analyses, create and share dashboar
 
 ## Subscription
 
-If you don’t have access yet, subscribe at [neynar.com](https://neynar.com) . *Please reach out to rish on [Telegram](http://t.me/rishdoteth) or [Farcaster](http://warpcast.com/rish) with feedback, questions or to ask for access*
+If you don’t have access yet, subscribe at [neynar.com](https://neynar.com) . *Please reach out to rish on [Slack](https://neynar.com/slack) or [Farcaster](http://warpcast.com/rish) with feedback, questions or to ask for access*
 
 ## Schema
 
@@ -6474,7 +10256,7 @@ If you give chatgpt the table schema and tell it what you want, it’ll write th
 * SQL access is also available over API, check your Redash profile for your API key. This is a separate API key for SQL only *(not the same key as our read and write APIs)*
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/7a06342-image.png" alt="Neynar SQL Playground" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7a06342-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d18201589ca970ae61f759c16d644702" alt="Neynar SQL Playground" width="2000" height="767" data-path="images/docs/7a06342-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7a06342-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7b262e19f390ddb4bf1ed47d3befb9c1 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7a06342-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7b1ea390166753cdedb2cfbe4d00bf55 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7a06342-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c06a12676a86ecadf40045c9012fd60f 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7a06342-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d953d2b61164b44b455b69635178b785 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7a06342-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c9364f31e0bddad35257125ebb332d46 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7a06342-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3aa9ed716bbeaf4b0e6bd1c2ad4df999 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ## SQL over API
@@ -6518,6 +10300,74 @@ Redash UI automatically converts *bytea* data to hex format. However, when writi
 </CodeGroup>
 
 (swap `hex_hash_without_0x` with the actual cast hash minus the \`0x)
+
+
+# Zapier workflows
+Source: https://docs.neynar.com/docs/how-to-set-up-zapier-workflows-with-neynar-webhooks
+
+Add Neynar to your Zap to trigger full workflows based on Farcaster events
+
+<Steps>
+  <Step>
+    Create a Zapier account on [Zapier.com](https://zapier.com) if you don't have one already.
+  </Step>
+
+  <Step>
+    Start creating a new zap and search for Neynar when setting up your trigger
+
+    <Frame>
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/17e4a38-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=25cccf31a5f021f199dcd4ea7dc52c4c" alt="create zap" width="1002" height="562" data-path="images/docs/17e4a38-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/17e4a38-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1f375c531b5892c0267f06f5b4751f95 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/17e4a38-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5fbdc96d1cc5437bc03c4ddfe1ddef22 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/17e4a38-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=db566d15caca3825510b3096f33db1a7 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/17e4a38-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c85f952adcdc25c4c49f0ad4f906f55a 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/17e4a38-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5ddf4e66957e8694dbb5d74cb38d3a71 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/17e4a38-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=ad25aa1ef72d7ca75d3aaca027f9abf3 2500w" data-optimize="true" data-opv="2" />
+    </Frame>
+  </Step>
+
+  <Step>
+    Choose Neynar as trigger
+  </Step>
+
+  <Step>
+    Then choose which Farcaster event you want to get notified for -- every new cast on the protocol or a mention of a specific user in a cast
+  </Step>
+
+  <Step>
+    On the account step, insert your Neynar API key to connect your Neynar account with Zapier
+
+    <Frame>
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d088f88-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ed26bca072a0cad22369208ddca56fa9" alt="insert neynar api key" width="1126" height="1004" data-path="images/docs/d088f88-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d088f88-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e8d9c50de95fdc8456fbc5a0bc7b2936 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d088f88-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8ebe913ac29ad71ecfd10f2013277818 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d088f88-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ec4422ba1c6a95d500a22f5a293d60a4 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d088f88-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f83edf671f822e4cb34247e812084e07 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d088f88-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a05c0da56dffa97228efdf01c80f48f0 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d088f88-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=47ae3b6c3c6945785bedecbd96e72ce2 2500w" data-optimize="true" data-opv="2" />
+    </Frame>
+  </Step>
+
+  <Step>
+    If mention of a specific user, enter the FID of the user you want to get webhook notifications for. You can find the FID of an account by looking at the "About" section of that account on Warpcast
+
+    <CardGroup>
+      <Frame>
+        <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5922d21-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=324a0d53ab942a62df8d251407aeb880" alt="insert user fid" width="1084" height="716" data-path="images/docs/5922d21-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5922d21-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e0ec6841a67dd4fb71a0b1884e8f87f7 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5922d21-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4ee4cebdca590bb5ea8b11a6f52b1c4c 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5922d21-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=072aa27d81d78c5c4a9c130b8865ad7d 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5922d21-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=50b6e86d2d4383a588d39d0cba5b1e80 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5922d21-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=ee9dc36be071b0552c58a2f58a4f3f68 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5922d21-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=58e60202885d089faa467195427d477e 2500w" data-optimize="true" data-opv="2" />
+      </Frame>
+
+      <Frame>
+        <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b737dd4-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ceadf7c0672f8d81fd150e4c4a34a208" alt="test trigger" width="1234" height="308" data-path="images/docs/b737dd4-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b737dd4-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=653a2ab46cb0f0202464e811b75c16a7 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b737dd4-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=af63f3815e5d314d51b2df839a12fd8f 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b737dd4-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c747640047922ac47c7a338aefb785c1 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b737dd4-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e9dee12c4f4b82505291157ffbe09efd 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b737dd4-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3fddd58b3b189bf7009738120a35a1e8 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b737dd4-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ac4e0da61bbf7d8636934624558f9bd6 2500w" data-optimize="true" data-opv="2" />
+      </Frame>
+    </CardGroup>
+  </Step>
+
+  <Step>
+    Test your trigger after setting the FID. If there is a recent cast on the network with the mention, it will show up. If not, make a cast and wait a few minutes before testing again. Proceed with a selected record as example.
+
+    <Frame>
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/466c73d-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d349fd172d83ff35afa04d37684adcb6" alt="test trigger" width="1084" height="1612" data-path="images/docs/466c73d-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/466c73d-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=50f80680ea3e765eeb53414df86dcc73 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/466c73d-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=24c79a8559a315f5b7f634e753999936 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/466c73d-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4e77745300d02615d9ff8d0b7264819a 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/466c73d-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=fe350f7adf2eafebb3a6abf0e058488f 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/466c73d-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1e54a4e9c9e7d91566cccf4743369ff4 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/466c73d-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c610f68c5ec87b397b4857e3690af321 2500w" data-optimize="true" data-opv="2" />
+    </Frame>
+  </Step>
+
+  <Step>
+    Choose the action you want to take based on the webhook e.g. sending a message in Slack. Finish setting up the action on Zapier and you're done!
+
+    <Frame>
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da201e3-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=074080fc02347471ae3ea9bf15a30f1a" alt="choose action" width="1098" height="838" data-path="images/docs/da201e3-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da201e3-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ccca7179a92cd42f081256d4de60c782 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da201e3-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=17a3d9c17ccf02ba822e9670c372274e 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da201e3-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d2a91748cc708c65e4d799077c8752ad 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da201e3-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a0317009621f92412da7cc2a33380ad6 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da201e3-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3677127feaada5e58f90563165b04ade 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da201e3-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9e36910ea4df99df0d0476ade8586abc 2500w" data-optimize="true" data-opv="2" />
+    </Frame>
+  </Step>
+</Steps>
+
+You should now be able to trigger Zapier workflows based on webhook data!
 
 
 # Webhooks in Dashboard
@@ -6614,7 +10464,102 @@ Now the server will log out the event when it is fired. It will look something l
 
 That's it, it's that simple! The next steps would be to have a public server that can handle the webhook events and use it to suit your needs.
 
-Lastly, make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+Lastly, make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
+
+
+# How to set up Neynar webhooks through your developer portal
+Source: https://docs.neynar.com/docs/how-to-use-neynar-webhooks
+
+Setting up Farcaster webhooks through Neynar developer portal
+
+Neynar webhooks are a way to receive real-time updates about events on the Farcaster protocol. You can use webhooks to build integrations that respond to events on the protocol, such as when a user creates a cast or when a user updates their profile.
+
+This guide will show you how to set up a webhook in the Neynar developer portal and how to integrate it into your application.
+
+First, log in to the [Neynar developer portal](https://dev.neynar.com/) and navigate to the "Webhooks" tab. Click the "Create Webhook" button to create a new webhook.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7984d14-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=917f8b6ff63d63f063f58540d03ce807" alt="create webhook" width="915" height="353" data-path="images/docs/7984d14-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7984d14-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=91a1287133981b634a5257426102fd13 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7984d14-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=96e5d3b59f78c6ece9d7facec75de68c 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7984d14-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b3cd3952c3f34557afd125538b5b309b 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7984d14-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9bb6d705f5ae0d08ffe224bc7f40828a 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7984d14-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e3793ccc8287a187d683506a3bf9fe0e 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7984d14-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=61e78fae9ae301e7d0fe7b54e7d025dd 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+The webhook will fire to the specified `target_url`. To test it out, we can use a service like [ngrok](https://ngrok.com/) to create a public URL that will forward requests to your local server.
+
+Let's create a simple server that logs out the event. We will be using Bun JavaScript.
+
+<CodeGroup>
+  ```javascript Javascript
+  Bun.serve({
+    async fetch(req) {
+      console.log(await req.json());
+      return new Response("Neynar webhook!");
+    },
+  });
+  ```
+</CodeGroup>
+
+Next: run `bun serve index.ts`, and run ngrok with `ngrok http 3000`. Copy the ngrok URL and paste it into the "Target URL" field in the Neynar developer portal.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5909a89-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=838c548cfdd7b7187d725ba0a615c379" alt="create webhook" width="915" height="788" data-path="images/docs/5909a89-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5909a89-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=edd2508646d77659f2d6e8be76d77194 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5909a89-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cd1e180f245a3c1b2a20226c2ad32a3f 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5909a89-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=de174461cc7e8748bc45ff3681d15a2d 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5909a89-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=11ec1ed264fcc72afc0958cdec5e16d0 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5909a89-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=750661b64367012f1c179aa2a01911af 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5909a89-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9b62a63b9acb7871857aad5879f2455e 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+Here, we setup a webhook that fires to that ngrok endpoint (which is hooked to our localhost:3000), and the webhook will fire when a cast is made in the Memes channel.
+
+Now the server will log out the event when it is fired. It will look something like this:
+
+<CodeGroup>
+  ```javascript Javascript
+  {
+    created_at: 1708025006,
+    type: "cast.created",
+    data: {
+      object: "cast",
+      hash: "0xfe7908021a4c0d36d5f7359975f4bf6eb9fbd6f2",
+      thread_hash: "0xfe7908021a4c0d36d5f7359975f4bf6eb9fbd6f2",
+      parent_hash: null,
+      parent_url: "chain://eip155:1/erc721:0xfd8427165df67df6d7fd689ae67c8ebf56d9ca61",
+      root_parent_url: "chain://eip155:1/erc721:0xfd8427165df67df6d7fd689ae67c8ebf56d9ca61",
+      parent_author: {
+        fid: null,
+      },
+      author: {
+        object: "user",
+        fid: 234506,
+        custody_address: "0x3ee6076e78c6413c8a3e1f073db01f87b63923b0",
+        username: "balzgolf",
+        display_name: "Balzgolf",
+        pfp_url: "https://i.imgur.com/U7ce6gU.jpg",
+        profile: [Object ...],
+        follower_count: 65,
+        following_count: 110,
+        verifications: [ "0x8c16c47095a003b726ce8deffc39ee9cb1b9f124" ],
+        active_status: "inactive",
+      },
+      text: "LFG",
+      timestamp: "2024-02-15T19:23:22.000Z",
+      embeds: [],
+      reactions: {
+        likes: [],
+        recasts: [],
+      },
+      replies: {
+        count: 0,
+      },
+      mentioned_profiles: [],
+    },
+  }
+  ```
+</CodeGroup>
+
+That's it, it's that simple! Next steps would be to have a public server that can handle the webhook events and use it to suit your needs.
+
+Note: Webhook events might be delayed at times of heavy load or when it's first created from the dev portal.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
 
 
 # How to Use the Neynar Feed API
@@ -6641,13 +10586,13 @@ To try this request in the API Explorer to get an actual response from the API, 
 * In the *Request* tab, ensure *Default* is selected as shown below
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/d93681c-fid-request.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d93681c-fid-request.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f0e00864dab4af95e7422bd34fb00bbd" width="458" height="196" data-path="images/docs/d93681c-fid-request.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d93681c-fid-request.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5530abfa4e84a4a95680c5250d3b2f2d 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d93681c-fid-request.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=aeacb6144c4397df10a53d11feed0e0c 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d93681c-fid-request.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ef39b46822911f53baae8080d8ba6bc0 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d93681c-fid-request.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3938ad93fcea95466e3aa98758cd061a 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d93681c-fid-request.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8512f8d8e9ad9565266afb34f0ce2351 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d93681c-fid-request.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=440230bfcbef759f8dc538e2ae3975b0 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 * Add the fid of the user whose feed you want to get
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/bbc2c00-fid-explorer.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bbc2c00-fid-explorer.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d309d2361f939e952a270b8bf570b8fc" width="520" height="186" data-path="images/docs/bbc2c00-fid-explorer.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bbc2c00-fid-explorer.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2835bf7f27dd7b3cd16f145c6709b449 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bbc2c00-fid-explorer.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=043018ef9558931353b4f4874bea3448 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bbc2c00-fid-explorer.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e50e1fd29ecedba2354c749613c57372 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bbc2c00-fid-explorer.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a60e1805b34b9bc959e0d71f61ea75e4 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bbc2c00-fid-explorer.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a7c945aa3e2a27fc7e0abc12a5b1eafd 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bbc2c00-fid-explorer.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=164c08a122fef3874cca08924fd0b171 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 * Press the **Try it** button to see the response
@@ -6661,13 +10606,13 @@ To try this request in the API Explorer to get an actual response from the API, 
 * In the *Request* tab, change the request type to **Get feed using fids**
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/af5715e-fids.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af5715e-fids.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c2ce83901161379ac2e900560ed6bab1" width="446" height="199" data-path="images/docs/af5715e-fids.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af5715e-fids.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a162b31b983c31108e4ecec20e1fd24b 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af5715e-fids.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2796f06afa56204563c0ce9f51617f9c 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af5715e-fids.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e3e8ef90dc505351897c558dd766253e 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af5715e-fids.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=053f36f0cffcd2b78461f0c791617b86 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af5715e-fids.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=68ecbaf33786d4d4f84aaa389fdb181a 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/af5715e-fids.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d40bf51e732c14d4accc62c478388a40 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 * Set the query parameters to the following
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/bd0df9c-fids-explorer.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bd0df9c-fids-explorer.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c8edfd52a2bed245e2bdfd34df5e946b" width="536" height="560" data-path="images/docs/bd0df9c-fids-explorer.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bd0df9c-fids-explorer.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=54bc9497e3f837fa54754449a102f183 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bd0df9c-fids-explorer.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a120ce5322f9b7da24d61d4bfbf81d22 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bd0df9c-fids-explorer.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e6daf635baf11251c3ce95505c5ad3f1 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bd0df9c-fids-explorer.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f41647e372e0f99b4b359f663324663d 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bd0df9c-fids-explorer.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3057ab6f61d7bfa82b9f570f48d6087a 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bd0df9c-fids-explorer.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9dd2efc87d2162f538ab8c5ae004953c 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 * Press the **Try it** button to view the response
@@ -6681,13 +10626,13 @@ To try this request in the API Explorer to get an actual response from the API, 
 * In the *Request* tab, change the request type to **Get feed using parent\_url**
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/08fa26d-parent-url.png" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fa26d-parent-url.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=90185359f73975d2f5f0b1e1a920027b" width="463" height="249" data-path="images/docs/08fa26d-parent-url.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fa26d-parent-url.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2560a30b665b65f7216b63a73a8c076c 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fa26d-parent-url.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2e31415744852b13a099d523c309c7f0 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fa26d-parent-url.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=dfbb0a0c57187155b09c05a2a488d46f 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fa26d-parent-url.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=605e3cdfd44cf55410dca8ff4b015f5a 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fa26d-parent-url.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=54b65f04be7ac2a92a122db73931064e 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08fa26d-parent-url.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4da3ef5dd3a5a970ca7da5166ad00778 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 * Set the query parameters in the explorer
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/400f794-p-url-explorer.png" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/400f794-p-url-explorer.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=6383bb3499ca876da5d427787e7c4a04" width="533" height="481" data-path="images/docs/400f794-p-url-explorer.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/400f794-p-url-explorer.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b579aac1695cfbb937f4bf46aed86708 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/400f794-p-url-explorer.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=711f1bc528665fa08927f560eeab584f 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/400f794-p-url-explorer.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=8f766c8c0065a3e99bbceb9c585c5256 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/400f794-p-url-explorer.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1aec535f58be06bc1c686b7451ebd2cb 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/400f794-p-url-explorer.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f219d825e854271196d67f5bbe6fdbf2 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/400f794-p-url-explorer.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=19db4196b8f55ba211fc56d365397f98 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 <Tip>
@@ -6701,13 +10646,13 @@ To try this request in the API Explorer to get an actual response from the API, 
 Fetch home feed for a user
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/9238be8-home-feed.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9238be8-home-feed.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=36ff2157735ea63d5456266168607073" width="1230" height="1434" data-path="images/docs/9238be8-home-feed.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9238be8-home-feed.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2c2f82c1e72624e2f99700e846c4d884 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9238be8-home-feed.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4ec74b96aefe383c1a73e1506e9691d4 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9238be8-home-feed.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=06af18b29e99a859e8b25aacee3eedc1 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9238be8-home-feed.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=1dee1bab8a63516a08bda3fc94e3d53d 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9238be8-home-feed.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7cd21f9a7bd5243ad90f4a037893e127 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9238be8-home-feed.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3d61efb9d1c7258b3b21543fadfd6eba 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Fetch channel feed:
 
 
-# Verify Webhooks
+# Verify Webhooks with HMAC Signatures
 Source: https://docs.neynar.com/docs/how-to-verify-the-incoming-webhooks-using-signatures
 
 This guide highlights the steps to verify incoming webhooks using signatures
@@ -6783,6 +10728,735 @@ Here's an example of a Next.js API handler validating a signature from a request
 ## Appendix
 
 * Caveats and additional details can be found here: [Verification of simple signatures](https://docs.getconvoy.io/product-manual/signatures#simple-signatures)
+
+
+# How writes to Farcaster work with Neynar managed signers
+Source: https://docs.neynar.com/docs/how-writes-to-farcaster-work-with-neynar-managed-signers
+
+(incl. frontend)
+
+In this guide, we’ll take a look at how to integrate neynar managed signers with neynar in a next.js app *so your users can take actions on the Farcaster protocol.*
+
+Managed signers allow you to take full control of the connection, including the branding on Warpcast and everything else!
+
+<Info>
+  ### If using login providers like Privy, it's best to use this signer product. Users won't see a double login and developers will get full write functionality to Farcaster.
+</Info>
+
+## Context
+
+This guide covers setting up a full app with frontend and backend to start writing with a logged in user. You can pick and choose the right pieces from this guide as needed. We'll go over:
+
+1. Creating a signer key for the user so they can sign in
+2. Storing the user's credentials in local storage
+3. Writing casts to Farcaster using the signer
+
+Before we begin, you can access the [complete source code](https://github.com/neynarxyz/farcaster-examples/tree/main/managed-signers) for this guide on GitHub.
+
+The simplest way to set up managed signers is by cloning the above repo! You can use the following commands to check it out:
+
+```bash
+npx degit https://github.com/neynarxyz/farcaster-examples/tree/main/managed-signers managed-signers
+cd managed-signers
+yarn
+yarn dev
+```
+
+### The ideal user flow
+
+**Terminology**
+
+To understand the ideal user flow, let's quickly go over some terminology:
+
+* Authentication: This is where an account proves they are who they say they are. Flows like Sign in with Farcaster (SIWF) or login providers like Privy allow this for app logins.
+* Authorization: this is where an account gives the app certain access privileges to take actions on behalf of the account. This is what Neynar signers allow for writing data to the protocol.
+
+Authorization requires authentication so that once a user is authenticated, they can then *authorize* an action. E.g. authenticating into your Google account to then authorize a 3rd party app like Slack to access your Google Calendar. If starting logged out, the full flow takes two distinct steps.
+
+**User journey**
+
+You can build a user flow using tools like:
+
+* [SIWN: Connect Farcaster accounts](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn)
+* or 3rd party login providers like Privy
+
+If using Privy
+
+* the 1st step on authentication happens on Privy login and the 2nd step of authorization happens on Neynar
+* The second step requires the user to scan a QR code or tap on a link to then generate a signer on a Farcaster client like Warpcast
+* Generating a signer requires paying onchain fees. Neynar [sponsors signers](/docs/two-ways-to-sponsor-a-farcaster-signer-via-neynar) by default so users pay \$0.
+
+**Let's go!**
+
+Now that we have context, let's get started!
+
+## Setting up a next.js app
+
+### Creating a next app
+
+We are going to need a frontend as well as a backend server, so we are going to use Next.js for this guide. Run the following command to create a new next.js app:
+
+<CodeGroup>
+  ```powershell PowerShell
+  npx create-next-app managed-signers
+  ```
+</CodeGroup>
+
+Choose the configuration for your app and wait for the dependencies to install. Once they are installed, let's install the additional packages that we are going to need:
+
+<CodeGroup>
+  ```powershell npm
+  npm i @farcaster/hub-nodejs @neynar/nodejs-sdk axios qrcode.react viem
+  ```
+
+  ```powershell yarn
+  yarn add @farcaster/hub-nodejs @neynar/nodejs-sdk axios qrcode.react viem
+  ```
+
+  ```powershell pnpm
+  pnpm add @farcaster/hub-nodejs @neynar/nodejs-sdk axios qrcode.react viem
+  ```
+
+  ```powershell bun
+  bun add @farcaster/hub-nodejs @neynar/nodejs-sdk axios qrcode.react viem
+  ```
+</CodeGroup>
+
+Now, you can open the folder in your favourite code editor and we can start building!
+
+### Configuring env variables
+
+Firstly, let's configure the env variables we will need. Create a new `.env.local` file and add these two variables:
+
+```bash
+NEYNAR_API_KEY=
+FARCASTER_DEVELOPER_MNEMONIC=
+```
+
+* The neynar api key should be the api key that you can view on your dashboard
+* the mnemonic should be the mnemonic associated with the developer account which will be used to create the signers e.g. `@your_company_name` account on Farcaster (to state the obvious out loud, you *won't* need user mnemonics at any point)
+
+## Creating API route for generating the signature
+
+Create a new `route.ts` file in the `src/app/api/signer` folder and add the following:
+
+<CodeGroup>
+  ```typescript route.ts
+  import { getSignedKey } from "@/utils/getSignedKey";
+  import { NextResponse } from "next/server";
+
+  export async function POST() {
+    try {
+      const signedKey = await getSignedKey();
+
+      return NextResponse.json(signedKey, {
+        status: 200,
+      });
+    } catch (error) {
+      return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+    }
+  }
+  ```
+</CodeGroup>
+
+This is just defining a get and a post request and calling a getSignedKey function but we haven't created that yet, so let's do that.
+
+Create a new `utils/getSignedKey.ts`file and add the following:
+
+<CodeGroup>
+  ```typescript getSignedKey.ts
+  import neynarClient from "@/lib/neynarClient";
+  import { ViemLocalEip712Signer } from "@farcaster/hub-nodejs";
+  import { bytesToHex, hexToBytes } from "viem";
+  import { mnemonicToAccount } from "viem/accounts";
+  import { getFid } from "./getFid";
+
+  export const getSignedKey = async () => {
+    const createSigner = await neynarClient.createSigner();
+    const { deadline, signature } = await generate_signature(
+      createSigner.public_key
+    );
+
+    if (deadline === 0 || signature === "") {
+      throw new Error("Failed to generate signature");
+    }
+
+    const fid = await getFid();
+
+    const signedKey = await neynarClient.registerSignedKey({
+      signerUuid:createSigner.signer_uuid,
+      appFid:fid,
+      deadline,
+      signature
+    });
+
+
+    return signedKey;
+  };
+
+  const generate_signature = async function (public_key: string) {
+    if (typeof process.env.FARCASTER_DEVELOPER_MNEMONIC === "undefined") {
+      throw new Error("FARCASTER_DEVELOPER_MNEMONIC is not defined");
+    }
+
+    const FARCASTER_DEVELOPER_MNEMONIC = process.env.FARCASTER_DEVELOPER_MNEMONIC;
+    const FID = await getFid();
+
+    const account = mnemonicToAccount(FARCASTER_DEVELOPER_MNEMONIC);
+    const appAccountKey = new ViemLocalEip712Signer(account as any);
+
+    // Generates an expiration date for the signature (24 hours from now).
+    const deadline = Math.floor(Date.now() / 1000) + 86400;
+
+    const uintAddress = hexToBytes(public_key as `0x${string}`);
+
+    const signature = await appAccountKey.signKeyRequest({
+      requestFid: BigInt(FID),
+      key: uintAddress,
+      deadline: BigInt(deadline),
+    });
+
+    if (signature.isErr()) {
+      return {
+        deadline,
+        signature: "",
+      };
+    }
+
+    const sigHex = bytesToHex(signature.value);
+
+    return { deadline, signature: sigHex };
+  };
+  ```
+</CodeGroup>
+
+We are doing a couple of things here, so let's break it down.
+
+We first use the neynarClient (yet to create) to create a signer, and then we use the `appAccountKey.signKeyRequest` function from the `@farcaster/hub-nodejs` package to create a sign key request. Finally, we use the `registerSignedKey` function from the neynarClient to return the signedKey.
+
+Let's now initialise our `neynarClient` in a new `lib/neynarClient.ts` file like this:
+
+<CodeGroup>
+  ```typescript neynarClient.ts
+  import { Configuration, NeynarAPIClient } from "@neynar/nodejs-sdk";
+
+  if (!process.env.NEYNAR_API_KEY) {
+    throw new Error("Make sure you set NEYNAR_API_KEY in your .env file");
+  }
+
+  const config = new Configuration({
+    apiKey: process.env.NEYNAR_API_KEY,
+  });
+
+  const neynarClient = new NeynarAPIClient(config);
+
+  export default neynarClient;
+  ```
+</CodeGroup>
+
+We are also using another util function named `getFid` in the signature generation, so let's create a `utils/getFid.ts` file and create that as well:
+
+<CodeGroup>
+  ```typescript getFid.ts
+  import neynarClient from "@/lib/neynarClient";
+  import { mnemonicToAccount } from "viem/accounts";
+
+  export const getFid = async () => {
+    if (!process.env.FARCASTER_DEVELOPER_MNEMONIC) {
+      throw new Error("FARCASTER_DEVELOPER_MNEMONIC is not set.");
+    }
+
+    const account = mnemonicToAccount(process.env.FARCASTER_DEVELOPER_MNEMONIC);
+
+    // Lookup user details using the custody address.
+    const { user: farcasterDeveloper } =
+      await neynarClient.lookupUserByCustodyAddress({custodyAddress:account.address});
+
+    return Number(farcasterDeveloper.fid);
+  };
+  ```
+</CodeGroup>
+
+We can use this api route on our front end to generate a signature and show the QR code/deep link to the user. So, head over to `app/page.tsx` and add the following:
+
+<CodeGroup>
+  ```typescript page.tsx
+  "use client";
+
+  import axios from "axios";
+  import QRCode from "qrcode.react";
+  import { useState } from "react";
+  import styles from "./page.module.css";
+
+  interface FarcasterUser {
+    signer_uuid: string;
+    public_key: string;
+    status: string;
+    signer_approval_url?: string;
+    fid?: number;
+  }
+
+  export default function Home() {
+    const LOCAL_STORAGE_KEYS = {
+      FARCASTER_USER: "farcasterUser",
+    };
+    const [loading, setLoading] = useState(false);
+    const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(
+      null
+    );
+
+    const handleSignIn = async () => {
+      setLoading(true);
+      await createAndStoreSigner();
+      setLoading(false);
+    };
+
+    const createAndStoreSigner = async () => {
+      try {
+        const response = await axios.post("/api/signer");
+        if (response.status === 200) {
+          localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, JSON.stringify(response.data));
+          setFarcasterUser(response.data);
+        }
+      } catch (error) {
+        console.error("API Call failed", error);
+      }
+    };
+
+    return (
+      <div className={styles.container}>
+        {!farcasterUser?.status && (
+          <button
+            className={styles.btn}
+            onClick={handleSignIn}
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Sign in with farcaster"}
+          </button>
+        )}
+
+        {farcasterUser?.status == "pending_approval" &&
+          farcasterUser?.signer_approval_url && (
+            <div className={styles.qrContainer}>
+              <QRCode value={farcasterUser.signer_approval_url} />
+              <div className={styles.or}>OR</div>
+              <a
+                href={farcasterUser.signer_approval_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.link}
+              >
+                Click here to view the signer URL (on mobile)
+              </a>
+            </div>
+          )}
+      </div>
+    );
+  }
+  ```
+</CodeGroup>
+
+Here, we show a button to sign in with farcaster in case the farcasterUser state is empty which it will be initially. And if the status is "pending\_approval" then we display a QR code and a deep link for mobile view like this:
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/54d25f6-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2b6c9ffd812096ae0fcfcca00b7717cb" alt="Sign in with farcaster" width="1140" height="782" data-path="images/docs/54d25f6-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/54d25f6-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=be987bc6cf25b8be0c7f1845e266600f 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/54d25f6-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b3d9e79dadbffd98ac29d7dc4495faca 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/54d25f6-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e8db145f8938dd21cfcf8953d0ae1b4c 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/54d25f6-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e187239ab82fa9e6178d959ab53c9aa5 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/54d25f6-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=32a9354c82168c9ed05799e97d70f044 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/54d25f6-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2cbc70e95539eca6decaff11a8e1d4f0 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+If you try scanning the QR code it will take you to Warpcast to sign into your app! But signing in won't do anything right now, so let's also handle that.
+
+In the `api/signer/route.ts` file let's add a GET function as well to fetch the signer using the signer uuid like this:
+
+<CodeGroup>
+  ```typescript route.ts
+  export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const signer_uuid = searchParams.get("signer_uuid");
+
+    if (!signer_uuid) {
+      return NextResponse.json(
+        { error: "signer_uuid is required" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const signer = await neynarClient.lookupSigner({ signerUuid:signer_uuid});
+
+      return NextResponse.json(signer, { status: 200 });
+    } catch (error) {
+      return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+    }
+  }
+  ```
+</CodeGroup>
+
+Let's use this route in the `page.tsx` file to fetch the signer and set it in local storage using some useEffects:
+
+<CodeGroup>
+  ```typescript page.tsx
+  useEffect(() => {
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
+      if (storedData) {
+        const user: FarcasterUser = JSON.parse(storedData);
+        setFarcasterUser(user);
+      }
+    }, []);
+
+    useEffect(() => {
+      if (farcasterUser && farcasterUser.status === "pending_approval") {
+        let intervalId: NodeJS.Timeout;
+
+        const startPolling = () => {
+          intervalId = setInterval(async () => {
+            try {
+              const response = await axios.get(
+                `/api/signer?signer_uuid=${farcasterUser?.signer_uuid}`
+              );
+              const user = response.data as FarcasterUser;
+
+              if (user?.status === "approved") {
+                // store the user in local storage
+                localStorage.setItem(
+                  LOCAL_STORAGE_KEYS.FARCASTER_USER,
+                  JSON.stringify(user)
+                );
+
+                setFarcasterUser(user);
+                clearInterval(intervalId);
+              }
+            } catch (error) {
+              console.error("Error during polling", error);
+            }
+          }, 2000);
+        };
+
+        const stopPolling = () => {
+          clearInterval(intervalId);
+        };
+
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            stopPolling();
+          } else {
+            startPolling();
+          }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        // Start the polling when the effect runs.
+        startPolling();
+
+        // Cleanup function to remove the event listener and clear interval.
+        return () => {
+          document.removeEventListener(
+            "visibilitychange",
+            handleVisibilityChange
+          );
+          clearInterval(intervalId);
+        };
+      }
+    }, [farcasterUser]);
+  ```
+</CodeGroup>
+
+Here, we are checking if the user has approved the TX and if they have approved it, we call the signer api and set the user details in the local storage. Let's also add a condition in the return statement to display the fid of the user if they are logged in:
+
+<CodeGroup>
+  ```typescript page.tsx
+   {farcasterUser?.status == "approved" && (
+          <div className={styles.castSection}>
+            <div className={styles.userInfo}>Hello {farcasterUser.fid} 👋</div>
+          </div>
+        )}
+  ```
+</CodeGroup>
+
+## Allowing users to write casts
+
+Let's now use the signer that we get from the user to publish casts from within the app. Create a new `api/cast/route.ts` file and add the following:
+
+<CodeGroup>
+  ```typescript route.ts
+  import neynarClient from "@/lib/neynarClient";
+  import { NextResponse } from "next/server";
+
+  export async function POST(req: Request) {
+    const body = await req.json();
+
+    try {
+
+      const cast = await neynarClient.publishCast({signerUuid:body.signer_uuid, text:body.text});
+
+      return NextResponse.json(cast, { status: 200 });
+    } catch (error) {
+      console.error(error);
+      return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+    }
+  }
+  ```
+</CodeGroup>
+
+Here, I am using the `publishCast` function to publish a cast using the signer uuid and the text which I am getting from the body of the request.
+
+Head back to the `page.tsx` file and add a `handleCast` function to handle the creation of casts like this:
+
+<CodeGroup>
+  ```typescript page.tsx
+  const [text, setText] = useState<string>("");
+  const [isCasting, setIsCasting] = useState<boolean>(false);
+
+  const handleCast = async () => {
+    setIsCasting(true);
+    const castText = text.length === 0 ? "gm" : text;
+    try {
+      const response = await axios.post("/api/cast", {
+        text: castText,
+        signer_uuid: farcasterUser?.signer_uuid,
+      });
+      if (response.status === 200) {
+        setText(""); // Clear the text field
+        alert("Cast successful");
+      }
+    } catch (error) {
+      console.error("Could not send the cast", error);
+    } finally {
+      setIsCasting(false); // Re-enable the button
+    }
+  };
+  ```
+</CodeGroup>
+
+Now, we just need to add an input to accept the cast text and a button to publish the cast. Let's add it below the hello fid text like this:
+
+<CodeGroup>
+  ```typescript page.tsx
+   {farcasterUser?.status == "approved" && (
+          <div className={styles.castSection}>
+            <div className={styles.userInfo}>Hello {farcasterUser.fid} 👋</div>
+            <div className={styles.castContainer}>
+              <textarea
+                className={styles.castTextarea}
+                placeholder="What's on your mind?"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={5}
+              />
+
+              <button
+                className={styles.btn}
+                onClick={handleCast}
+                disabled={isCasting}
+              >
+                {isCasting ? <span>🔄</span> : "Cast"}
+              </button>
+            </div>
+          </div>
+        )}
+  ```
+</CodeGroup>
+
+Your final `page.tsx` file should look similar to this:
+
+<CodeGroup>
+  ```typescript page.tsx
+  "use client";
+
+  import axios from "axios";
+  import QRCode from "qrcode.react";
+  import { useEffect, useState } from "react";
+  import styles from "./page.module.css";
+
+  interface FarcasterUser {
+    signer_uuid: string;
+    public_key: string;
+    status: string;
+    signer_approval_url?: string;
+    fid?: number;
+  }
+
+  export default function Home() {
+    const LOCAL_STORAGE_KEYS = {
+      FARCASTER_USER: "farcasterUser",
+    };
+    const [loading, setLoading] = useState(false);
+    const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(
+      null
+    );
+    const [text, setText] = useState<string>("");
+    const [isCasting, setIsCasting] = useState<boolean>(false);
+
+    const handleCast = async () => {
+      setIsCasting(true);
+      const castText = text.length === 0 ? "gm" : text;
+      try {
+        const response = await axios.post("/api/cast", {
+          text: castText,
+          signer_uuid: farcasterUser?.signer_uuid,
+        });
+        if (response.status === 200) {
+          setText(""); // Clear the text field
+          alert("Cast successful");
+        }
+      } catch (error) {
+        console.error("Could not send the cast", error);
+      } finally {
+        setIsCasting(false); // Re-enable the button
+      }
+    };
+
+    useEffect(() => {
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
+      if (storedData) {
+        const user: FarcasterUser = JSON.parse(storedData);
+        setFarcasterUser(user);
+      }
+    }, []);
+
+    useEffect(() => {
+      if (farcasterUser && farcasterUser.status === "pending_approval") {
+        let intervalId: NodeJS.Timeout;
+
+        const startPolling = () => {
+          intervalId = setInterval(async () => {
+            try {
+              const response = await axios.get(
+                `/api/signer?signer_uuid=${farcasterUser?.signer_uuid}`
+              );
+              const user = response.data as FarcasterUser;
+
+              if (user?.status === "approved") {
+                // store the user in local storage
+                localStorage.setItem(
+                  LOCAL_STORAGE_KEYS.FARCASTER_USER,
+                  JSON.stringify(user)
+                );
+
+                setFarcasterUser(user);
+                clearInterval(intervalId);
+              }
+            } catch (error) {
+              console.error("Error during polling", error);
+            }
+          }, 2000);
+        };
+
+        const stopPolling = () => {
+          clearInterval(intervalId);
+        };
+
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            stopPolling();
+          } else {
+            startPolling();
+          }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        // Start the polling when the effect runs.
+        startPolling();
+
+        // Cleanup function to remove the event listener and clear interval.
+        return () => {
+          document.removeEventListener(
+            "visibilitychange",
+            handleVisibilityChange
+          );
+          clearInterval(intervalId);
+        };
+      }
+    }, [farcasterUser]);
+
+    const handleSignIn = async () => {
+      setLoading(true);
+      await createAndStoreSigner();
+      setLoading(false);
+    };
+
+    const createAndStoreSigner = async () => {
+      try {
+        const response = await axios.post("/api/signer");
+        if (response.status === 200) {
+          localStorage.setItem(
+            LOCAL_STORAGE_KEYS.FARCASTER_USER,
+            JSON.stringify(response.data)
+          );
+          setFarcasterUser(response.data);
+        }
+      } catch (error) {
+        console.error("API Call failed", error);
+      }
+    };
+
+    return (
+      <div className={styles.container}>
+        {!farcasterUser?.status && (
+          <button
+            className={styles.btn}
+            onClick={handleSignIn}
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Sign in with farcaster"}
+          </button>
+        )}
+
+        {farcasterUser?.status == "pending_approval" &&
+          farcasterUser?.signer_approval_url && (
+            <div className={styles.qrContainer}>
+              <QRCode value={farcasterUser.signer_approval_url} />
+              <div className={styles.or}>OR</div>
+              <a
+                href={farcasterUser.signer_approval_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.link}
+              >
+                Click here to view the signer URL (on mobile)
+              </a>
+            </div>
+          )}
+
+        {farcasterUser?.status == "approved" && (
+          <div className={styles.castSection}>
+            <div className={styles.userInfo}>Hello {farcasterUser.fid} 👋</div>
+            <div className={styles.castContainer}>
+              <textarea
+                className={styles.castTextarea}
+                placeholder="What's on your mind?"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={5}
+              />
+
+              <button
+                className={styles.btn}
+                onClick={handleCast}
+                disabled={isCasting}
+              >
+                {isCasting ? <span>🔄</span> : "Cast"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+  ```
+</CodeGroup>
+
+If you now try going through the whole flow of signing in and creating a cast, everything should work seamlessly!
+
+<Info>
+  ### Read more [Two Ways to Sponsor a Farcaster Signer via Neynar](/docs/two-ways-to-sponsor-a-farcaster-signer-via-neynar) to see how to *sponsor a signer* on behalf of the user
+</Info>
+
+## Conclusion
+
+This guide taught us how to integrate neynar managed signers into your next.js app to add sign-in with Farcaster! If you want to look at the completed code, check out the [GitHub repository](https://github.com/neynarxyz/farcaster-examples/tree/main/managed-signers).
+
+Lastly, please share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # HTML & OpenGraph Metadata in Mini Apps
@@ -6888,7 +11562,7 @@ HTML metadata in frames and catalogs enables:
 This feature makes it easier to build rich, informative interfaces that display frame and catalog content with proper context and visual elements.
 
 
-# Username Search
+# Farcaster Username Search in React
 Source: https://docs.neynar.com/docs/implementing-username-search-suggestion-in-your-farcaster-app
 
 Show good recommendations when users search for Farcaster users in your app
@@ -6897,6 +11571,8 @@ Show good recommendations when users search for Farcaster users in your app
   ### This guide refers to [Search for Usernames](/reference/search-user) API.
 </Info>
 
+## How to Implement Username Search Suggestions
+
 If you have a Farcaster React app, chances are your users will want to search for other users. This guide demonstrates how to implement user search recommendations in your Farcaster React app with the Neynar SDK.
 
 Check out this [Getting started guide](/docs/getting-started-with-neynar) to learn how to set up your environment and get an API key.
@@ -6904,7 +11580,7 @@ Check out this [Getting started guide](/docs/getting-started-with-neynar) to lea
 Here's what the username search recommendation looks like:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/0a00db1-image.png" alt="Username search" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/0a00db1-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cb92cadb94460a29dfbe187dd5bbdd92" alt="Username search" width="752" height="574" data-path="images/docs/0a00db1-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/0a00db1-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b64af4a7c3816c70b345588c53b92b2d 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/0a00db1-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=8ae01a7d15e3bf5d9629e5265e7fbfcb 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/0a00db1-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a333430adeea0a495d818b12969e4feb 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/0a00db1-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=eced58301c05a802b25564a00c2c3460 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/0a00db1-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cf31c13e8bb52ac160cf69d90b7ce180 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/0a00db1-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=59776b1b1841d3983d9466042269c861 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 We'll see the entire React component, and we'll dissect it afterwards.
@@ -6981,7 +11657,7 @@ We're using the [useState](https://react.dev/reference/react/useState) hook to k
   ```
 </CodeGroup>
 
-We're using the [useEffect](https://react.dev/reference/react/useEffect) hook to fetch the users when the search term changes. The API reference can be found [here](/reference/search-user).
+We're using the [useEffect](https://react.dev/reference/react/useEffect) hook to fetch the users when the search term changes. The API reference can be found in [Search User](/reference/search-user).
 
 <CodeGroup>
   ```jsx JSX
@@ -7037,20 +11713,23 @@ That's it, you can now implement user search recommendations inside your Farcast
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
-# Indexer Service
+# Indexer Service - Neynar API
 Source: https://docs.neynar.com/docs/indexer-service-pipe-farcaster-data
 
-Pipe Farcaster data, or subsets of it, directly into your db
+Enterprise-grade Farcaster data indexing service
 
 <Info>
   ### Reach out for setup and pricing
 </Info>
 
-A service that reads real-time data from hubs and indexes it into your Postgres database.
+## Stream Real Time Farcaster Data
+
+Reads real time data from Farcaster nodes and indexes it directly into your PostgreSQL database.
+Get complete Farcaster protocol data, custom filtering, and seamless integration for building scalable applications.
 
 ### **Benefits**
 
@@ -7059,6 +11738,8 @@ A service that reads real-time data from hubs and indexes it into your Postgres 
 * No need to maintain a hub
 * No need to maintain an indexer with new protocol updates
   * Neynar handles all protocol changes for newly available data
+* Index subsets of data e.g. casts from users with [score](/docs/neynar-user-quality-score) > 0.5
+* Index specific tables e.g. profiles, casts, verifications, etc. See list of all tables [here](https://dev.neynar.com/pricing#section_data_indexer_service).
 
 ### **Requirements**
 
@@ -7078,14 +11759,25 @@ See [Requirements for indexer service](/docs/requirements-for-indexer-service)
 * **Livestream indexing**
   * Post backfill, all data will be indexed from the live stream from the hub
 
-### **Notes**
+<Tip>
+  ### **Why is my indexing lagging?**
 
-* We read data from hubs directly, and hubs can differ from Warpcast from time to time: see [here](https://blog.neynar.com/understanding-message-propagation-on-farcaster-mainnet) for more on this topic
-* By default, we pipe data in this schema: [link](https://docs.dune.com/data-catalog/community/farcaster/overview) , reach out if you want subsets of data or custom schemas
+  * **Are you correctly provisioned?**
+
+    If you're indexing a large volume of data (especially full network data), your database needs to be properly provisioned for write-heavy workloads. Refer to our [provisioning requirements guide](https://docs.neynar.com/docs/requirements-for-indexer-service) for details based on the scale of your indexing.
+
+  * **Are you running intense read queries on the same db?**
+
+    If you're running heavy or complex read queries on the same tables our indexer is writing to, it can slow down the pipeline. We recommend setting up a read replica and run your queries against that, so writes are not blocked.
+
+  * **Where is your database located?**
+
+    Our indexer pipelines run in AWS US-East-1. If your destination database is hosted in a region far from this (e.g. Europe or Asia), network latency could increase. Consider hosting your database closer to US-East-1 for optimal performance.
+</Tip>
 
 ### **Questions**
 
-For any questions, message [@manan](https://warpcast.com/~/inbox/191-3253) or [@rish](https://warpcast.com/~/inbox/194-3253) on Warpcast
+For any questions, reach out to us on [Slack](https://join.slack.com/t/neynarcommunity/shared_invite/zt-3a4zrezxu-ePFVx2wKHvot1TLi2mVHkA)!
 
 
 # Write Data with Managed Signers
@@ -7410,7 +12102,7 @@ Convert `signer_approved_url` to a QR code (For testing, you can use any online 
 If the user is using the application on desktop, then ask the user to scan this QR code. If the user is on mobile, ask them to click the link. This will deeplink the user into Warpcast, and they will see the following screenshot.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg" alt="Signer approval" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=f92ea1d6b3fe5a7f298650c0bee97e0b" alt="Signer approval" width="720" height="1544" data-path="images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=7216f60905e55ed3a414067e47985313 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a0c576fa90dced8d27b80d2583d196d4 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=452eb96d81802848b53c7098bf80e7b6 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c8ab0bdbbe47aca27d1c227d481d6105 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=6d381ff0843527010051925e2c673a1f 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/29ad45ccfced5531fd5a21d1ac3d7b0e9142a51cbfee87cf2e4f4c6ac7059e7f-WhatsApp_Image_2025-03-13_at_7.28.55_PM.jpeg?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0c99937570025a28a4c2697c82e36344 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 The user will need to pay for this on-chain transaction. (If you don't want users to pay, [you can sponsor it yourself or let neynar sponsor the signer](/docs/two-ways-to-sponsor-a-farcaster-signer-via-neynar))
@@ -7484,7 +12176,7 @@ Response
 </CodeGroup>
 
 <Info>
-  ### Read more [here](/docs/two-ways-to-sponsor-a-farcaster-signer-via-neynar) to see how to *sponsor a signer* on behalf of the user
+  ### Read more [Two Ways to Sponsor a Farcaster Signer via Neynar](/docs/two-ways-to-sponsor-a-farcaster-signer-via-neynar) to see how to *sponsor a signer* on behalf of the user
 </Info>
 
 ## Conclusion
@@ -7498,7 +12190,7 @@ This backend should be integrated with the corresponding frontend to enable a se
 
 For the completed code with frontend intergation, check out the [GitHub repository](https://github.com/neynarxyz/farcaster-examples/tree/main/managed-signers).
 
-If you encounter any issues, reach out to the [Neynar team for support](https://t.me/rishdoteth).
+If you encounter any issues, reach out to the [Neynar team for support](https://neynar.com/slack).
 
 
 # Like & Recast
@@ -7595,12 +12287,12 @@ Which would print out
 
 That's it! You can now like or recast any cast on Farcaster.
 
-PS - to learn more about how writes technically works on Farcaster, read [here](/docs/write-to-farcaster-with-neynar-managed-signers)
+PS - to learn more about how writes technically works on Farcaster, read [Write to Farcaster with Neynar Managed Signers](/docs/write-to-farcaster-with-neynar-managed-signers)
 
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -7626,7 +12318,7 @@ Click on the new webhook and enter the `fid` of your bot in the `mentioned_fids`
 What this does is anytime a cast is created on the protocol, it checks if your bot that has that `fid` is *mentioned* in the cast. If it is, it fires a webhook event to your backend.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a81dda355968589da44a796c28f3dc94" width="3592" height="1554" data-path="images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=53183518af917f6e8c982ffa0b79319d 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f744cdb33af58920008435a1e8fd1186 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f91274f48dad1adbc44e62ea1a10c974 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=36cf001dfdfee016799dd620b9a2500f 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3b07ec3f1cf6bec2868c4ba3f32b574e 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/83ec386e5c8740be2853a31970a972b8a5132877722f642d075f2cba1587ec49-Screenshot_2024-11-15_at_12.46.45_AM.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=25f72e918bb5b7da628b45178abc052b 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 #### Get events when someone replies to your bot
@@ -7634,7 +12326,7 @@ What this does is anytime a cast is created on the protocol, it checks if your b
 In the same webhook as above, insert the `fid` of your bot in the `parent_author_fids` field. See screenshot below. This will fire an event for whenever someone casts a reply where your bot is the *parent cast's author*.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c2ace6b112debca0d2ae28d2456dc6c5" width="5082" height="1990" data-path="images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e5bddda90dd2f092218e8c628f0a40be 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b5c90528624d8826792a9266494e7f35 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4924a7666e1a9cad620adadcb60a9aac 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a921e83dc7cc7da87ad1c3decb8ea315 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=cb4b57b5a2ceda469cf358e4e073a396 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/87082796a59383f5912c8a58a089a8d6b52e37b0ce32682ec2e2e29b4fa9b7cd-Screenshot_2024-11-15_at_5.25.10_PM.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9b17f1547072d19d4519cf0dfec77dd8 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 You will notice that the same webhook now has two filters for the `cast.created` event. This is because webhook filters are logical `OR` filters meaning that the event will fire if any one of the conditions are fulfilled. In this case, the webhook server will notify your backend if someone
@@ -7742,7 +12434,7 @@ Now that you know how to set up webhooks manually on the dev portal, you might b
 
 ## You're ready to build!
 
-That's it, it's that simple! Make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+That's it, it's that simple! Make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # Make Agents Prompt Transactions
@@ -7857,7 +12549,7 @@ and it will return a response that contains a frame URL:
 It will dynamically generate a frame like that at the above URL:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=526f097d4791135fb329f7bab0003347" width="842" height="1506" data-path="images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e1aa3bdc5cc981ad12a9ec2a392c3430 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0d4940ae7d95d755006ed3f78a75ad91 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=bbcf73d79fd677a7bc572a2ca88f27c1 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cb7cd9d01555e5865d9aa35e42c4bb12 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=ebeb9eabdfffd044ef6cdeea80e93830 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/1c880391e4501a0fe45a5345f607faf909b70ed9fe0a82ec82931537b4cccfc1-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=be2b9601d23dd885032b206a3cf63b25 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 You can now cast out this frame programmatically using our [Publish Cast](/reference/publish-cast) API. You might want to save the `frame_id` for future purposes to look up details for this frame.
@@ -7865,7 +12557,7 @@ You can now cast out this frame programmatically using our [Publish Cast](/refer
 Once you use the frame url in a cast, it will automatically create a splash embed like the following:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1d6f886df7c3afa6d485666fe52c813d" width="1242" height="986" data-path="images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=df2480fee5c056891e22be7e0bb25bc1 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=99a72b00b1799aec59acd3fec37880e6 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cdc962588d234f9374ae149217902411 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5e9cdf6597861618f210f1474a8ffdaf 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c532d0f82c14afb41787d0312b1e57ce 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/44a0b5f64b3c57b727d4c47ef6d3e5e54a9053c83a47e3cd4948dc0f98a37fcd-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=da216319180ed1d46325228ca729090b 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ### Other transaction types
@@ -7875,6 +12567,908 @@ We are starting with pay transactions and will add other transaction types short
 ## Fetching details for an existing transaction frame
 
 If you have an existing transaction frame you made in the past, you can fetch the details for it through [Get transaction pay frame](/reference/get-transaction-pay-frame). Pass in the `frame_id` in the request and it will return frame details.
+
+
+# Farcaster Feed of NFT Owners
+Source: https://docs.neynar.com/docs/making-a-farcaster-feed-of-miladies
+
+Make a Farcaster feed showing casts from a specific set of users
+
+<Info>
+  ### Related API reference [Fetch Feed](/reference/fetch-feed)
+</Info>
+
+This guide demonstrates how to make a feed of Farcaster casts from users who own a specific NFT.
+
+Check out this [Getting started guide](/docs/getting-started-with-neynar) to learn how to set up your environment and get an API key.
+
+Before all that, initialize Neynar client:
+
+<CodeGroup>
+  ```javascript Javascript
+  // npm i @neynar/nodejs-sdk
+  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
+  import { FeedType,FilterType } from "@neynar/nodejs-sdk/build/api/index.js";
+
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const config = new Configuration({
+    apiKey: process.env.NEYNAR_API_KEY,
+  });
+
+  const client = new NeynarAPIClient(config);
+  ```
+</CodeGroup>
+
+First, we need to get the addresses owning Milady. We can use the [Alchemy NFT API](https://docs.alchemy.com/reference/getownersforcontract-v3) to get the addresses of users who own the NFT.
+
+<CodeGroup>
+  ```javascript Javascript
+  const getAddr = async (nftAddr: string): Promise<string[]> => {
+    const apiKey = process.env.ALCHEMY_API_KEY;
+    const baseUrl = `https://eth-mainnet.g.alchemy.com/nft/v3/${apiKey}/getOwnersForContract?`;
+    const url = `${baseUrl}contractAddress=${nftAddr}&withTokenBalances=false`;
+
+    const result = await fetch(url, {
+      headers: { accept: "application/json" },
+    });
+    const data = await result.json();
+    return data.owners;
+  };
+
+  // milady maker contract address
+  const nftAddr = "0x5af0d9827e0c53e4799bb226655a1de152a425a5";
+  const addrs = await getAddr(nftAddr);
+  ```
+</CodeGroup>
+
+Next, get Farcaster FIDs of each address, then filter out any undefined values.
+
+<CodeGroup>
+  ```javascript Javascript
+  const fidLookup = async (addrs: string[]) => {
+    const fids = await Promise.all(
+      addrs.map(async (addr) => {
+        try {
+          const response = await client.fetchBulkUsersByEthOrSolAddress({
+            addresses: [addr],
+          });
+          return response ? response.result.user.fid : undefined;
+        } catch (error) {
+          return undefined;
+        }
+      })
+    );
+    return fids.filter((fid) => fid !== undefined);
+  };
+
+  const fids = await fidLookup(addrs);
+  ```
+</CodeGroup>
+
+Lastly, fetch the feed using the FIDs.
+
+<CodeGroup>
+  ```javascript Javascript
+  const feedType = FeedType.Filter;
+  const filterType=  FilterType.Fids;
+
+  const feed = await client.fetchFeed({feedType,
+    filterType,
+    fids
+  });
+
+  console.log(feed);
+  ```
+</CodeGroup>
+
+Example output:
+
+<CodeGroup>
+  ```json Json
+  {
+    casts: [
+      {
+        object: "cast_hydrated",
+      hash: "0x4b02b1ef6daa9fe111d3ce871ec004936f19b979",
+      thread_hash: "0x4b02b1ef6daa9fe111d3ce871ec004936f19b979",
+      parent_hash: null,
+      parent_url: "https://veryinter.net/person",
+      parent_author: [Object ...],
+      author: [Object ...],
+      text: "What'd you buy for Black Friday / Cyber Monday?\n\nI got a new webcam and bought a Roomba+mop that I'm excited to fiddle with.",
+      timestamp: "2023-11-27T14:46:01.000Z",
+      embeds: [],
+      reactions: [Object ...],
+      replies: [Object ...],
+      mentioned_profiles: []
+    }, {
+      object: "cast_hydrated",
+      hash: "0xf1210d9eb6b21bbf3847ca5983539ed9c2baee13",
+      thread_hash: "0xf1210d9eb6b21bbf3847ca5983539ed9c2baee13",
+      parent_hash: null,
+      parent_url: null,
+      parent_author: [Object ...],
+      author: [Object ...],
+      text: "Great couple days mostly off the internet. 🦃🤗\n\nAlso excited to be back in the mix.\n\nWhat will be the biggest stories to end the year?",
+      timestamp: "2023-11-27T14:44:19.000Z",
+      embeds: [],
+      reactions: [Object ...],
+      replies: [Object ...],
+      mentioned_profiles: []
+    }, {
+      object: "cast_hydrated",
+      hash: "0x7d3ad4be401c0050cf20a060ebbd108383b6357c",
+      thread_hash: "0x7d3ad4be401c0050cf20a060ebbd108383b6357c",
+      parent_hash: null,
+      parent_url: "https://foundation.app",
+      parent_author: [Object ...],
+      author: [Object ...],
+      text: "Consisting of 50 1/1 works, Ver Clausi's new drop Blaamius imagines life after the Anthropocene. His rich, colorful illustrations that meld subject and scenery remind me of old sci-fi comics and H.R. Giger in the best possible way. \nPrice: 0.025\nhttps://foundation.app/collection/bla-cebc",
+      timestamp: "2023-11-27T14:29:37.000Z",
+      embeds: [
+        [Object ...]
+      ],
+      reactions: [Object ...],
+      replies: [Object ...],
+      mentioned_profiles: []
+    }
+  ],
+  next: {
+    cursor: "eyJ0aW1lc3RhbXAiOiIyMDIzLTExLTI3IDE0OjI5OjM3LjAwMDAwMDAifQ=="
+  }
+  }
+  ```
+</CodeGroup>
+
+Farcaster feed of Milady owners!
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
+
+
+# Mini App Authentication
+Source: https://docs.neynar.com/docs/mini-app-authentication
+
+Complete guide to authentication flows and developer-branded signer creation in Farcaster mini apps
+
+# Authentication & Signer Management
+
+This document provides a comprehensive overview of the authentication system and signer creation process in your Farcaster mini app. The system uses [**Sign in with Farcaster (SIWF)**](https://github.com/farcasterxyz/protocol/discussions/110) protocol to authenticate users and create signers for Farcaster protocol interactions.
+
+*Although titled "Mini app authentication", this can also be used in web apps if you'd like.*
+
+## Overview
+
+The authentication system is built around **signers** - cryptographic keys that allow your application to act on behalf of a user within the Farcaster protocol.
+
+Full code for this flow can be found in the [Neynar Mini App Starter Kit](https://github.com/neynarxyz/create-farcaster-mini-app/blob/main/src/components/ui/NeynarAuthButton/index.tsx)
+
+## Architecture Components
+
+The system involves four main components:
+
+```mermaid
+sequenceDiagram
+    participant A as Miniapp Client
+    participant B as Miniapp Server
+    participant C as Neynar Server
+    participant D as Farcaster App
+
+    A->>B: Step 1: Get Nonce
+    B->>C: Fetch Nonce
+    C-->>B: Return Nonce
+    B-->>A: Return Nonce
+
+    A->>A: Step 2: Inject nonce in SIWF message
+    A->>D: Step 3: Ask user for signature
+    D-->>A: Return signature
+
+    A->>B: Step 4: Send SIWF message + signature
+    B->>C: Step 5: Fetch Signers (/api/auth/signers)
+    C-->>B: Return Signers
+
+    B->>B: Step 6: Check if signer exists
+    alt Signer not present
+        B->>C: Step 7: Create Signer
+        C-->>B: Return Signer
+
+        B->>C: Step 8: Register Signed Key
+        C-->>B: Return Approval URL
+    end
+
+    A->>A: Step 9: Start Polling
+    A->>D: Step 10: Show QR (desktop) or Deep Link (mobile)
+    D->>C: User Approves Signer
+    A->>B: Poll for status
+    B->>C: Check Approval Status
+    C-->>B: Return Status
+    B-->>A: Return Status
+
+    alt Signer approved
+        B->>C: Fetch Signers Again
+        C-->>B: Return Signers
+        A->>A: Step 11: Store in LocalStorage (frontend)
+        B->>B: Store in Session (backend)
+    end
+```
+
+### API Endpoints
+
+| Endpoint                      | Method   | Purpose                       | Step             |
+| ----------------------------- | -------- | ----------------------------- | ---------------- |
+| `/api/auth/nonce`             | GET      | Generate authentication nonce | Step 1           |
+| `/api/auth/signers`           | GET      | Fetch user signers            | Step 5           |
+| `/api/auth/session-signers`   | GET      | Fetch signers with user data  | Step 5 (Backend) |
+| `/api/auth/signer`            | POST     | Create new signer             | Step 7           |
+| `/api/auth/signer`            | GET      | Check signer status           | Step 9           |
+| `/api/auth/signer/signed_key` | POST     | Register signed key           | Step 8           |
+| `/api/auth/[...nextauth]`     | GET/POST | NextAuth handlers             | Backend Flow     |
+
+## Complete Authentication Flow
+
+### Step 1: Get the Nonce
+
+The authentication process begins by fetching a cryptographic nonce from the Neynar server.
+
+**Mini App Client → Mini App Server:**
+
+```typescript
+const generateNonce = async () => {
+  const response = await fetch('/api/auth/nonce');
+  const data = await response.json();
+  setNonce(data.nonce);
+};
+```
+
+**Mini App Server → Neynar Server:**
+
+```typescript
+// /api/auth/nonce/route.ts
+export async function GET() {
+  try {
+    const client = getNeynarClient();
+    const response = await client.fetchNonce();
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Error fetching nonce:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch nonce' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Step 2: Inject Nonce in Sign in with Farcaster
+
+The nonce is used to create a [Sign in with Farcaster](https://github.com/farcasterxyz/protocol/discussions/110) message.
+
+```typescript
+// Frontend Flow using Farcaster Auth Kit
+const { signIn, connect, data } = useSignIn({
+  nonce: nonce || undefined,
+  onSuccess: onSuccessCallback,
+  onError: onErrorCallback,
+});
+
+// Backend Flow using Farcaster SDK
+const handleBackendSignIn = async () => {
+  const result = await sdk.actions.signIn({ nonce });
+  // result contains message and signature
+};
+```
+
+### Step 3: Ask User for the Signature
+
+The user is prompted to sign the SIWF message through their Farcaster client.
+
+**Frontend Flow:**
+
+```typescript
+useEffect(() => {
+  if (nonce && !useBackendFlow) {
+    connect(); // Triggers signing flow
+  }
+}, [nonce, connect, useBackendFlow]);
+```
+
+**Backend Flow:**
+
+```typescript
+// User signs through Farcaster mobile app
+const signInResult = await sdk.actions.signIn({ nonce });
+const { message, signature } = signInResult;
+```
+
+### Step 4: Receive Message and Signature
+
+Once the user signs the message, the client receives the signature.
+
+```typescript
+const onSuccessCallback = useCallback(
+  async (res: UseSignInData) => {
+    console.log('✅ Authentication successful:', res);
+    setMessage(res.message);
+    setSignature(res.signature);
+  },
+  [useBackendFlow, fetchUserData]
+);
+```
+
+### Step 5: Send to /api/auth/signers to Fetch Signers
+
+With the signed message and signature, fetch existing signers for the user.
+
+**Mini App Client → Mini App Server:**
+
+```typescript
+const fetchAllSigners = async (message: string, signature: string) => {
+  const endpoint = useBackendFlow
+    ? `/api/auth/session-signers?message=${encodeURIComponent(
+        message
+      )}&signature=${signature}`
+    : `/api/auth/signers?message=${encodeURIComponent(
+        message
+      )}&signature=${signature}`;
+
+  const response = await fetch(endpoint);
+  const signerData = await response.json();
+  return signerData;
+};
+```
+
+**Mini App Server → Neynar Server:**
+
+```typescript
+// /api/auth/signers/route.ts
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const message = searchParams.get('message');
+  const signature = searchParams.get('signature');
+
+  if (!message || !signature) {
+    return NextResponse.json(
+      { error: 'Message and signature are required' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const client = getNeynarClient();
+    const data = await client.fetchSigners({ message, signature });
+    return NextResponse.json({
+      signers: data.signers,
+    });
+  } catch (error) {
+    console.error('Error fetching signers:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch signers' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+**For Backend Flow with User Data:**
+
+```typescript
+// /api/auth/session-signers/route.ts
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const message = searchParams.get('message');
+    const signature = searchParams.get('signature');
+
+    const client = getNeynarClient();
+    const data = await client.fetchSigners({ message, signature });
+    const signers = data.signers;
+
+    // Fetch user data if signers exist
+    let user = null;
+    if (signers && signers.length > 0 && signers[0].fid) {
+      const {
+        users: [fetchedUser],
+      } = await client.fetchBulkUsers({
+        fids: [signers[0].fid],
+      });
+      user = fetchedUser;
+    }
+
+    return NextResponse.json({
+      signers,
+      user,
+    });
+  } catch (error) {
+    console.error('Error in session-signers API:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch signers' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Step 6: Check if Signers are Present
+
+Determine if the user has existing approved signers.
+
+```typescript
+const hasApprovedSigners = signerData?.signers?.some(
+  (signer: any) => signer.status === 'approved'
+);
+
+if (hasApprovedSigners) {
+  // User has signers, proceed to store them
+  proceedToStorage(signerData);
+} else {
+  // No signers, need to create new ones
+  startSignerCreationFlow();
+}
+```
+
+### Step 7: Create a Signer
+
+If no signers exist, create a new signer.
+
+**Mini App Client → Mini App Server:**
+
+```typescript
+const createSigner = async () => {
+  const response = await fetch('/api/auth/signer', {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create signer');
+  }
+
+  return await response.json();
+};
+```
+
+**Mini App Server → Neynar Server:**
+
+```typescript
+// /api/auth/signer/route.ts
+export async function POST() {
+  try {
+    const neynarClient = getNeynarClient();
+    const signer = await neynarClient.createSigner();
+    return NextResponse.json(signer);
+  } catch (error) {
+    console.error('Error creating signer:', error);
+    return NextResponse.json(
+      { error: 'Failed to create signer' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Step 8: Register a Signed Key
+
+Register the signer's public key with the Farcaster protocol.
+
+**Mini App Client → Mini App Server:**
+
+```typescript
+const generateSignedKeyRequest = async (
+  signerUuid: string,
+  publicKey: string
+) => {
+  const response = await fetch('/api/auth/signer/signed_key', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      signerUuid,
+      publicKey,
+      redirectUrl: window.location.origin, // Optional redirect after approval
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to register signed key');
+  }
+
+  return await response.json();
+};
+```
+
+**Mini App Server → Neynar Server:**
+
+```typescript
+// /api/auth/signer/signed_key/route.ts
+export async function POST(request: Request) {
+  const body = await request.json();
+  const { signerUuid, publicKey, redirectUrl } = body;
+
+  // Validate required fields
+  if (!signerUuid || !publicKey) {
+    return NextResponse.json(
+      { error: 'signerUuid and publicKey are required' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // Get the app's account from seed phrase
+    const seedPhrase = process.env.SEED_PHRASE;
+    const shouldSponsor = process.env.SPONSOR_SIGNER === 'true';
+
+    if (!seedPhrase) {
+      return NextResponse.json(
+        { error: 'App configuration missing (SEED_PHRASE)' },
+        { status: 500 }
+      );
+    }
+
+    const neynarClient = getNeynarClient();
+    const account = mnemonicToAccount(seedPhrase);
+
+    // Get app FID from custody address
+    const {
+      user: { fid },
+    } = await neynarClient.lookupUserByCustodyAddress({
+      custodyAddress: account.address,
+    });
+
+    const appFid = fid;
+
+    // Generate deadline (24 hours from now)
+    const deadline = Math.floor(Date.now() / 1000) + 86400;
+
+    // Generate EIP-712 signature
+    const signature = await account.signTypedData({
+      domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
+      types: {
+        SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
+      },
+      primaryType: 'SignedKeyRequest',
+      message: {
+        requestFid: BigInt(appFid),
+        key: publicKey,
+        deadline: BigInt(deadline),
+      },
+    });
+
+    const signer = await neynarClient.registerSignedKey({
+      appFid,
+      deadline,
+      signature,
+      signerUuid,
+      ...(redirectUrl && { redirectUrl }),
+      ...(shouldSponsor && { sponsor: { sponsored_by_neynar: true } }),
+    });
+
+    return NextResponse.json(signer);
+  } catch (error) {
+    console.error('Error registering signed key:', error);
+    return NextResponse.json(
+      { error: 'Failed to register signed key' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Step 9: Start Polling
+
+Begin polling the signer status to detect when it's approved.
+
+```typescript
+const startPolling = (
+  signerUuid: string,
+  message: string,
+  signature: string
+) => {
+  const interval = setInterval(async () => {
+    try {
+      const response = await fetch(`/api/auth/signer?signerUuid=${signerUuid}`);
+      const signerData = await response.json();
+
+      if (signerData.status === 'approved') {
+        clearInterval(interval);
+        console.log('✅ Signer approved!');
+        // Refetch all signers
+        await fetchAllSigners(message, signature);
+      }
+    } catch (error) {
+      console.error('Error polling signer:', error);
+    }
+  }, 2000); // Poll every 2 seconds
+
+  return interval;
+};
+```
+
+**Polling API Implementation:**
+
+```typescript
+// /api/auth/signer/route.ts (GET method)
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const signerUuid = searchParams.get('signerUuid');
+
+  if (!signerUuid) {
+    return NextResponse.json(
+      { error: 'signerUuid is required' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const neynarClient = getNeynarClient();
+    const signer = await neynarClient.lookupSigner({
+      signerUuid,
+    });
+    return NextResponse.json(signer);
+  } catch (error) {
+    console.error('Error fetching signer status:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch signer status' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Step 10: Show Signer Approval URL
+
+Display QR code for desktop users or deep link for mobile users.
+
+```typescript
+const handleSignerApproval = (approvalUrl: string) => {
+  const isMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+
+  if (isMobile && context?.client) {
+    // Mobile: Deep link to Farcaster app
+    const farcasterUrl = approvalUrl.replace(
+      'https://client.farcaster.xyz/deeplinks/signed-key-request',
+      'https://farcaster.xyz/~/connect'
+    );
+
+    // Use SDK to open URL in Farcaster app
+    sdk.actions.openUrl(farcasterUrl);
+  } else {
+    // Desktop: Show QR code
+    setSignerApprovalUrl(approvalUrl);
+    setDialogStep('access');
+    setShowDialog(true);
+  }
+};
+```
+
+### Step 11: Store Signers
+
+Once approved, store the signers in appropriate storage.
+
+**Frontend Flow (LocalStorage):**
+
+```typescript
+const storeInLocalStorage = (user: any, signers: any[]) => {
+  const authState = {
+    isAuthenticated: true,
+    user,
+    signers,
+  };
+
+  setItem(STORAGE_KEY, authState);
+  setStoredAuth(authState);
+};
+```
+
+**Backend Flow (NextAuth Session):**
+
+```typescript
+const updateSessionWithSigners = async (signers: any[], user: any) => {
+  if (useBackendFlow && message && signature && nonce) {
+    const signInData = {
+      message,
+      signature,
+      nonce,
+      fid: user?.fid?.toString(),
+      signers: JSON.stringify(signers),
+      user: JSON.stringify(user),
+    };
+
+    const result = await backendSignIn('neynar', {
+      ...signInData,
+      redirect: false,
+    });
+
+    if (result?.ok) {
+      console.log('✅ Session updated with signers');
+    }
+  }
+};
+```
+
+## State Management & Storage
+
+### Frontend Flow State (LocalStorage)
+
+```typescript
+interface StoredAuthState {
+  isAuthenticated: boolean;
+  user: {
+    fid: number;
+    username: string;
+    display_name: string;
+    pfp_url: string;
+    custody_address: string;
+    profile: {
+      bio: { text: string };
+      location?: any;
+    };
+    follower_count: number;
+    following_count: number;
+    verifications: string[];
+    verified_addresses: {
+      eth_addresses: string[];
+      sol_addresses: string[];
+      primary: {
+        eth_address: string;
+        sol_address: string;
+      };
+    };
+    power_badge: boolean;
+    score: number;
+  } | null;
+  signers: {
+    object: 'signer';
+    signer_uuid: string;
+    public_key: string;
+    status: 'approved';
+    fid: number;
+  }[];
+}
+
+// Stored in localStorage with key 'neynar_authenticated_user'
+const STORAGE_KEY = 'neynar_authenticated_user';
+```
+
+### Backend Flow State (NextAuth Session)
+
+```typescript
+interface Session {
+  provider: 'neynar';
+  user: {
+    fid: number;
+    object: 'user';
+    username: string;
+    display_name: string;
+    pfp_url: string;
+    custody_address: string;
+    profile: {
+      bio: { text: string };
+      location?: any;
+    };
+    follower_count: number;
+    following_count: number;
+    verifications: string[];
+    verified_addresses: {
+      eth_addresses: string[];
+      sol_addresses: string[];
+      primary: {
+        eth_address: string;
+        sol_address: string;
+      };
+    };
+    power_badge: boolean;
+    score: number;
+  };
+  signers: {
+    object: 'signer';
+    signer_uuid: string;
+    public_key: string;
+    status: 'approved';
+    fid: number;
+  }[];
+}
+```
+
+## Security & Configuration
+
+### EIP-712 Signature Validation
+
+The system uses EIP-712 typed data signing for secure signer registration:
+
+```typescript
+// From /lib/constants.ts
+export const SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN = {
+  name: 'Farcaster SignedKeyRequestValidator',
+  version: '1',
+  chainId: 10,
+  verifyingContract:
+    '0x00000000fc700472606ed4fa22623acf62c60553' as `0x${string}`,
+};
+
+export const SIGNED_KEY_REQUEST_TYPE = [
+  { name: 'requestFid', type: 'uint256' },
+  { name: 'key', type: 'bytes' },
+  { name: 'deadline', type: 'uint256' },
+];
+```
+
+### Required Environment Variables
+
+```bash
+# Neynar API configuration
+NEYNAR_API_KEY=your_neynar_api_key
+NEYNAR_CLIENT_ID=your_neynar_client_id
+
+# App signing key for signer registration
+SEED_PHRASE=your_twelve_word_mnemonic_phrase
+
+# Optional: Sponsor signer creation costs (recommended for production)
+SPONSOR_SIGNER=true
+```
+
+### Flow Detection
+
+```typescript
+// Determine which flow to use
+const { context } = useMiniApp();
+const useBackendFlow = context !== undefined;
+
+// Frontend flow uses localStorage + Farcaster Auth Kit
+// Backend flow uses NextAuth sessions + Farcaster SDK
+```
+
+### Integration Examples
+
+#### Checking Authentication Status
+
+```typescript
+// Frontend Flow
+const isAuthenticated =
+  storedAuth?.isAuthenticated &&
+  storedAuth?.signers?.some((s) => s.status === 'approved');
+
+// Backend Flow
+const isAuthenticated =
+  session?.provider === 'neynar' &&
+  session?.user?.fid &&
+  session?.signers?.some((s) => s.status === 'approved');
+```
+
+#### Using Signers for Farcaster Actions
+
+```typescript
+// Get signer
+const signer = (useBackendFlow ? session?.signers : storedAuth?.signers)[0];
+
+if (signer) {
+  // Use signer for publishing casts
+  const client = getNeynarClient();
+  await client.publishCast({
+    signerUuid: signer.signer_uuid,
+    text: 'Hello from my mini app!',
+  });
+}
+```
+
+## Summary
+
+Authentication flow provides a comprehensive system for:
+
+1. **Secure Authentication**: Using SIWF protocol with cryptographic nonces
+2. **Signer Management**: Creating and approving signers for Farcaster actions
+3. **Multi-Platform Support**: Works in web browsers and Farcaster mobile clients
+4. **State Persistence**: Maintains authentication across sessions
+
+The system abstracts the complexity of Farcaster protocol interactions while providing a seamless user experience for both web and mobile environments.
+
+[Feel Free to reach out with any questions or for further assistance in integrating this authentication flow into your Farcaster mini app!](https://neynar.com/slack)
+
+## Happy coding! 🎉
 
 
 # Common UX Mistakes and Launch Strategies for Mini Apps
@@ -8092,7 +13686,7 @@ Want to reward your Farcaster community with NFTs? This guide shows you how to m
 <Info>
   ### Currently Limited to Highlight
 
-  This API currently only works with NFTs deployed through [Highlight](https://highlight.xyz) on EVM networks. We're working on expanding support to other NFT platforms, so if you have a specific request [let us know](https://t.me/rishdoteth).
+  This API currently only works with NFTs deployed through [Highlight](https://highlight.xyz) on EVM networks. We're working on expanding support to other NFT platforms, so if you have a specific request [let us know](https://neynar.com/slack).
 
   Server wallets need to be manually set up for each user. Contact us to get your server wallet configured.
 </Info>
@@ -8249,7 +13843,7 @@ Server wallets are managed wallets you top up with funds that execute transactio
   3. An NFT contract deployed on Highlight
   4. Native gas tokens on the network of your choosing (top up the address we setup for you)
 
-  [Contact us at](https://t.me/rishdoteth) to get started!
+  [Contact us at](https://neynar.com/slack) to get started!
 </Info>
 
 ## Error Handling
@@ -8263,7 +13857,7 @@ If you don't include the required `x-wallet-id` header, you'll get:
 }
 ```
 
-If you don't have a wallet id [reach out](https://t.me/rishdoteth) to get one setup.
+If you don't have a wallet id [reach out](https://neynar.com/slack) to get one setup.
 
 Each transaction in batch minting will either succeed with a `transaction_hash` or fail with an `error` field.
 
@@ -8271,7 +13865,7 @@ That's it! You're now ready to reward your Farcaster community with NFTs using j
 
 Enjoy building! 🚀
 
-For additional help, [feel free to contact us](https://t.me/rishdoteth).
+For additional help, [feel free to contact us](https://neynar.com/slack).
 
 
 # Mutes, Blocks, and Bans
@@ -8287,7 +13881,7 @@ When Alice mutes Bob:
 * Notifications from Bob are hidden when fetching notifications for Alice.
 * Bob can still view and interact with Alice's casts.
 
-Mutes can be created or deleted via our allowlisted [Mute APIs](/reference/publish-mute). Note that Neynar mutes are separate from Warpcast mutes. Mute's are private – they are not explicitly disclosed by any of our APIs.
+Mutes can be created or deleted via our allowlisted [Mute APIs](/reference/publish-mute). Note that Neynar mutes are separate from Farcaster mutes. Mute's are private – they are not explicitly disclosed by any of our APIs.
 
 ## Blocks
 
@@ -8296,7 +13890,7 @@ When Alice blocks Bob:
 * Bob's casts, likes, replies, and recasts are hidden from Alice – *and vice versa* – when either user's`viewer_fid` is provided.
 * Both users are always hidden from each other in the [Notifications](/reference/fetch-all-notifications) based on the provided `fid`.
 
-Blocks are public and can be listed, created, and deleted via our [block list](/reference/fetch-block-list). Blocks are part of the Farcaster protocol and synced with Warpcast.
+Blocks are public and can be listed, created, and deleted via our [block list](/reference/fetch-block-list). Blocks are part of the Farcaster protocol and synced with the Farcaster app.
 
 ## Bans
 
@@ -8308,7 +13902,7 @@ Bans are only viewable by the app owner, and can be listed, created, and deleted
 
 The endpoints listed below respect mutes, blocks and bans.
 
-For these endpoints, the mutes and blocks apply to the optional `viewer_fid` provided.
+For these endpoints, the mutes, blocks and bans apply to the optional `viewer_fid` provided.
 
 <CodeGroup>
   ```typescript Typescript
@@ -8316,6 +13910,7 @@ For these endpoints, the mutes and blocks apply to the optional `viewer_fid` pro
   /v2/farcaster/cast/conversation
   /v2/farcaster/feed/channels
   /v2/farcaster/feed/following
+  /v2/farcaster/feed/for_you
   /v2/farcaster/feed/frames
   /v2/farcaster/feed
   /v2/farcaster/feed/parent_urls
@@ -8332,7 +13927,7 @@ For these endpoints, the mutes and blocks apply to the optional `viewer_fid` pro
   ```
 </CodeGroup>
 
-These endpoints apply mutes and blocks to the `fid` provided.
+These endpoints apply mutes, blocks and bans to the `fid` provided.
 
 <CodeGroup>
   ```typescript Typescript
@@ -8365,7 +13960,7 @@ Tools below can help you build on Farcaster more easily
 ### Web
 
 * [Opencast](https://opencast.stephancill.co.za/) ([github](https://github.com/stephancill/opencast/tree/main)) by [Stephan Cill](https://warpcast.com/stephancill)
-* [Herocast](https://app.herocast.xyz/feed) ([github](https://github.com/hellno/herocast/) by [Hellno](https://warpcast.com/hellno.eth/0xcf26ab28)
+* [Herocast](https://app.herocast.xyz/feeds) ([github](https://github.com/hellno/herocast/) by [Hellno](https://warpcast.com/hellno.eth/0xcf26ab28)
 * [Managed signer client](https://github.com/neynarxyz/farcaster-examples/tree/main/managed-signers) by Neynar
 
 ### Mobile
@@ -8428,8 +14023,8 @@ Start developing on Farcaster with Neynar and AI enabled Cursor
 <Info>
   ### llms.txt
 
-  * Full file [here](https://docs.neynar.com/llms-full.txt). FYI this file can be too large for LLMs on free plan, you might need to upgrade.
-  * Abridged version [here](https://docs.neynar.com/llms.txt).
+  * Full file [LLM Documentation - Complete Version](https://docs.neynar.com/llms-full.txt). FYI this file can be too large for LLMs on free plan, you might need to upgrade.
+  * Abridged version [LLM Documentation - Compact Version](https://docs.neynar.com/llms.txt).
 
   ### MCP server
 
@@ -8451,7 +14046,7 @@ The steps below will help you get started with Farcaster development in a few si
     Open the `farcaster` folder you created in Cursor and then open the right chat pane. That's the icon next to the <Icon icon="gear" iconType="solid" /> icon in the screenshot below. *This tutorial assumes you're using `claude-3.5-sonnet` as your AI model. With a different model, your results might differ.*
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png" />
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0eacf849955d8103525efe6fcf6c5fc2" width="818" height="518" data-path="images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2511e594b0c90c56579c01d283125623 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=178b4de8588542a431d17ea0f6fdbe89 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f4ec3ed7f5995ad203a4c4517483a359 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b5392ffe852fa16e7ce278708a1a2954 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4f133b809f2512aab7716494f848567a 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/adfd9241d4e2a9fada19d00673df2bf6096978b1cd2fd1b327f5833f74352363-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6f1950dfe2bf0ca2c713a257b676c360 2500w" data-optimize="true" data-opv="2" />
     </Frame>
   </Step>
 
@@ -8469,15 +14064,15 @@ The steps below will help you get started with Farcaster development in a few si
     Cursor should run a bunch of commands based on the above prompt and set up the directory for you already. The right pane will look something like the one below (it slightly differs on each run, so don't worry if it's different for you).
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png" />
+      <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=c867e9ceedc36f3071b6e63a79d25a0d" width="1102" height="924" data-path="images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=e19ca99d3f6d017f953a0aa7ed2c86c6 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=baedea7ec7cf812d031a5f79d6750d59 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=6cf883d903f7dca7555ee5ccb6392b18 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f9f413df69b060be280181751e643890 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=53859db39989dddad6c5b804d1666110 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/e5a494c070d3292b1f670c771da9eeb3806d5a239126b6b719b8c09afbb065af-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=b9ba89de521a29af4423f5670dbc17ce 2500w" data-optimize="true" data-opv="2" />
     </Frame>
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png" />
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5e6f15984724c2bb892567593d704a5b" width="922" height="1810" data-path="images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1a06f1907731c66038651ff545c131cb 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cab77f9ada3f55e2f201fcb6a8248d9c 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5a811cb81a539b6a04c4ccd24c48e27d 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c207ab60012210054b0b67da46ed185f 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9b9b8fc5005600ec5eac457a798cb5fb 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/47e7b461b1cd0ccd307f30e2f1f6e9d83659a49ddcd62129110a2edfd47841c8-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e137f152d21d0c852ceaf021a7176b3f 2500w" data-optimize="true" data-opv="2" />
     </Frame>
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png" />
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=95655d8de48abf6203d35d142947980e" width="926" height="658" data-path="images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=071d5d7cc89eb33f110f9943adf83184 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=af52c85a37cdecc89502405723fa86f7 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=65e7e03fc0a95ff4a0ec5fbddc904768 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cd482be956b133cb7c5acdb9ffe2b552 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=7a412256667c53a3a31550ddd4f25d11 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/69ee1b0f0f53e1213419e3d8e6aeb1e0008475895877d53a48505d5d0c58843a-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=115d17d04615a74f10296330b11da032 2500w" data-optimize="true" data-opv="2" />
     </Frame>
   </Step>
 
@@ -8485,7 +14080,7 @@ The steps below will help you get started with Farcaster development in a few si
     At this point, your left pane should have the following directory structure (Cursor does something slightly different on each run, so don't worry if this isn't the same as this tutorial)
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png" />
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=49b6a5f440b837d33ca84767542a7b9d" width="388" height="406" data-path="images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ae3e3859739037cd49fadf5eb0ab8abf 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=16b50212a71956fbf5122dc10c725161 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d8932709483f4ba24d7af88b0adbc70a 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=cb77d045b3c804a11af62ad8cfbd361d 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0eb74c0621e365d8ac5b95f1485998af 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/921b77c8b73481024e3a8ba191f0f5e7289f7d2608d46d821e5a4050102dfe27-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=158068a553133605c372b847c43ec4d1 2500w" data-optimize="true" data-opv="2" />
     </Frame>
   </Step>
 
@@ -8493,7 +14088,7 @@ The steps below will help you get started with Farcaster development in a few si
     To incorporate these changes into your repository, you can start by tapping "accept all" in the chat pane. You might need to troubleshoot this a bit, but accepting is a reasonable way to start.
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png" />
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=62122091a9c1115095557cf66f40988f" width="440" height="114" data-path="images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=62668bcdf98a24fc357cff6cc14a5530 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=71808cd8eaeb3928f4543992250339af 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=941e405549ac767fe29e372f18abf174 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=8208e092a178dfd317bfba44b0294ebb 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4240f1853aeda0365a6b8b040ff6c38e 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/422e3fae3164a15538dfd3844465cf2a6cbc812ad35a631461cad98edc871ef6-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e4cd6d6f54c6c7ba1850b815f99f040c 2500w" data-optimize="true" data-opv="2" />
     </Frame>
   </Step>
 
@@ -8509,7 +14104,7 @@ The steps below will help you get started with Farcaster development in a few si
     Cursor should give you a set of commands you can run from the chat pane directly. Tap "run" on each command and wait for it to finish running before moving to the next one.
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png" />
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=27c44617caf161da310bdde79ef2b4c7" width="1096" height="1696" data-path="images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=6a81d40b970cb4fb690e5e92b7900d36 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7c48078ea974ec5cedcdb5dd9a5a1be0 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0b882bed393fa056c689d070f93bfc36 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e95e00b2ea3f7b763bdbf7f22918b994 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3d24cebe63bb317df80e79a624cfa5f4 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/9adb1b9c54a28980981a2df69bfa297d4253c8540a0ee745fa28b4c7696ef0f1-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c962c48033a3abaffe98b9026d675330 2500w" data-optimize="true" data-opv="2" />
     </Frame>
   </Step>
 
@@ -8517,7 +14112,7 @@ The steps below will help you get started with Farcaster development in a few si
     After running the `npm` commands above, if you run the curl commands, it should start printing results to your console!
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png" />
+      <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c515f62261d64c1ada0b2a88e4a5b4e3" width="3186" height="300" data-path="images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c61c4296ef5f3282c1d00522c77ebb5c 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=594be0b7e5dce9a3937161eb05fd1eb0 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3915a1a8b5eada2dedc899ede8edcfe7 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7ef4627aad78cb725d6a2e4dea8fb5ca 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a600ebceb02f704e66d23a1ac5613ad7 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/854b205473bc6096622f454d34e00eddc240fc4b320bc68f969be3270417ffcc-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=777565ac788f548ac9ee543f5dc2da6a 2500w" data-optimize="true" data-opv="2" />
     </Frame>
 
     From here on, you can prompt Cursor as you need and continue to build on this foundation! If you have any questions, post them on the [/neynar](https://www.supercast.xyz/channel/neynar) channel on Farcaster.
@@ -8531,7 +14126,7 @@ After the above steps, you likely still have a few issues. Below, we describe th
 * If you're getting errors in the terminal, you can simply click "Debug with AI" to have Cursor generate the prompt and output a solution. Alternatively, click "add to chat" and put in a better prompt yourself
 
   <Frame>
-    <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png" />
+    <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=c8807574484650cc7ee53f2eb33746c8" width="2400" height="312" data-path="images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2816626de2cb16b0460af729d7364fc9 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=dbeba422bffa6e57307e0b2b196a8e09 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=cc104ac53a6f65bd3c6ae1f3921494f3 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=dfa3af2d0b652fb3d8644a33459eaf99 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=bd1343fae23f198201c305819e1d5bc0 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/fd770dff2018932ca47775caa45a84ee5079d4f0b3392ffed1a80df33a8069d0-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=7189f0eeb020a16e117b9e6bcea60eba 2500w" data-optimize="true" data-opv="2" />
   </Frame>
 
 * Ensure that it has the correct files as context. `neynar-api-client.d.ts` needs to be added to context to suggest suitable solutions (or else it will just make things up!). You can search for the filename to add it easily.
@@ -8539,25 +14134,25 @@ After the above steps, you likely still have a few issues. Below, we describe th
   * For long files, it will remove them from context at each step and require you to re-add them.
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png" />
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5eb8bf727277fcbb0c5ba963b417b8a9" width="634" height="60" data-path="images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5f0ac92dfa3be0beba0c9bd6f8b15dbc 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a265ce641d0fba3a5c30c5f813a5851d 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=13081fb0def0f3f2b12a7b4f0aa08c95 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0654328303d722ff7dd66ac80632e9ac 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=7f0e1acd346426e918881f5ee8032d30 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/5e5ecbf9d9b0719ff59a05bf5377fc1d9364c21216245af6f1130cfc9ea9d235-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3f8b6c3eaf600b531c5ab58eed81d7bf 2500w" data-optimize="true" data-opv="2" />
     </Frame>
 
 * When it outputs a solution, it will look like something below. You will notice that each code block has an "Apply" or "Run" action.
 
   <Frame>
-    <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png" />
+    <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3a4937e90da99689fb61d9f76471ea74" width="1876" height="1658" data-path="images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=74453ddddce33c13f3812b74c2081c52 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=34ae76d195f813823056ed506cd751f1 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=3cfed9aedfa8a60e09930ff73367a59e 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b1cb1cf32007ee094735afeba0ecf145 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=16a440db7d764204065dbd12c21d5dcb 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/138705b22a966750167199c165c0daf248176374473dcde913cc9e793707a535-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d7cd8a3a6fbca0f8a5eb3b5604c9afd8 2500w" data-optimize="true" data-opv="2" />
   </Frame>
 
 * You will need to apply/run each block separately. Each apply/run action might create file changes that show up like below. If two actions occur on the same file, "accept" the first change and save the file before taking the next action.
 
   <Frame>
-    <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png" />
+    <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=47462cf2448f8678f6813d0bdf488f18" width="2646" height="336" data-path="images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=77fb3d3bc167ec52e43e2759df5c5293 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=37a66107e01e93b99afd857af7dbb620 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=b9e31cdfbd963f4b5e775f1fe40d0e7f 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=13e5734064fc49afa5110b2b8406d933 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=09fb75a836fc7e9af8412246bcfcb496 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f2dafc311acbfe24461eb13116f284348f5cb3584bd9c7de490c91ec9b28fb20-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a7182dc3b0c6ad5763c37821bd132341 2500w" data-optimize="true" data-opv="2" />
   </Frame>
 
 * Sometimes they also show up in this manner. Accept each change and save before trying again.
 
   <Frame>
-    <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png" />
+    <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5f4edd05fce650a0f059aef96ec1e0f0" width="166" height="92" data-path="images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=78af724383fae235346a3f23995dde22 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f10326892cb7071ac888545a2b06e23c 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=794512ce8b232a9840910b9e5aa906b8 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=95222b1d619ac6e688e0d40bfc405864 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=92a601a0c99545efa879e38b02a50e4e 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/730f4dee3e279ab17f3d8fdc60899cca524ad07b59a0133b6ffc758018c69b74-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5c0fe67810294fdd8b0e79e58bff5bc6 2500w" data-optimize="true" data-opv="2" />
   </Frame>
 
 * You will likely need to go back and forth with Cursor as you work through your code. While AI agents are helpful at getting the project started, they are still bad at navigating through repositories and picking the proper functions.
@@ -8567,7 +14162,7 @@ After the above steps, you likely still have a few issues. Below, we describe th
 Each time you run a command from the chat pane, Cursor opens a new terminal. You can close extra terminal windows that are *not* running your server without any adverse effects on your project.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=be66017ec425e8f11922081b6947db3c" width="254" height="196" data-path="images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ac1d01419087b1e596a2b9af266f2767 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=809bd94e6c51fffb3ed462944a15b43b 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=abb484b36ea63a4b2c32eab9698e36ff 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2c37c4e28795eede1f6dd3059332279b 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=22d74ea1fda02e745ac046377baf32d9 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f04ff92a651b8540812c0c0be5b891c3c5766cd563a4509d1fce39c19aa46e10-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a49a99766e776f9cc00f6b386863378b 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 
@@ -8590,10 +14185,10 @@ If you want to see your score as a user, you can use the [Neynar Explorer](https
 
 The score is *not* proof of humanity. It's a measure of the account quality / value added to the network by that account. It's capable of discriminating between high and low quality AI activity. E.g. agents like bracky / clanker are bots that have high scores while accounts posting LLM slop have lower scores.
 
-You can see a distribution of users across score ranges on this [dashboard](https://data.hubs.neynar.com/dashboards/51-neynar-score-distribution). A screenshot from Dec 5, 2024 is below.
+You can see a distribution of users across score ranges on this [dashboard](https://data.hubs.neynar.com/public/dashboards/UPkT4B8bDMCo952MXrHWyFCh1OJqA9cfFZm0BCJo?org_slug=default). A screenshot from Dec 5, 2024 is below.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png" alt="Neynar user score distribution" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4188987ebb987d885d5d95dc5c30711d" alt="Neynar user score distribution" width="2716" height="1380" data-path="images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f4f0f833c10ec4a77344dbef08f1ec7a 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=36d768964ba6e2a02fa53a0dc4a169eb 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=67bb2f1be9704edef64bddf80430783e 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c65a50dcf7a5bd144749b58ac614616b 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=078a0e271982a132044565fb2716baf9 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/7cf1b9a49a358093488052244e7851837002b499f56f31b44634dcfa6ec04424-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b4f4e4f7932128e20db18ac47454484d 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 **We recommend starting with a threshold around 0.5 and then changing up or down as needed.** As of Dec 5, 2024, there are:
@@ -8651,15 +14246,19 @@ If you're using APIs, you will see the same score in all user objects across all
 
 ### Pulling the scores from hosted SQL
 
-[Neynar SQL playground](/docs/how-to-query-neynar-sql-playground-for-farcaster-data) has user scores available and you can pull from there for larger analysis as needed. [Reach out](https://t.me/rishdoteth) if you don't yet have access to it.
+[Neynar SQL playground](/docs/how-to-query-neynar-sql-playground-for-farcaster-data) has user scores available and you can pull from there for larger analysis as needed. [Reach out](https://neynar.com/slack) if you don't yet have access to it.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png" alt="Neynar user score in SQL" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=dccc6ccac384813c3de5d471db03fa84" alt="Neynar user score in SQL" width="678" height="1138" data-path="images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=0c0332d1efca151a1ee09646b1fd9ccf 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=154dcce4362f99c9d1e3b5594cca5af8 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2180c96b51944e679fbf4bc058772275 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a519241e68d2d27b037328f9e93d168c 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=bfd0bbc55844a4cccb27b2f0c76ef650 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bb255172b3d6a9bf7a8d12ae36121606e4717f46a1cc1c955441566bffc7f926-Screenshot_2025-03-20_at_10.10.33_AM.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a8553d3752180bd752c926a127dfc50f 2500w" data-optimize="true" data-opv="2" />
 </Frame>
+
+### Pulling score data onchain
+
+See [here](/docs/address-user-score-contract) for details. Reach out to us on [Slack](https://neynar.com/slack) if you need the data to be updated.
 
 ## Report errors
 
-If you know a score misrepresents a user, that's helpful information we can use to label our data. Please send feedback to `@rish` on [Warpcast DC](https://warpcast.com/rish) or [Telegram DM](https://t.me/rishdoteth) .
+If you know a score misrepresents a user, that's helpful information we can use to label our data. Please send feedback to `@rish` on [Warpcast DC](https://warpcast.com/rish) or [Slack](https://neynar.com/slack) .
 
 ## FAQs
 
@@ -8668,7 +14267,7 @@ If you know a score misrepresents a user, that's helpful information we can use 
 There's two different things to note here:
 
 * (a) The algorithm runs **weekly** and calculates scores for accounts on the network based on their activity
-* (b) The algorithm itself is upgraded from time to time as activity on the network shifts. You can read about one such update [here](https://neynar.com/blog/retraining-neynar-user-score-algorithm)
+* (b) The algorithm itself is upgraded from time to time as activity on the network shifts. You can read about one such update in [Retraining Neynar User Score Algorithm](https://neynar.com/blog/retraining-neynar-user-score-algorithm)
 
 #### 2. As a user, how can I improve my score?
 
@@ -8678,10 +14277,10 @@ The score is a reflection of account activity on the network. Since we have intr
 * longer write up from @katekornish (now turned into a mini app by @jpfraneto) [here](https://startonfarcaster.xyz/)
 
 
-# Webhooks with DCs
+# Trigger Farcaster Direct Casts (DCs) from Neynar Webhooks
 Source: https://docs.neynar.com/docs/neynar-webhooks-warpcast-dcs
 
-In this guide, we’ll make a webhook which will send a DC to the user based on any action they perform on Farcaster! For this guide, I'll send direct casts to people whose casts include a specific keyword.
+In this guide, we'll send a DM based to users based on keywords in their casts using webhooks.
 
 Before we begin, you can access the [source code](https://github.com/neynarxyz/farcaster-examples/tree/main/cast-action) for this guide on [GitHub Gist](https://gist.github.com/avneesh0612/9fa31cdbb5aa86c46cdb1d50deef9001).
 
@@ -8692,7 +14291,7 @@ Let's get started!
 To create a new webhook, head to the [neynar dashboard](https://dev.neynar.com) and go to the [webhooks tab](https://dev.neynar.com/webhook). Click on the new webhook and enter the details as such:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/d1d180c-image.png" alt="Webhook creation" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d1d180c-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=43615b567be9e437abbdc14ded7f4e9e" alt="Webhook creation" width="1922" height="2334" data-path="images/docs/d1d180c-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d1d180c-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=373f8657548c9b53f7637d552340b576 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d1d180c-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=638648ed055ab0f696e3b4b9def40024 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d1d180c-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=2782d10b3a2fbfc90bd3f6d7d4f485d5 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d1d180c-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=1717660893a6de9de9072448337f08f5 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d1d180c-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=aa430d51f7baade4f6c3cfd8d620132a 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/d1d180c-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=049be305f17ec923c98f2b75076cf017 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 The webhook will fire to the specified `target_url`. To test it out, we can use a service like [ngrok](https://ngrok.com/) to create a public URL that will forward requests to your local server.
@@ -8776,7 +14375,7 @@ Now the server will log out the event when it is fired. It will look something l
 
 ### Adding DC functionality
 
-Firstly, you need a warpcast API key to send DCs. So, head over to [https://warpcast.com/\~/developers/api-keys](https://warpcast.com/~/developers/api-keys) and create a new API key.
+Firstly, you need a warpcast API key to send DCs. So, head over to [https://farcaster.xyz/\~/developers/api-keys](https://farcaster.xyz/~/developers/api-keys) and create a new API key.
 
 Once you have the API key add this fetch request in your try block:
 
@@ -8826,7 +14425,7 @@ If you restart the server and cast again, it will send a DC to the account creat
 
 That's it, it's that simple! The next steps would be to have a public server that can handle the webhook events and use it to suit your needs.
 
-Lastly, please share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+Lastly, please share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar), and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # From Parquet Exports
@@ -9761,9 +15360,11 @@ Details below:
 # Write Casts to Channel
 Source: https://docs.neynar.com/docs/posting-dank-memes-to-farcasters-memes-channel-with-neynars-sdk
 
-Write casts to a Farcaster channel with Neynar
+Step-by-step guide to posting casts and content to specific Farcaster channels using Neynar SDK. Learn channel mechanics, parent URL mapping, and how to write engaging content to community channels like memes, with complete code examples and best practices.
 
 Channels are "subreddits inside Farcaster." Technically, a channel is a collection of casts that share a common parent\_url. For example, the [memes channel](https://warpcast.com/~/channel/memes) is a collection of casts that share the parent\_url `chain://eip155:1/erc721:0xfd8427165df67df6d7fd689ae67c8ebf56d9ca61`.
+
+## How to Post to Farcaster Channels
 
 Got a dank meme you want to share with Farcaster? This guide demonstrates how to use the Neynar SDK to post a cast to a channel.
 
@@ -9846,13 +15447,13 @@ Example output:
 There you go, make sure to share your good memes with the Farcaster!
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/bf33b4d-image.png" alt="Meme posted to memes channel" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bf33b4d-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9408d574a61423a21953211d783b1a3b" alt="Meme posted to memes channel" width="623" height="479" data-path="images/docs/bf33b4d-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bf33b4d-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=17cb7eab7a57ea5e5691606ae0a8a61c 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bf33b4d-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=cda732f60b14d6018cdcc81da8914ead 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bf33b4d-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5df04477097596c0b2ab03dd812f6cf6 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bf33b4d-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9a4881d181e2fe63ba5bdc1f342bef3c 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bf33b4d-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8e0f7eb19d07b41e9f438d1e45586d25 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bf33b4d-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d80f439b9700186cccdb8a70fa07498d 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -9879,10 +15480,10 @@ There are a few different ways to rank casts for users.
 * hide low quality conversations below the fold by setting the `fold` param to *above* or *below*. Not passing in a param shows the full conversation without any fold.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png" alt="Rank high quality conversations" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e3f30a0882bdbb4c70bf4efdfe1a474f" alt="Rank high quality conversations" width="1596" height="1874" data-path="images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2fc90ffe694cfe77b9ac0e2f40b8efcf 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=04e9202bfbf04990f74d60b24911cb5c 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d291176273ed85903ac417511406cd40 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=86a1e5692b3689e23bdb86dd4f96dd8b 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=222caff330cd7710b48daa2dd1bb9e12 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/642f8feeca08233d390d902350f86bc739bbdb09bc3bb5ca373e8cb203239329-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9c5fc287dbb8168cdd2bece65670f56a 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
-All put together, this makes it possible to serve high quality information to users. If you've ideas on how we can improve ranking further, please message rish on [Warpcast DC](https://warpcast.com/rish) or [Telegram DM](https://t.me/rishdoteth) .
+All put together, this makes it possible to serve high quality information to users. If you've ideas on how we can improve ranking further, please message rish on [Warpcast DC](https://warpcast.com/rish) or [Slack](https://neynar.com/slack) .
 
 
 # SIWN: React
@@ -9914,7 +15515,7 @@ Create a new next.js app using the following command:
 You can choose the configuration based on your personal preference, I am using this config for the guide:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/c0af43f-image.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b9d898c07a54e7cef78e019a01984d78" width="1538" height="1238" data-path="images/docs/c0af43f-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7ec686313a7d4d4cfbee42902e7bbe56 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3897e222016c5eef86ced148d584902f 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=37f4facc47da7e3eddf6340c28023787 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=3a55dc0d7851f486b13abfeba13156f4 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=58784644a48e3f29fd74b8718735474e 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/c0af43f-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4bedde8d5454ff86257b3457add84432 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Once the app is created, install the packages that we are going to need for the command:
@@ -9996,7 +15597,7 @@ We are passing some settings here like `clientId`, `defaultTheme` and `eventsCal
 * `clientId`: This is going to be the client ID you get from your neynar, add it to your `.env.local` file as `NEXT_PUBLIC_NEYNAR_CLIENT_ID`.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/bde5490-image.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c44bb9404a8361f45b82f97d08e9feb8" width="1522" height="1872" data-path="images/docs/bde5490-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=4ff5bf38fa38e4de94c06ad0fcbb6970 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a222ad17c18b5f663e6f04e824186fa3 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=94a0a2869773842d26e582b557d6c4a1 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9586396fe163aadcfbd13b91e5f962bb 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=52749ddd7e277cfab691a1c452fdc42c 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/bde5490-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=e0ceb60805af565ad977367fc2e567c7 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 <Info>
@@ -10031,7 +15632,7 @@ Finally, let's add the sign-in button in the `page.tsx` file like this:
 If you head over to your app you'll be able to see a sign-in button on the screen. Go ahead and try signing in!
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/4813dc2-image.png" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2aefa20261f34feab92e7275ff564047" width="396" height="196" data-path="images/docs/4813dc2-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=959840c686b273f0c270c73edb8aca02 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9071c020d137f8d6f4832b8915186ea8 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=d19a81152b50ab7aebc0a958d7598aa1 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=4499ea812b301b53f0d7ad7d96e5b48f 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0f52430ccff26d89a8d30693ab48d3c7 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4813dc2-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=03bb8c35a195c8acf279b800acd94895 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Now that our sign-in button is working let's use the signer we get to publish casts!
@@ -10077,7 +15678,7 @@ Then, we can use this user object to check whether the user has signed in and di
                     className="rounded-full"
                   />
                 )}
-                <p className="text-lg font-semibold">{user?.display_name}</p>
+                <p className="text-lg" style={{fontWeight: 500}}>{user?.display_name}</p>
               </div>
             </div>
           </>
@@ -10105,7 +15706,7 @@ Now, let's add a text area and a cast button here like this:
                 className="rounded-full"
               />
             )}
-            <p className="text-lg font-semibold">{user?.display_name}</p>
+            <p className="text-lg" style={{fontWeight: 500}}>{user?.display_name}</p>
           </div>
           <textarea
             value={text}
@@ -10130,7 +15731,7 @@ Now, let's add a text area and a cast button here like this:
 This will give you something like this:
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/88935ab-image.png" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/88935ab-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=28074bef83f6ba45d63c28891a20e8b5" width="1350" height="902" data-path="images/docs/88935ab-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/88935ab-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=14df659d2d6c4c19873291aa6080fffb 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/88935ab-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=de8adc0241c8608762c1da79297affcc 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/88935ab-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=436a29a2225a0af0b7123c053fc98195 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/88935ab-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=63967a732bc34a7189b7d75a53f44aa2 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/88935ab-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=221b985899baf4109a262edb719bae56 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/88935ab-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=1d367ebb7128dec849c63054f5bb3532 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 But as you can see we have used a `handlePublishCast` function but we have not yet created it. So, let's create that and also add the `text` useState that we are using in the textarea:
@@ -10204,7 +15805,7 @@ Now, you can go ahead and try making a cast from the website after connecting yo
 
 This guide taught us how to add sign-in with neynar to a React app, check out the [GitHub repository](https://github.com/neynarxyz/farcaster-examples/tree/main/wownar-react-sdk) if you want to look at the full code.
 
-Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+Lastly, make sure to share what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
 
 
 # Indexer Service Requirements
@@ -10212,11 +15813,13 @@ Source: https://docs.neynar.com/docs/requirements-for-indexer-service
 
 Reach out if you have questions
 
-* PostgreSQL database recommended specs if ingesting full network data, real time
+* PostgreSQL database recommended specs if ingesting *full* network data, real time
 
   * 1.6 TB disk space
   * 16 cores
   * 128GB of RAM
+
+You can run a lower spec machine if ingesting less data and in less than real-time latency.
 
 * Credentials for PostgreSQL
 
@@ -10284,6 +15887,10 @@ Mini app analytics will automatically populate in the Dev Portal dashboard once 
 
 ## Set up Notifications
 
+<Tip>
+  <b>If you don't have a Neynar developer account yet, sign up for free [here](https://neynar.com) </b>
+</Tip>
+
 ### Step 1: Add events webhook URL to Mini App Manifest
 
 #### a) Locate the Neynar frame events webhook URL
@@ -10293,7 +15900,7 @@ The Neynar mini app events webhook URL is on the Neynar app page. Navigate to [d
 It should be in this format -`https://api.neynar.com/f/app/<your_client_id>/event`. See the highlighted URL in the image below.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png" alt="Neynar mini app events webhook URL" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=82c78a7ea7d2d9b2b482dcbb9ef98c75" alt="Neynar mini app events webhook URL" width="1028" height="860" data-path="images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=ebb03a4bec249f3f8d90fa92576eb178 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=be9d43e039d2bcc13a04aaf83fbdda99 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f3be0f203ac621168933b0434512d11d 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=19fd9a67f974ccf7f128ceb58f2b03a3 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=65247713bfd3dadf5b307c70c4dfd7e8 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/da35cbb784332bb13686353ac326b0d50bf6ed01e588e66e18e77e8fccb6ff67-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=872c32051333d22fafc6d71e3b9806b3 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 #### b) Set this URL in the mini app manifest
@@ -10432,7 +16039,7 @@ The [Neynar dev portal](https://dev.neynar.com) offers the same functionality as
 Once your mini app is configured with your Neynar webhook URL and users have enabled notifications for your mini app, you'll see a "Broadcast Notification" section with an exandable filters section.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/broadcast-notification-with-filters.png" alt="Neynar mini app Broadcast Notification panel" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/broadcast-notification-with-filters.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=11aa41aa1829e96dc1cf0e82673b45db" alt="Neynar mini app Broadcast Notification panel" width="2338" height="1270" data-path="images/docs/broadcast-notification-with-filters.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/broadcast-notification-with-filters.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=9d2d69e57792c13dba5a5fc6653cf0f9 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/broadcast-notification-with-filters.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=235efeadbcb1a233013eff778d12cbe7 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/broadcast-notification-with-filters.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=8c18eec59cccd2ff291a90db2b5f9a8b 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/broadcast-notification-with-filters.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d11ea285dca9f74cdb0e7df406cd20ac 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/broadcast-notification-with-filters.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=c71a5a1ebbf976aaaaee3d78eef89b48 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/broadcast-notification-with-filters.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=602baf160fe69ad1a17bdb2e2301d050 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 #### b) Target specific users with filters via the API
@@ -10471,20 +16078,20 @@ Additional documentation on the API and its body parameters can be found at [/re
 Notification analytics will automatically show in your developer portal once you start using Neynar for frame notifications.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png" alt="Notification analytics" />
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=fb04ad51b25f65ad90494337179c3c35" alt="Notification analytics" width="1406" height="1154" data-path="images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=f21101a56c9c0bfb94d92e9c04f42d97 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=b0aa80723d65c290522039f68c137d0f 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=af68960b6ad617cbe9d6ad7d9ad9399b 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=18cea9970381a4a8b27a8fab63ee62df 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=5f4824515ac1389f6dd250e3814b3b26 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/b963bd7c8e35263317ab6e0d1354dee4b854b471587c4ad827342ed7b83d2218-image.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=dcbae41863aaea66bfec06970df4f83e 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 When using the `MiniAppProvider` context provider, you'll get additional analytics including notification open rates.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/notification-campaigns.png" alt="Notification open analytics" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/notification-campaigns.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=5e374d10cc0e62888b4fec4dd9ce02ed" alt="Notification open analytics" width="2310" height="1084" data-path="images/docs/notification-campaigns.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/notification-campaigns.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2a020520bb4549f11cc1f3112d1a95a3 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/notification-campaigns.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=4e240976df0926fc51d9d3e48dbd1259 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/notification-campaigns.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=205a20a602254f6cb89e168fee24d32a 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/notification-campaigns.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=686ec1d56faef51cb6387034cba0f793 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/notification-campaigns.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=0cf971365ede74360d1103a941238691 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/notification-campaigns.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ce5fcc66e0617a034ba10dc4fe6dfed2 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ## FAQ
 
 <AccordionGroup>
   <Accordion title="How do I determine if the user has already added my Frame?">
-    When using the `MiniAppProvider` context provider, you can check the `context` object from the `useMiniApp()` hook which contains the `added` boolean and `notificationDetails` object. More details [here](https://github.com/farcasterxyz/frames/blob/main/packages/frame-core/src/types.ts#L58-L62)
+    When using the `MiniAppProvider` context provider, you can check the `context` object from the `useMiniApp()` hook which contains the `added` boolean and `notificationDetails` object. More details in [Frame Core Types](https://github.com/farcasterxyz/frames/blob/main/packages/frame-core/src/types.ts#L58-L62)
   </Accordion>
 
   <Accordion title="What happens if I send a notification via API to a user who has revoked notification permission?">
@@ -10567,7 +16174,7 @@ Once you've cloned your repo we can start installing the packages and setting up
     Edit `.env` to add your `NEYNAR_API_KEY` and `NEYNAR_CLIENT_ID`. You can find them in your dashboard
 
     <Frame>
-      <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/6c07820-image.png" />
+      <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6c07820-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=ca5df2317e0d415264d6d08bbdc288a1" width="2512" height="2652" data-path="images/docs/6c07820-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6c07820-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c20b887060295da076a5445611409bd4 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6c07820-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1fe9999d1254bfeb19eaa4103e617373 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6c07820-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=5ea62d15972a2f87781032f5e1da41a5 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6c07820-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=6b865cab84340803728435ad4d9aca58 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6c07820-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a96e85a6b54ab0b5629ad43edc0419a0 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/6c07820-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=df44f7f57264b1aa6b5fc3390b74201c 2500w" data-optimize="true" data-opv="2" />
     </Frame>
   </Step>
 
@@ -10694,7 +16301,87 @@ On the client side, we use the `NeynarSigninButton` component from the `@neynar/
 
 This guide taught us how to add sign-in with neynar to a React native app, check out the [GitHub repository](https://github.com/neynarxyz/farcaster-examples/tree/main/wownar-react-native).
 
-Lastly, make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth)!
+Lastly, make sure to sure what you built with us on Farcaster by tagging [@neynar](https://warpcast.com/neynar) and if you have any questions, reach out to us on [warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack)!
+
+
+# React Native Implementation - OLD
+Source: https://docs.neynar.com/docs/sign-in-with-neynar-react-native-implementation-old
+
+Legacy React Native implementation guide for Sign in with Neynar (SIWN) integration in Farcaster apps
+
+## How to integrate SIWN?
+
+<Tip>
+  ### Example integration
+
+  Check out this sample application ([github](https://github.com/neynarxyz/farcaster-examples/tree/main/wownar-react-native)) that integrates Sign in with Neynar and allows users to cast.
+</Tip>
+
+### Step 0: Set up your app in the Neynar developer portal
+
+Go to the [Neynar Developer Portal](https://dev.neynar.com) settings tab and update the following
+
+1. **Name -** Displayed to the user in Step 3.
+2. **Logo URL** - Displayed to the user in Step 3. Use a PNG or SVG format.
+
+### Step 1: Install the package
+
+<CodeGroup>
+  ```typescript yarn
+  yarn add @neynar/react-native-signin
+  ```
+
+  ```typescript npm
+  npm install @neynar/react-native-signin
+  ```
+</CodeGroup>
+
+### Step 2: Find `clientId` and `apiKey`
+
+clientId -> [Neynar Developer Portal](https://dev.neynar.com), Settings tab. e.g. `00b75745-xxxx-xxxx-xxxx-xxxxxxxxxxxx`\\
+
+apiKey -> [Neynar API Key](/docs/getting-started-with-neynar#api-key)
+
+### Step 3: Add a button in your Signin screen
+
+<CodeGroup>
+  ```typescript Typescript
+  import {NeynarSigninButton, ISuccessMessage} from "@neynar/react-native-signin";
+
+  const NEYNAR_API_KEY = '';
+  const NEYNAR_CLIENT_ID = '';
+
+  const SigninScreen = () => {
+      const handleSignin = async (data: ISuccessMessage) => {
+          console.log(`User with fid -> ${data.fid} can use signer -> ${data.signer_uuid} to interact with farcaster`)
+      };
+
+      const handleError = (err) => {
+          console.log(err)
+      }
+
+      return (<NeynarSigninButton apiKey={NEYNAR_API_KEY}
+          clientId={NEYNAR_CLIENT_ID}
+          successCallback={handleSignin}
+          errorCallback={handleError}/>);
+  };
+  export default SigninScreen;
+  ```
+</CodeGroup>
+
+### And all set
+
+### Appendix
+
+**interface ISuccessMessage** is exported from @neynar/react-native-signin which looks like this
+
+```js
+interface ISuccessMessage {
+    fid: string;
+    is_authenticated: true;
+    signer_uuid: string;
+}
+```
 
 
 # EIP-712 Farcaster Address Verification with Privy, Viem & Neynar
@@ -10946,7 +16633,7 @@ If anything fails, log and exit:
 * [Privy Docs](https://docs.privy.io/)
 
 <Info>
-  If you have questions or want to share what you built, tag <a href="https://warpcast.com/neynar">@neynar</a> on Farcaster or join the <a href="https://t.me/rishdoteth">Telegram</a>!
+  If you have questions or want to share what you built, tag <a href="https://warpcast.com/neynar">@neynar</a> on Farcaster or join the <a href="https://neynar.com/slack">Slack</a>!
 </Info>
 
 <Accordion title="Full Example Code: privy-validation-signer.ts">
@@ -11368,15 +17055,15 @@ On [Sonata](https://sonata.tips), instead of signing up, setting up a new profil
 
 <CardGroup cols={3}>
   <Frame>
-    <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/4bfb96b-image.png" />
+    <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4bfb96b-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=80b38f7a16d4486e24d976b271e5c911" width="898" height="1480" data-path="images/docs/4bfb96b-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4bfb96b-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c91e40e286400029083bbcc67d88454a 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4bfb96b-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=68c7b52a36d1acd94b257aae9c83f826 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4bfb96b-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=270d29e75c57aa58e3021acc85c2f030 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4bfb96b-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=03266f40398147867b269f79a396b694 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4bfb96b-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=123d49d7818d7f385a92da5634e6abab 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/4bfb96b-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a2b3471f3dd72cc3759a72fb8c05b04d 2500w" data-optimize="true" data-opv="2" />
   </Frame>
 
   <Frame>
-    <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/08aa177-image.png" />
+    <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08aa177-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=28c355a27cbaae9d2c3d913e876d1617" width="896" height="1518" data-path="images/docs/08aa177-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08aa177-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=53ab11ee7911cf59c87eb93a45d6fb9b 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08aa177-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=2f9871c00d04e491d35ae9b79ae52cc0 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08aa177-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=113236c66623002116f74a7966e05c95 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08aa177-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=240b07206704bb56028005a81ae8dbaf 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08aa177-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=efb0ae90305823059e04332d271bb7d5 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/08aa177-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=74d90f566d154b687a1830f098a5dfdc 2500w" data-optimize="true" data-opv="2" />
   </Frame>
 
   <Frame>
-    <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/22ed583-image.png" />
+    <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/22ed583-image.png?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=e302f9224f3648524827e9e701c1e012" width="1562" height="1170" data-path="images/docs/22ed583-image.png" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/22ed583-image.png?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=766b21ed3a6e9b0a6adb9a132bb4cd94 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/22ed583-image.png?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=099a79e2e621dd2fa3e995817cb2c8e7 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/22ed583-image.png?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a842a22bfc00f9154de733bac211e53e 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/22ed583-image.png?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=004253b457b169a521aa221c94a88cab 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/22ed583-image.png?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=c6987d1ec1866ea48e417c8ce25c1508 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/22ed583-image.png?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=1aad667062e981b2b7751bb3bfdab4a6 2500w" data-optimize="true" data-opv="2" />
   </Frame>
 </CardGroup>
 
@@ -11519,7 +17206,7 @@ You can use this list to suggest users they should connect with on your app. Sim
 
 All put together, you can enrich user profiles and personalize user experience significantly in your product by simply looking up users by their connected address on Farcaster.
 
-If any questions, reach out to us on [Warpcast](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth) <Icon icon="planet-ringed" iconType="solid" />
+If any questions, reach out to us on [Warpcast](https://warpcast.com/~/channel/neynar) or [Slack](https://neynar.com/slack) <Icon icon="planet-ringed" iconType="solid" />
 
 
 # Trending Feed with External Providers
@@ -11528,13 +17215,13 @@ Source: https://docs.neynar.com/docs/trending-feed-w-external-providers
 Get Farcaster trending casts on a feed with other providers like OpenRank and MBD
 
 <Info>
-  ### Related API reference [here](/reference/fetch-trending-feed)
+  ### Related API reference [Fetch Trending Feed](/reference/fetch-trending-feed)
 </Info>
 
 To choose a different provider, simply pass in a different value in the `provider` field. `neynar` is set as the default.
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=6b8f05bf1c1b3a3b0f783c72e4ea0a14" width="326" height="240" data-path="images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a2775da7303270bdd0744b4fdc08ab1b 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=6de4349f4940d563d000df08cf4ceb17 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=8aa74c84f9ecce8e759f432c0d848549 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=2fc1ce6f1ce6615198a8b5e67f00a29e 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=69f9ac84f4b6fd7f4bee9a28ea6ba98e 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/f6c165c5bc66b55f1bac308f3350eb4a5c78cbcfe25f9778030ce5952726d3c6-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=6f50620b444d754befd505dc2322da73 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 If you pick `mbd` as provider, you can further customize your feed by passing in additional filter values in an optional`filters` object inside the `provider_metadata` field in the request e.g.
@@ -11739,8 +17426,185 @@ Finally, you can get the sponsor object from the `generate_signature` function a
 If you go ahead and try signing in now, it should show "Onchain fees sponsored by @xyz"
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/036f8e3-IMG_5702.PNG" alt="Sponsor signer" />
+  <img src="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/036f8e3-IMG_5702.PNG?fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cfff8fe082b079c1f80a9c4ae0749a97" alt="Sponsor signer" width="1179" height="2556" data-path="images/docs/036f8e3-IMG_5702.PNG" srcset="https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/036f8e3-IMG_5702.PNG?w=280&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=cc70be11216b5edc3d4549ac76e840f0 280w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/036f8e3-IMG_5702.PNG?w=560&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=b9f1877406a20268c49f32b7abc510d6 560w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/036f8e3-IMG_5702.PNG?w=840&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=0cfb5fd92bcb91bf0ffa4c80bf7fe35d 840w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/036f8e3-IMG_5702.PNG?w=1100&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=659c23cb22f7805a57d0a6263cddeb62 1100w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/036f8e3-IMG_5702.PNG?w=1650&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=a0ec34d4eb7c9cf918c9ea0da4860282 1650w, https://mintcdn.com/neynar/aGwjtKmNewHJXSzO/images/docs/036f8e3-IMG_5702.PNG?w=2500&fit=max&auto=format&n=aGwjtKmNewHJXSzO&q=85&s=9d6c624dfaa2b229b38a9f36a47ad432 2500w" data-optimize="true" data-opv="2" />
 </Frame>
+
+
+# Understanding Signers in the Farcaster Protocol
+Source: https://docs.neynar.com/docs/understanding-signers-in-the-farcaster-protocol-balancing-security-and-convenience
+
+By the end of this tutorial, you'll have a Farcaster signer ready to authorize messages on the Farcaster protocol.
+
+But first, some explanation.
+
+In Farcaster, Signers are specialized Ed25519 key pairs designed for authorizing messages in the Farcater protocol.
+
+Why not use normal Ethereum private key? Signers reduce the risk of the main custody key being stolen, as Signers have limited capabilities and are easier to revoke and replace if compromised.
+
+Why Ed25519? Signers are Ed25519 to avoid confusion with Ethereum's ECDSA keys, ensuring that Signers are used solely for Farcaster message authentication and not for financial transactions.
+
+Users link these Signers to their main Ethereum address by signing a message, creating a chain of trust.
+
+Signers are managed through smart contracts on the Ethereum blockchain (Optimism L2). A user's custody address (associated with their fid) is the only entity that can add or remove Signers for that fid. This ensures that the user retains ultimate control over who can act on their behalf.
+
+Now, let's create signers from scratch with TypeScript:
+
+
+# Unfollow Inactive Users
+Source: https://docs.neynar.com/docs/unfollowing-inactive-farcaster-users-with-neynar-sdk
+
+Unfollow Farcaster users with Neynar
+
+This guide demonstrates how to unfollow Farcasters who hasn't been active in the past 3 months.
+
+Check out this [Getting started guide](/docs/getting-started-with-neynar) to learn how to set up your environment and get an API key.
+
+First, initialize the client:
+
+<CodeGroup>
+  ```javascript Javascript
+  // npm i @neynar/nodejs-sdk
+  import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+
+  // make sure to set your NEYNAR_API_KEY .env
+  // don't have an API key yet? get one at neynar.com
+  const client = new NeynarAPIClient(process.env.NEYNAR_API_KEY);
+  const signer = process.env.NEYNAR_SIGNER;
+  ```
+</CodeGroup>
+
+In the fetchFollowing endpoint, there's an `activeStatus` field that can be used to filter out inactive Farcasters.
+
+<CodeGroup>
+  ```javascript Javascript
+  const fid = 3;
+  const users = await client.fetchUserFollowing(fid);
+  console.log(users);
+  ```
+</CodeGroup>
+
+Will result in this:
+
+```json
+{
+  "result": {
+    "users": [
+      {
+        "fid": 3461,
+        "custodyAddress": "0x094ce1566a83b632e59d50e2aa9618d0f4dcd432",
+        "username": "jonahg",
+        "displayName": "Jonah Grant",
+        "pfp": {
+          "url": "https://i.imgur.com/x51eW6a.jpg"
+        },
+        "profile": {
+          "bio": {
+            "text": "Software engineer in New York City",
+            "mentionedProfiles": []
+          }
+        },
+        "followerCount": 15,
+        "followingCount": 0,
+        "verifications": [],
+        "activeStatus": "inactive",
+        "timestamp": "2023-12-09T05:01:59.000Z"
+      },
+      {
+        "fid": 18198,
+        "custodyAddress": "0x718aea83c0ee2165377335a0e8ed48f1c5a34d63",
+        "username": "alive.eth",
+        "displayName": "Ali Yahya",
+        "pfp": {
+          "url": "https://i.imgur.com/1PASQSb.jpg"
+        },
+        "profile": {
+          "bio": {
+            "text": "GP @a16zcrypto. Previously Google Brain, GoogleX, Stanford Computer Science.",
+            "mentionedProfiles": []
+          }
+        },
+        "followerCount": 88,
+        "followingCount": 76,
+        "verifications": [
+          "0x990a73079425d2b0ec746e3cc989e903306bb6c7"
+        ],
+        "activeStatus": "inactive",
+        "timestamp": "2023-12-08T16:58:51.000Z"
+      },
+      {
+        "fid": 9528,
+        "custodyAddress": "0x80ef8b51dbba18c50b3451acea9deebc7dfcd131",
+        "username": "skominers",
+        "displayName": "Scott Kominers ",
+        "pfp": {
+          "url": "https://i.imgur.com/lxEkagM.jpg"
+        },
+        "profile": {
+          "bio": {
+            "text": "@a16zcrypto • Harvard/HBS • 🧩 • QED",
+            "mentionedProfiles": []
+          }
+        },
+        "followerCount": 289,
+        "followingCount": 190,
+        "verifications": [
+          "0x34202f199ef058302dcced326a0105fe2db53e12"
+        ],
+        "activeStatus": "active",
+        "timestamp": "2023-12-08T16:56:30.000Z"
+      }
+    ],
+    "next": {
+      "cursor": "eyJ0aW1lc3RhbXAiOiIyMDIzLTEyLTA4IDE2OjU2OjMwLjAwMDAwMDAiLCJmaWQiOjk1Mjh9"
+    }
+  }
+}
+```
+
+To get fids of inactive Farcasters, we can use the `activeStatus` field to filter out active Farcasters.
+
+<CodeGroup>
+  ```javascript Javascript
+  const inactiveFids = users.result.users
+    .filter((user) => user.activeStatus === "inactive")
+    .map((user) => user.fid);
+  console.log(inactiveFids); // [ 3461, 18198 ]
+  ```
+</CodeGroup>
+
+And this `inactiveFids` value can be passed to client.unfollowUser to unfollow inactive Farcasters.
+
+<CodeGroup>
+  ```javascript Javascript
+  await client.unfollowUser(signer, inactiveFids);
+  ```
+</CodeGroup>
+
+Which will result in this:
+
+```json
+{
+  "success": true,
+  "details": [
+    {
+      "success": true,
+      "target_fid": 3461
+    },
+    {
+      "success": true,
+      "target_fid": 18198
+    },
+  ]
+}
+```
+
+That's it! You can now unfollow inactive Farcasters easily with the Neynar SDK.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
 
 
 # ETH Address FID Contract
@@ -11813,7 +17677,7 @@ A simple example of a HelloWorld contract:
 
 ## The Future
 
-This experiment will see what we can unlock by bringing more Farcaster data on-chain. If you build something using this, please [reach out](https://t.me/rishdoteth). We want to hear what you're building and see how we can make it easier.
+This experiment will see what we can unlock by bringing more Farcaster data on-chain. If you build something using this, please [reach out](https://neynar.com/slack). We want to hear what you're building and see how we can make it easier.
 
 ## Further reading
 
@@ -11822,6 +17686,50 @@ This experiment will see what we can unlock by bringing more Farcaster data on-c
 
   <Card title="Create verification on Farcaster Hub" href="https://docs.farcaster.xyz/developers/guides/writing/verify-address" icon="angle-right" iconType="solid" horizontal />
 </CardGroup>
+
+
+# What are Mini Apps?
+Source: https://docs.neynar.com/docs/what-are-mini-apps
+
+Overview of Farcaster Mini Apps
+
+# What are Farcaster Mini Apps?
+
+Mini Apps are interactive applications that run directly within the Farcaster ecosystem. They allow developers to build custom experiences for Farcaster users, ranging from games and utilities to social and productivity tools—all accessible without leaving the Farcaster platform.
+
+## Key Features
+
+* **Instant Access:** Launch instantly inside Farcaster, no installation required
+* **Native-like Experience:** Built with web technologies but feel like native apps, with deep integration into Farcaster
+* **Seamless Integration:** Interact with Farcaster user data, casts, reactions, and more
+* **Personalization:** Create personalized experiences, such as custom share images and user-specific content
+* **Open Platform:** Anyone can build and publish a Mini App using open source tools like the Neynar Starter Kit
+* **Mobile Notifications:** Re-engage users and boost retention
+* **Integrated Ethereum Wallet:** Enable seamless, permissionless transactions within your app
+* **Social Discovery:** Users find and share Mini Apps through feeds and app stores, driving viral growth
+* **Optional Neynar Services:** Use Neynar APIs for advanced features like notifications, analytics, and managed signers
+
+## Why Build a Mini App?
+
+Mini Apps are ideal for:
+
+* Rapid prototyping and launching new ideas
+* Engaging Farcaster users with interactive content
+* Leveraging Farcaster's social graph and messaging features
+* Creating viral experiences with personalized sharing
+
+## Getting Started
+
+To start building your own Mini App, check out the [Create Mini App in \< 60s](/docs/create-farcaster-miniapp-in-60s) guide or explore the [Neynar Starter Kit](https://github.com/neynarxyz/create-farcaster-mini-app).
+
+For more advanced integrations, see:
+
+* [Mini App Authentication](/docs/mini-app-authentication)
+* [Integrate Managed Signers](/docs/integrate-managed-signers)
+
+***
+
+For questions or feature requests, reach out on [Slack](https://join.slack.com/t/neynarcommunity/shared_invite/zt-3a4zrezxu-ePFVx2wKHvot1TLi2mVHkA) or connect with the team on Farcaster.
 
 
 # Notifications for FID
@@ -11971,7 +17879,7 @@ That's it! You can now fetch notifications of any Farcaster user.
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -11981,7 +17889,7 @@ Source: https://docs.neynar.com/docs/what-does-vitalikeths-farcaster-feed-look-l
 Show a personalized feed of casts for a specific user on Farcaster
 
 <Info>
-  ### Related API reference [here](/reference/fetch-user-following-feed)
+  ### Related API reference [Fetch User Following Feed](/reference/fetch-user-following-feed)
 </Info>
 
 With Farcaster data being public, we can see what @vitalik.eth sees on his feed (reverse chronological of following). In this guide, we'll do exactly that.
@@ -12118,14 +18026,85 @@ So that's what @vitalik.eth sees on his Farcaster feed!
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
+
+
+# How Does Farcaster CRDT Works?
+Source: https://docs.neynar.com/docs/what-is-direct-cast-in-farcaster
+
+CRDTs are distributed data structures that enable decentralized networks like Farcaster to update and manage global state concurrently without needing a central authority to resolve conflicts.
+
+Farcaster's CRDTs accept messages based on specific validation rules. These rules are designed to ensure the integrity and authenticity of the data. For instance, messages must be signed correctly (using EIP-712 or ED25519 signature schemes) by the owner of the Farcaster ID (fid) or an authorized signer. Messages are also subject to validation based on the state of other CRDTs or the blockchain, ensuring that the network's overall state is consistent.
+
+CRDTs detect conflicts between valid messages and have mechanisms to resolve these conflicts. Generally, they implement a "last-write-wins" strategy using the total message ordering. In some cases, "remove-wins" rules are also applied. The resolution rules often involve comparing timestamps and the lexicographical order of messages to decide which one to retain.
+
+To prevent infinite growth of CRDTs, there is a pruning mechanism based on size limits per user. This helps in maintaining the efficiency and scalability of the network. Pruning involves removing the oldest messages (based on timestamp-hash order) when the size limit is exceeded.
+
+Types of CRDTs in Farcaster:
+
+* Cast CRDT: validates and accepts CastAdd and CastRemove messages. Conflict resolution is based on the type of the message, timestamp, and lexicographical order.
+* Reaction CRDT: validates and accepts ReactionAdd and ReactionRemove messages. Conflicts are resolved similarly to other CRDTs, with a focus on timestamps and types.
+* UserData CRDT: validates and accepts UserDataAdd messages. Conflicts are resolved based on timestamp and lexicographical order.
+* Verification CRDT: validates and accepts VerificationAddEthereumAddress and VerificationRemove messages. Conflict resolution involves timestamps and message types.
+* Link CRDT: validates and accepts LinkAdd and LinkRemove messages. It follows similar conflict resolution strategies as other CRDTs.
+* UsernameProof CRDT: validates and accepts UsernameProof messages. Conflict resolution is based on timestamps and fid.
+
+\[ending remark]
+
+
+# What is Farcaster and why is it important?
+Source: https://docs.neynar.com/docs/what-is-farcaster-and-why-is-it-important
+
+WIP Vincent
+
+Farcaster is a protocol for building sufficiently decentralized social networks. It aims to address the issues of centralized social networks: companies controlling users' data and relationships.
+
+Users on Farcaster have decentralized, secure, and recoverable identities. These identities, known as "Farcaster IDs" or "fids," are autoincrement numeric values owned by an Ethereum address. A smart contract registry on Ethereum (Optimism) maps these identifiers to their corresponding key pairs. FIDs are transferable, one address can only hold one FID.
+
+Users interact on the network through messages, which can be posts (called casts), likes, updates to profiles, follows, etc. These messages are tamper-proof and self-authenticating, as they include the user's Farcaster ID and are signed with their key pair. They can delegate the signing authority to another Ed25519 key pair, known as a signer. This allows applications to create messages on behalf of users without controlling their identity.
+
+All these activities are stored and replicated on a server called a Farcaster Hub. The social network is represented as a graph of users, content, and relationships, known as a message-graph. Farcaster Hub uses Conflict-Free Replicated Data Types (CRDTs) for decentralized data management, ensuring that updates are concurrent, permissionless, and inexpensive for developers. This design also facilitates near real-time propagation of updates across the network.
+
+To use Farcaster, users must rent storage units. Storage is rented annually and managed by the StorageRegistry contract. It's measured in units, the pricing varies, and any user can pay for an account's storage.
+
+\[closing remarks]
+
+
+# What is Farcaster Hub?
+Source: https://docs.neynar.com/docs/what-is-farcaster-hub
+
+Farcaster is a decentralized social protocol. At the heart of it, there's the Farcaster Hub: a server that stores and replicates message-graph in the network.
+
+The message-graph in Farcaster is a dynamic data structure mapping the social network in graph form, where nodes and edges represent users, their content (like casts and replies), and interactions (such as likes and replies). This graph evolves constantly with user actions, with each new cast, reaction, or profile update treated as a message that modifies the graph's state.
+
+Hubs are nodes that collectively work together to ensure no single point of control or failure. They utilize Conflict-free Replicated Data Types (CRDTs) to maintain consistency across the network, achieving eventual synchronization without the need for immediate communication.
+
+Farcaster Hubs are nodes that collaborate to eliminate any single point of control or failure, utilizing Conflict-free Replicated Data Types (CRDTs) to maintain consistent data across the network. These hubs achieve eventual synchronization by using a gossip protocol (libp2p's gossipsub). It tries to efficiently synchronize messages across the network without the necessity of immediate communication.
+
+Hubs validate messages by verifying signatures, checking the Key Registry that lives on Ethereum (Optimism), and hash validation. Hubs use 'diff sync', an out-of-band method involving Merkle Patricia trie and exclusion set comparison, to efficiently identify and resolve data discrepancies in message-graphs.
+
+To prevent messages from growing endlessly and impacting system performance, messages are pruned when they reach a certain size limit. This limit is monitored through a Storage registry. One user can buy many storage units, one storage unit can store 100 casts, 200 reactions, 200 links, 25 user data, 2 username proofs and 5 verifications. Hub prunes the oldest message when the limit is reached.
+
+The Warpcast team builds and maintains a Farcaster Hub implementation called Hubble \[link], and a Rust-based Hub implementation is still being developed by @haardikkk \[link].
+
+If you want to run a Hub with ease, message us \[link] and we'll be very happy to help!
 
 
 # Choose the Right Signer
 Source: https://docs.neynar.com/docs/which-signer-should-you-use-and-why
 
-Understand the differences between the various ways to manage signers and pick the right one for your app
+Understand the differences between Neynar-branded and developer-branded signers, and pick the right option for your mini app.
+
+<Info title="This guide is for mini apps and developer-branded signers">
+  If you want your app's branding on the Farcaster approval screen (instead of
+  Neynar), use the <b>Managed Signers</b> approach described here. For
+  plug-and-play SIWN (Neynar-branded signers), see{' '}
+
+  <a href="/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn">
+    SIWN: Connect Farcaster accounts
+  </a>
+</Info>
 
 Neynar provides three options for adding sign-in with Farcaster in your app to create maximum flexibility for developers. In this guide, we'll break down all the methods, and by the end of this guide, you'll know which option to use based on your needs.
 
@@ -12140,14 +18119,14 @@ The three options are:
 </CardGroup>
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/docs/dee81c0-Untitled-2024-01-26-2045.png" alt="Choose the Right Signer" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/dee81c0-Untitled-2024-01-26-2045.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=626a0393eefec48d1ed3d3115f093741" alt="Choose the Right Signer" width="2801" height="3339" data-path="images/docs/dee81c0-Untitled-2024-01-26-2045.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/dee81c0-Untitled-2024-01-26-2045.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=d2cfaff088e601a5873c64b7209d2f4a 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/dee81c0-Untitled-2024-01-26-2045.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=46b6ec3b266d95ee072ad5322ce8a491 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/dee81c0-Untitled-2024-01-26-2045.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=b7bc2645ba90791966eeab1bbede4607 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/dee81c0-Untitled-2024-01-26-2045.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=b66574e41f98eef987ad29bfe7a50015 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/dee81c0-Untitled-2024-01-26-2045.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=a3e0346541296b1700eb20b3aa869da5 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/docs/dee81c0-Untitled-2024-01-26-2045.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f57e5c63c3af2903fa6003f5335c720f 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ## Neynar Sponsored Signers: Sign in with Neynar (SIWN)
 
 ***\[Recommended for most developers]***
 
-When utilizing Neynar sponsored signers, developers are relieved from building any part of auth or signer flows. SIWN is plug-and-play on the web and React Native. See [here](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) on how to start using it.
+When utilizing Neynar sponsored signers, developers are relieved from building any part of auth or signer flows. SIWN is plug-and-play on the web and React Native. See [SIWN: Connect Farcaster Accounts](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn) on how to start using it.
 
 Benefits of using Neynar-sponsored signers:
 
@@ -12165,7 +18144,9 @@ This is the simplest approach to add Farcaster read+write auth to your product a
 ## Neynar Sponsored signers: backend only
 
 <Info>
-  ### This is the best signer product to use if using other login providers like Privy
+  ### This is the best signer product to use if using other login providers like
+
+  Privy
 </Info>
 
 Neynar-managed signers empower developers to maintain their branding and direct control over their signers while delegating secure storage and signing to Neynar. With Neynar-managed signers, you generate the signers yourself but register them with Neynar. This lets you showcase your branding on the Warpcast connect page and utilize Neynar's features.
@@ -12178,7 +18159,7 @@ Benefits of using Neynar-managed signers:
 * No signer management or secure storage needed, Neynar does that for you
 * Still possible to [Sponsor signers](/docs/two-ways-to-sponsor-a-farcaster-signer-via-neynar)
 * No need to learn how to do message construction for different message types, Neynar submits messages for you
-* You can look at the available APIs [here](/reference/lookup-signer) and learn how to use managed signers [here](/docs/integrate-managed-signers).
+* You can look at the [available APIs](/reference/lookup-signer) and learn how to use [managed signers](/docs/integrate-managed-signers).
 
 Tradeoffs of this approach are:
 
@@ -12204,6 +18185,122 @@ The tradeoffs of this approach are needing to:
 * pay for signers yourself or deal with onboarding friction since users pay for their signer creation
 
 This is the most complex way of adding Farcaster read+write to your product and is not recommended unless you want to manage everything regarding signers.
+
+* pay for signers yourself or deal with onboarding friction since users pay for their signer creation
+
+This is the most complex way of adding Farcaster read+write to your product and is not recommended unless you want to manage everything regarding signers.
+
+
+# How writes to Farcaster work with Neynar managed signers
+Source: https://docs.neynar.com/docs/write-to-farcaster-with-neynar-managed-signers
+
+Write to Farcaster without having to manage your own signers
+
+<Info>
+  ### Easiest way to start is to integrate [Sign in with Neynar](/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn)
+</Info>
+
+Keep reading to know more about how writes work
+
+## High-level overview
+
+1. App creates a signer using the Neynar API - [POST /v2/farcaster/signer](/reference/create-signer) and gets the signer public key. The app maps the `signer_uuid` to their internal user object.
+2. The app creates a signature using the app’s fid, deadline, and the signer public key ([Example gist](https://gist.github.com/manan19/367a34980e12b9de13ab4afafb3d05d2))
+3. The app registers the signed key with the Neynar API - [POST /v2/farcaster/signer/signed\_key](/reference/register-signed-key) and gets an approval URL.
+4. App presents the user with the approval URL and begins polling the [GET /v2/farcaster/signer API](/reference/create-signer) using the `signer_uuid`.
+5. The user opens the link and completes the Onchain Signer Add Request flow in the Warpcast mobile app.
+6. The app finds the user’s fid in the polling response.
+7. App uses `signer_uuid` for all Neynar Farcaster Write APIs on behalf of that user.
+
+<Info>
+  ### If you want dedicated signers, easiest way to start is to clone this [example app repo](https://github.com/neynarxyz/farcaster-examples/tree/main/managed-signers)
+</Info>
+
+## Detailed overview
+
+### Signer
+
+A signer object contains the following fields:
+
+> 1. **`signer_uuid`**
+>
+>    This uuid is generated on v2/farcaster/signer POST request and used across all other Neynar APIs. Once generated, we recommend mapping it to the user object within your app and storing it.
+>
+> 2. **`status` - generated | pending\_approval | approved | revoked**
+>
+>    Represents the different states of a signer. We recommend storing this within your app to have users resume onboarding if they left mid-step.
+>
+> 3. **`public_key`** This is the public key corresponding to the private key of the signers. It is a hex string format.
+>
+> 4. **`fid`** This represents the user’s fid.
+>
+> 5. **`approval_url`** This is the deeplink url into Warpcast mobile app.
+
+#### 1 - The app creates a signer using the Neynar API - [POST /v2/farcaster/signer](/reference/create-signer) and gets the signer public key. The app maps the signer uuid to their internal user object
+
+This request creates a signer. Here’s a brief overview of what the signer’s state looks like after this initial request:
+
+1. **`signer_uuid` -** Returns an identifier for the signer
+2. **`status` -** Should be `generated` after this POST
+3. **`public_key`** - Returns the public key of this Neynar-managed signer.
+4. **`fid` -** At this stage it should be null
+5. **`approval_url` -** At this stage it should be null
+
+#### 2 - The app creates a signature using the app’s fid, deadline, and the signer public key
+
+Apps requesting a user’s signer need to be verified by hubs and registered onchain. To do that, App’s have to sign a message to prove they are who they say they are. The signature should contain:
+
+* app’s fid - if you don’t have a farcaster account for your app, we recommend you create one. Otherwise, feel free to use your fid as the app's fid
+* deadline - indicates when the signature should no longer be valid. UNIX timestamp in seconds
+* public key - to create the chain of trust from the user to the signer managed by Neynar, we need to include the public key of the signer in the signature as well. This should be the same as provided in the response by the Neynar API in Step 1.
+
+To sign it, you’ll need to use the mnemonic seed phrase of your Farcaster custody address. The generated `signature` will be of the format:
+
+<CodeGroup>
+  ```javascript Javascript
+  0xe5d95c391e165dac8efea373efe301d3ea823e1f41713f8943713cbe2850566672e33ff3e17e19abb89703f650a2597f62b4fda0ce28ca15d59eb6d4e971ee531b
+  ```
+</CodeGroup>
+
+#### 3 - App registers the signed key with the Neynar API - [POST /v2/farcaster/signer/signed\_key](/reference/register-signed-key) and gets an approval url
+
+Once the signature along with other details is registered using this API, the signer state should look like the following: 1. **`signer_uuid` -** Unchange&#x64;**.** Same identifier for the signer 2. **`status` -** Changes to `pending_approval` after a successful POST request 3. **`public_key`** - Unchanged. 4. **`fid` -** Unchanged. At this stage, it should be null 5. **`approval_url` -** Changes to deeplink URL with the format like "farcaster://signed-key-request?token=0x54f0c31af79ce01e57568f3b".
+
+#### 4 - The app presents the user with the approval URL and begins polling the `GET /v2/farcaster/signer` API using the `signer_uuid`
+
+The app can present the approval URL if it’s on mobile or a QR code for the web. Once presented to the user, the App can start polling to fetch the status of the signer. The response for the polling API should include the pending\_approval status and the same information as the response in Step 3.
+
+#### 5 - User opens the link and completes the Onchain Signer Add Request flow in the Warpcast mobile app
+
+The user now needs to accept or decline interacting with the approval URL. If they choose to follow the deeplink or scan the QR, they should be routed to the Warpcast app on mobile to the following screen.
+
+<Frame>
+  <img src="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/803d672-walkthrough.png?fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=7dc643298b9edd26af5b419f03f3c33c" alt="walkthrough" width="400" height="653" data-path="images/docs/803d672-walkthrough.png" srcset="https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/803d672-walkthrough.png?w=280&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=d0a52053d9b7920e4b19860a7cb9df48 280w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/803d672-walkthrough.png?w=560&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a6c67cc6c9d344a48da598759b3d1adc 560w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/803d672-walkthrough.png?w=840&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=96857d1407730f8c183ca9e337890653 840w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/803d672-walkthrough.png?w=1100&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=a82da33a4edc210b3440831b8d340905 1100w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/803d672-walkthrough.png?w=1650&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=333a27b74ef35ac9553079ed7f710311 1650w, https://mintcdn.com/neynar/4PNY113y9N9T-r9z/images/docs/803d672-walkthrough.png?w=2500&fit=max&auto=format&n=4PNY113y9N9T-r9z&q=85&s=092d74e4312c2ab4199c80d976c298ce 2500w" data-optimize="true" data-opv="2" />
+</Frame>
+
+When the user slides to connect to the app, Warpcast will initiate an onchain transaction to register the signer for the logged-in user. Once confirmed, the user will have to manually navigate back to your App.
+
+#### 6 - The app finds the user’s fid in the polling response
+
+If your App was polling while the onchain transaction was getting confirmed, then you should receive a change in the signer status:
+
+1. **`signer_uuid` -** Unchange&#x64;**.** Same identifier for the signer
+2. **`status` -** Changes to “approved”
+3. **`public_key`** - Unchanged.
+4. **`fid` -** Changes to an integer that represents the user’s farcaster id
+5. **`approval_url` -** Unchanged
+
+Once approved, update the state of the signer within your App and read the fid to start displaying the user’s relevant content.
+
+#### 7 - App uses `signer_uuid` for all Neynar Farcaster Writes APIs on behalf of that user
+
+The `signer_uuid` can now be used to write on behalf of a specific user on Farcaster. You’ll need a unique signer for each of your users. The `signer_uuid` generated using a developer account are not shared or cannot be used by another developer.
+
+<Info>
+  ### Ready to start building?
+
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
+</Info>
 
 
 # Compute Units Pricing
@@ -12258,14 +18355,14 @@ export const IntroCard = ({icon, title, href}) => {
     textDecoration: 'none',
     height: '44px',
     width: 'fit-content',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
-  }} className="intro-card border hover:!border-primary dark:hover:!border-primary-light transition-colors">
-      <Icon icon={icon} color="white" className="w-[18px] h-[18px] text-gray-900 dark:text-gray-200" />
+    border: '1px solid gray'
+  }} className="intro-card  hover:!border-primary dark:hover:!border-primary-light transition-colors">
+        <Icon icon={icon} className="w-[18px] h-[18px]" />
       <span style={{
     fontSize: '16px',
-    fontWeight: 600,
+    fontWeight: 500,
     lineHeight: 1
-  }} className="text-white dark:text-white">
+  }} className="text-[#525153] dark:text-gray-200">
         {title}
       </span>
     </a>;
@@ -12277,15 +18374,73 @@ export function openSearch() {
 
 
 <div className="relative w-full flex items-center justify-center" style={{ height: '32rem', overflow: 'hidden' }}>
-  <div id="background-div" class="absolute inset-0" style={{height: "28rem", background: "radial-gradient(390.08% 106% at 56.699999999999996% -15.4%, rgb(0, 0, 0) 0%, rgb(25, 17, 43) 100%)",backgroundSize: "cover", backgroundPosition: "center"}} />
+  <style>
+    {`
+        #background-div {
+          height: 28rem;
+          background: #fff !important;
+          background-size: cover;
+          background-position: center;
+        }
+        @media (prefers-color-scheme: dark) {
+          #background-div {
+            background: radial-gradient(390.08% 106% at 56.7% -15.4%, #000 0%, #19112b 100%) !important;
+          }
+        }
+        .hover-tilt img {
+          transition: transform 0.3s ease !important;
+        }
+        .hover-tilt:hover img {
+          transform: rotate(2deg) !important;
+        }
+        /* More specific selectors in case the Card component has its own styles */
+        div.hover-tilt:hover > * img {
+          transform: rotate(2deg) !important;
+        }
+        div.hover-tilt:hover img[src*="/images/docs/"] {
+          transform: rotate(2deg) !important;
+        }
+        /* Force equal card heights - more aggressive targeting */
+        .card-group {
+          display: grid !important;
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 1rem !important;
+          align-items: stretch !important;
+        }
+        .card-group .hover-tilt {
+          display: flex !important;
+          height: 100% !important;
+        }
+        .card-group .hover-tilt > div[class*="card"] {
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        .card-group a[href] {
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        /* Target any div that contains card content */
+        .card-group [class*="card"],
+        .card-group [data-card],
+        .card-group > div > div {
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+      `}
+  </style>
+
+  <div id="background-div" className="absolute inset-0" />
 
   <div style={{ position: 'absolute', textAlign: 'center', padding: '0 1rem', maxWidth: '100%', left: '50%', transform: 'translateX(-50%)' }}>
     <h1
-      className="text-white "
+      className="text-[#525153] dark:text-gray-200"
       style={{
         marginTop: '4rem',
         fontSize: '4rem',
-        fontWeight: 600,
+        fontWeight: 500,
         margin: '0',
         whiteSpace: 'nowrap',
         textAlign: 'center'
@@ -12294,13 +18449,13 @@ export function openSearch() {
       Start building with Neynar
     </h1>
 
-    <p className="mt-2 text-white text-xl" style={{fontWeight: 600}}>The easiest way to build on Farcaster</p>
+    <p className="mt-2 text-[#525153] dark:text-gray-200 text-xl" style={{fontWeight: 500}}>The easiest way to build on Farcaster</p>
 
     <div className="flex items-center justify-center">
       <div className="flex items-center justify-center" style={{ width: '100%' }}>
         <button
           type="button"
-          className="hidden w-full lg:flex items-center text-sm leading-6 rounded-full py-2 pl-3 pr-3 shadow-sm text-gray-500 bg-white"
+          className="hidden border border-gray-500 w-full bg-white dark:bg-black lg:flex items-center text-sm leading-6 rounded-full py-2 pl-3 pr-3 shadow-sm text-gray-500"
           id="home-search-entry"
           style={{
       marginTop: '2rem',
@@ -12327,7 +18482,7 @@ export function openSearch() {
     </div>
 
     <div style={{ maxWidth: '650px', margin: '0 auto', marginTop: '2rem' }}>
-      <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
+      <div className="flex flex-wrap items-center justify-center gap-3 mt-3 dark:text-gray-400">
         <IntroCard icon="book" title="Tutorials" href="/docs/getting-started-with-neynar" />
 
         <IntroCard icon="code" title="API Reference" href="/reference/quickstart" />
@@ -12341,34 +18496,97 @@ export function openSearch() {
 marginRight: 'auto', paddingLeft: '1.25rem',
 paddingRight: '1.25rem' }}
 >
-  <CardGroup cols={3}>
-    <Card title="Integrate Social Data" img="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Mask-group-20.png" href="/docs/supercharge-your-sign-in-with-ethereum-onboarding-with-farcaster">
-      Seamlessly connect Farcaster social graphs and user profiles to enrich your app with identity and relationships
-    </Card>
+  <CardGroup cols={3} className="card-group">
+    <div className="hover-tilt" style={{display: 'flex', minHeight: '300px'}} onMouseEnter={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(2deg)'); }} onMouseLeave={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(0deg)'); }}>
+      <Card href="/docs/supercharge-your-sign-in-with-ethereum-onboarding-with-farcaster" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+        <div style={{  boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '18px' }}>
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-light.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=a65c7db28b11d5fe5a529462a3655d6d" alt="AI Agents" className="block dark:hidden w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/social-data-light.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-light.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=20a2b964f09e8885a8abffc31bd5b72f 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-light.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=fd5a66275d9031aa28272b895b9dd785 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-light.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=2033093c2c0544c1d4daae0efdaf2d1b 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-light.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=c08c164306eacdffd384b9ce622dfde0 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-light.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=7d99d78ff0de54afd94010e266bd648b 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-light.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=e88bb7c6c710f43d42602b9f1f4af9ce 2500w" data-optimize="true" data-opv="2" />
 
-    <Card title="Build Mini Apps (v2 Frames)" img="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Mask-group-21.png" href="/docs/supercharge-your-sign-in-with-ethereum-onboarding-with-farcaster">
-      Validate and host Farcaster frames with real-time analytics and push notifications
-    </Card>
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-dark.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=54215b4cf05accedefdebbe901a1e826" alt="AI Agents" className="hidden dark:block w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/social-data-dark.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-dark.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=d5a934cf5315bfc50ca5b05756bd8950 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-dark.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=1c640427cfa27b90c331e72f9f26d11a 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-dark.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=9ea26c90cdbb905f18d03fcc0646591a 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-dark.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=1c172bfecca16c8236a5388831c7e528 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-dark.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=131fddc6a65df7ead2ea4d0a7b22a89e 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/social-data-dark.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=d1a93f483844870484221140cb125f32 2500w" data-optimize="true" data-opv="2" />
+        </div>
 
-    <Card title="Create AI Agents" img="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Mask-group-22.png" href="https://neynar.com/use-cases#ai-agents" horizontal={true}>
-      Deploy agents with contextual awareness and automated real time interactions
-    </Card>
+        <h3 className="mt-3 text-lg" style={{fontWeight: 500}}>Integrate Social Data</h3>
+        Seamlessly connect Farcaster social graphs and user profiles to enrich your app with identity and relationships
+      </Card>
+    </div>
 
-    <Card title="Build Clients" img="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Mask-group-23.png" href="https://neynar.com/use-cases#clients" horizontal={true}>
-      Build clients with seamless onboarding, rich user profiles, graphs and feeds backed by reliable and scalable infrastructure
-    </Card>
+    <div className="hover-tilt" style={{display: 'flex', minHeight: '300px'}} onMouseEnter={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(2deg)'); }} onMouseLeave={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(0deg)'); }}>
+      <Card href="/docs/create-farcaster-miniapp-in-60s" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+        <div style={{  boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '18px' }}>
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-light.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=6bdd241e0a51f1799a3295cc36d2df80" alt="AI Agents" className="block dark:hidden w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/mini-apps-light.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-light.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=2efda855455093ec312a156ecfbfae72 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-light.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=fc0bcad7d5cb449f5c0c39e50d9bf88d 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-light.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=79e7d8af5f5a8b11959875a56458bc68 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-light.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=1d0632cbd0b7daa40fb7caf0b963ab4c 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-light.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=2fe705aa3542adf9439627bc0d93d071 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-light.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=970c2bf11624fb44c09606465fe3d346 2500w" data-optimize="true" data-opv="2" />
 
-    <Card title="Map Onchain Data" img="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Mask-group-24.png" href="https://neynar.com/use-cases#onchain" horizontal={true}>
-      Access real-time Farcaster data streams, indexed databases, and analytics tools for powerful data-driven applications
-    </Card>
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-dark.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=a88aabeb3c14fc4dbf6c3a817a7f5376" alt="AI Agents" className="hidden dark:block w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/mini-apps-dark.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-dark.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=21092b1b604e3906444fc1ed0466ae58 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-dark.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=0d3819a70b6a1645f9f42e55bb6e37f4 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-dark.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=4a0dc33c5d572b890842b1aed1b4df36 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-dark.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=ad493681255a7efd725a53f4ff09d690 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-dark.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=c7383807b780151eabe3b06465990fd4 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/mini-apps-dark.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=7f299ee89c0dd1cb494353a5379445c4 2500w" data-optimize="true" data-opv="2" />
+        </div>
 
-    <Card title="Analyze & Ingest Data" img="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Mask-group-25.png" href="https://neynar.com/use-cases#data" horizontal={true}>
-      Access real-time Farcaster data streams, indexed databases, and analytics tools for powerful data-driven applications
-    </Card>
+        <h3 className="mt-3 text-lg" style={{fontWeight: 500}}>Build Mini Apps</h3>
+        Validate and host Farcaster frames with real-time analytics and push notifications
+      </Card>
+    </div>
 
-    <Card title="Search & Debug" img="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/Mask-group-26.png" href="https://neynar.com/use-cases#debug" horizontal={true}>
-      Search, monitor, and debug Farcaster data with logs from multiple hubs and APIs from across the network
-    </Card>
+    <div className="hover-tilt" style={{display: 'flex', minHeight: '300px'}} onMouseEnter={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(2deg)'); }} onMouseLeave={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(0deg)'); }}>
+      <Card href="/docs/create-farcaster-bot-ui" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+        <div style={{  boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '18px' }}>
+          <img src="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agent-light.png?fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=5a4d400fc1bd93b09c609561d6af4fb2" alt="AI Agents" className="block dark:hidden w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/ai-agent-light.png" srcset="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agent-light.png?w=280&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=be38b2895b73b92094c99616f62b0270 280w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agent-light.png?w=560&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=344f5271cfdff463c022d8faff5cbdf6 560w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agent-light.png?w=840&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=435d887b01b8c250072ab9bd2435289a 840w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agent-light.png?w=1100&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=4803f59b04fbc8d1cff611a74bc2b6f9 1100w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agent-light.png?w=1650&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=27a9798f68acec03daf2d7863cc01368 1650w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agent-light.png?w=2500&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=784d11aa537dcab9ccc04d69ca421125 2500w" data-optimize="true" data-opv="2" />
+
+          <img src="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agents-dark.png?fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=f2f589d0b8c11967e5c32c4244394ae9" alt="AI Agents" className="hidden dark:block w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/ai-agents-dark.png" srcset="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agents-dark.png?w=280&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=e9ccc855f2ce549ef033fd781fca5650 280w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agents-dark.png?w=560&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=64a4f4bb5784b808d9e54d028ac88491 560w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agents-dark.png?w=840&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=4038d0050998161cfe09709a3644cdf7 840w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agents-dark.png?w=1100&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=97834c2ca6b14dfbec673b4c4117cee9 1100w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agents-dark.png?w=1650&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=dacff2508823f720b24ff8daadf5979b 1650w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/ai-agents-dark.png?w=2500&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=542d07b22357194729aa1cabca7280c0 2500w" data-optimize="true" data-opv="2" />
+        </div>
+
+        <h3 className="mt-3 text-lg" style={{fontWeight: 500}}>Create AI Agents</h3>
+        Deploy agents with contextual awareness and automated real time interactions
+      </Card>
+    </div>
+
+    <div className="hover-tilt" style={{display: 'flex', minHeight: '300px'}} onMouseEnter={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(2deg)'); }} onMouseLeave={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(0deg)'); }}>
+      <Card href="/docs/how-to-let-users-connect-farcaster-accounts-with-write-access-for-free-using-sign-in-with-neynar-siwn" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+        <div style={{  boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '18px' }}>
+          <img src="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-light.png?fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=0eaaf270858755e65b53c38db6c39db9" alt="AI Agents" className="block dark:hidden w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/build-clients-light.png" srcset="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-light.png?w=280&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=7e1e16b33a413f192b408d68e62618f7 280w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-light.png?w=560&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=118d2acdfa3c83a191c073818ef694d9 560w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-light.png?w=840&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=75695f989ea96a8482c55d0856f2e037 840w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-light.png?w=1100&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=b7a97266b017513de80b2102e69bc43a 1100w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-light.png?w=1650&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=42185e896d843f52845cdeba3f122e97 1650w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-light.png?w=2500&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=7438dfeff08cc41762c05e05ccd2b247 2500w" data-optimize="true" data-opv="2" />
+
+          <img src="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-dark.png?fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=8af8b5adc3b2020a5f62a15c9ad79d8c" alt="AI Agents" className="hidden dark:block w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/build-clients-dark.png" srcset="https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-dark.png?w=280&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=a2414ef0c2ef471e828b388e52d05800 280w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-dark.png?w=560&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=5c2506e70aa07d957db25f6756a135ed 560w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-dark.png?w=840&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=b004ec21affae2f523c6924500beca64 840w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-dark.png?w=1100&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=e3dbe79ad0ad28359804b23ee790cd7a 1100w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-dark.png?w=1650&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=dff8ff59c1b1fc5e3f040ecbd6364ea3 1650w, https://mintcdn.com/neynar/npoclDlBhT4AQynA/images/docs/build-clients-dark.png?w=2500&fit=max&auto=format&n=npoclDlBhT4AQynA&q=85&s=76908ceb0a68f912c1bd6ccfb0d76460 2500w" data-optimize="true" data-opv="2" />
+        </div>
+
+        <h3 className="mt-3 text-lg" style={{fontWeight: 500}}>Build Clients</h3>
+        Build clients with seamless onboarding, rich user profiles, graphs and feeds backed by reliable and scalable infrastructure
+      </Card>
+    </div>
+
+    <div className="hover-tilt" style={{display: 'flex', minHeight: '300px'}} onMouseEnter={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(2deg)'); }} onMouseLeave={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(0deg)'); }}>
+      <Card href="/docs/fetch-relevant-holders-for-coin" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+        <div style={{  boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '18px' }}>
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-light.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=781282d7b37bc802be87a2746d9bce5b" alt="AI Agents" className="block dark:hidden w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/onchain-data-light.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-light.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=c8285eef674a560fd6f10594f2bde106 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-light.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=613fa88f72cea98315eb7026914804ad 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-light.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=6baa00861862abe97d32824b45287ca7 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-light.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=0bf24bf0827bd9a6695af181de435329 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-light.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=31d34851bb856d4d9fa33ea0db0c46d9 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-light.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=056b0740d736090a5624c59a864f19d8 2500w" data-optimize="true" data-opv="2" />
+
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-dark.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=be8194d8c503c0d1d4262087903914f0" alt="AI Agents" className="hidden dark:block w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/onchain-data-dark.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-dark.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=53d250c3393fef83df7e85b761e4b1cc 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-dark.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=03700e5ebe96f0391059aed266b57abb 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-dark.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=897a7ec4e8042ed8dd1f3c30a0507a5f 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-dark.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=4ef95dad2f227113675b2ca59da731a1 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-dark.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=ec4e57ac34fd77d852bbb769093ef951 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/onchain-data-dark.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=b681fbd76fd68eb63dca02f93aa88d6c 2500w" data-optimize="true" data-opv="2" />
+        </div>
+
+        <h3 className="mt-3 text-lg" style={{fontWeight: 500}}>Map Onchain Data</h3>
+        Access real-time Farcaster data streams, indexed databases, and analytics tools for powerful data-driven applications
+      </Card>
+    </div>
+
+    <div className="hover-tilt" style={{display: 'flex', minHeight: '300px'}} onMouseEnter={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(2deg)'); }} onMouseLeave={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(0deg)'); }}>
+      <Card href="/docs/how-to-query-neynar-sql-playground-for-farcaster-data" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+        <div style={{  boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '18px' }}>
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-light.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=a196cabae80be87df91de6268dbfc669" alt="AI Agents" className="block dark:hidden w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/data-analysis-light.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-light.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=6d40c0e1ca194541f767ba557e2f630d 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-light.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=45a78313e3e4d93c43fa79e526560192 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-light.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=d7a57e9af1431b4b3fc7b7a4c0247d00 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-light.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=d083eb9d8d72e87912ce2f3b36727a98 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-light.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=b435a7b42ac0e54b73ed2e0d10780b9f 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-light.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=c4a42e54828bd733e9a0b9ce9ace5171 2500w" data-optimize="true" data-opv="2" />
+
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-dark.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=4d5d1abc1f2cd61ea1e6b00b9e556618" alt="AI Agents" className="hidden dark:block w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/data-analysis-dark.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-dark.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=278f6af54f588628d56eeef6214a97d6 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-dark.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=0822b877a0989198cff5bfc3373243df 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-dark.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=f8d9bb574aac39ebc545bbe1aacf7e50 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-dark.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=b60f6e74ab3d4435419a23dc3a94e5e5 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-dark.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=a15ed0afa1addce2b465186900d2f86c 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/data-analysis-dark.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=34d68a3a890b88f708a515da87dfc2a0 2500w" data-optimize="true" data-opv="2" />
+        </div>
+
+        <h3 className="mt-3 text-lg" style={{fontWeight: 500}}>Analyze & Ingest Data</h3>
+        Access real-time Farcaster data streams, indexed databases, and analytics tools for powerful data-driven applications
+      </Card>
+    </div>
+
+    <div className="hover-tilt" style={{display: 'flex', minHeight: '300px'}} onMouseEnter={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(2deg)'); }} onMouseLeave={(e) => { const imgs = e.currentTarget.querySelectorAll('img'); imgs.forEach(img => img.style.transform = 'rotate(0deg)'); }}>
+      <Card href="docs/explore-event-propagation-on-farcaster" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+        <div style={{  boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '18px' }}>
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-light.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=cbca76b1e93c894a3528457b68067613" alt="AI Agents" className="block dark:hidden w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/sync-conversations-light.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-light.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=8c1a57c80aea34ab119412742eb3d05b 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-light.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=c00aebe75381d743fad4b213c81c679d 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-light.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=3da27d62cb85263b2e7ce852ab3f0dfe 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-light.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=8aae3a1e0976b19e83b78b4eb781cd12 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-light.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=1eb08b8233ce469d07523c38c5f5e6eb 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-light.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=18bf2ca38e79c218a6ea1ddcef27e867 2500w" data-optimize="true" data-opv="2" />
+
+          <img src="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-dark.png?fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=c0aece45bc8659f4c2befcba52b20c28" alt="AI Agents" className="hidden dark:block w-full h-auto" loading="lazy" decoding="async" style={{ transition: 'transform 0.3s ease' }} width="721" height="359" data-path="images/docs/sync-conversations-dark.png" srcset="https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-dark.png?w=280&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=9bafc450af14c1b1866332643aad0086 280w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-dark.png?w=560&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=b616e5bd0da58118297c2d92f647e9ee 560w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-dark.png?w=840&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=dd82c6f8c63a1a6d13b21f7340b55352 840w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-dark.png?w=1100&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=7db06398cbc97142cf05cc6a7904c012 1100w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-dark.png?w=1650&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=b80c3340e6d3f8c207725e5e99dbcc65 1650w, https://mintcdn.com/neynar/mzSn97IS6C5P6NG9/images/docs/sync-conversations-dark.png?w=2500&fit=max&auto=format&n=mzSn97IS6C5P6NG9&q=85&s=cb4c84ff6dbaeb1d401a9a15d2144330 2500w" data-optimize="true" data-opv="2" />
+        </div>
+
+        <h3 className="mt-3 text-lg" style={{fontWeight: 500}}>Search & Debug</h3>
+        Search, monitor, and debug Farcaster data with logs from multiple hubs and APIs from across the network
+      </Card>
+    </div>
   </CardGroup>
 </div>
 
@@ -12412,6 +18630,202 @@ post /v2/farcaster/storage/buy/
 This api will help you rent units of storage for an year for a specific FID.
 A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.
 
+
+
+# Compute Units Pricing
+Source: https://docs.neynar.com/reference/compute-units
+
+Pricing in compute units for each API
+
+## Hub HTTP APIs
+
+**Casts**
+
+| Version | Type  | Method            | Cu  |
+| ------- | ----- | ----------------- | --- |
+| v1      | `GET` | /v1/castById      | 1   |
+|         |       | /v1/castsByFid    | 200 |
+|         |       | /v1/castsByParent | 200 |
+
+**Reactions**
+
+| Version | Type  | Method                | CU  |
+| ------- | ----- | --------------------- | --- |
+| v1      | `GET` | /v1/reactionById      | 1   |
+|         |       | /v1/reactionsByFid    | 200 |
+|         |       | /v1/reactionsByCast   | 150 |
+|         |       | /v1/reactionsByTarget | 150 |
+
+**Follows**
+
+| Version | Type  | Method               | CU  |
+| ------- | ----- | -------------------- | --- |
+| v1      | `GET` | /v1/linkById         | 1   |
+|         |       | /v1/linksByFid       | 200 |
+|         |       | /v1/linksByTargetFid | 200 |
+
+**User**
+
+| Version | Type  | Method                  | CU   |
+| ------- | ----- | ----------------------- | ---- |
+| v1      | `GET` | /v1/userDataByFid       | 1    |
+|         |       | /v1/fids                | 2000 |
+|         |       | /v1/storageLimitsByFid  | 5    |
+|         |       | /v1/userNameProofByName | 2    |
+|         |       | /v1/userNameProofsByFid | 2    |
+|         |       | /v1/verificationsByFid  | 5    |
+|         |       | /v1/onChainSignersByFid | 15   |
+
+**Messages**
+
+| Version | Type   | Method              | CU  |
+| ------- | ------ | ------------------- | --- |
+| v1      | `POST` | /v1/submitMessage   | 150 |
+|         |        | /v1/validateMessage | 4   |
+
+**Events**
+
+| Version | Type  | Method                              | CU   |
+| ------- | ----- | ----------------------------------- | ---- |
+| v1      | `GET` | /v1/onChainIdRegistryEventByAddress | 2    |
+|         |       | /v1/eventById                       | 1    |
+|         |       | /v1/events                          | 2000 |
+
+## Hub gRPC APIs
+
+**WIP**
+
+Hub gRPC APIs and Hub gRPC streaming pricing will be added soon.
+
+## Neynar APIs
+
+**User**
+
+| Version | Type     | Method                             | CU | Multiplier          |
+| ------- | -------- | ---------------------------------- | -- | ------------------- |
+| v2      | `GET`    | /v2/farcaster/user/search          | 10 |                     |
+|         |          | /v2/farcaster/user/bulk            | 1  | number of fids      |
+|         |          | /v2/farcaster/user/bulk-by-address | 1  | number of addresses |
+|         |          | /v2/farcaster/user/custody-address | 1  |                     |
+|         |          | /v2/farcaster/user/active          | 1  | page limit          |
+|         | `PATCH`  | /v2/farcaster/user                 | 20 |                     |
+|         | `POST`   | /v2/farcaster/user/verification    | 10 |                     |
+|         |          | /v2/farcaster/user/follow          | 10 |                     |
+|         | `DELETE` | /v2/farcaster/user/verification    | 10 |                     |
+|         |          | /v2/farcaster/user/follow          | 10 |                     |
+|         |          | /v2/farcaster/reaction             | 10 |                     |
+
+**Cast**
+
+| Version | Type     | Method              | CU  | Multiplier |
+| ------- | -------- | ------------------- | --- | ---------- |
+| v2      | `GET`    | /v2/farcaster/cast  | 2   |            |
+|         |          | /v2/farcaster/casts | 50  |            |
+|         | `POST`   | /v2/farcaster/cast  | 150 |            |
+|         | `DELETE` | /v2/farcaster/cast  | 10  |            |
+
+**Feed**
+
+| Version | Type  | Method                                               | CU | Multiplier |
+| ------- | ----- | ---------------------------------------------------- | -- | ---------- |
+| v2      | `GET` | /v2/farcaster/feed                                   | 4  | page limit |
+|         |       | /v2/farcaster/feed/following                         | 4  | page limit |
+|         |       | /v2/farcaster/feed/channels                          | 4  | page limit |
+|         |       | /v2/farcaster/feed/frames                            | 4  | page limit |
+|         |       | /v2/farcaster/feed/user/\{fid}/popular               | 4  | page limit |
+|         |       | /v2/farcaster/feed/user/\{fid}/replies\_and\_recasts | 4  | page limit |
+
+**Reactions**
+
+| Version | Type   | Method                       | CU | Multiplier |
+| ------- | ------ | ---------------------------- | -- | ---------- |
+| v2      | `GET`  | /v2/farcaster/reactions/user | 2  | page limit |
+|         | `GET`  | /v2/farcaster/reactions/cast | 2  | page limit |
+|         | `POST` | /v2/farcaster/reaction       | 10 |            |
+
+**Frame**
+
+| Version | Type   | Method                       | CU | Multiplier |
+| ------- | ------ | ---------------------------- | -- | ---------- |
+| v2      | `POST` | /v2/farcaster/frame/action   | 20 |            |
+|         |        | /v2/farcaster/frame/validate | 0  |            |
+
+**Notifications**
+
+| Version | Type  | Method                                  | CU | Multiplier |
+| ------- | ----- | --------------------------------------- | -- | ---------- |
+| v2      | `GET` | /v2/farcaster/notifications             | 5  | page limit |
+|         |       | /v2/farcaster/notifications/parent\_url | 5  | page limit |
+|         |       | /v2/farcaster/notifications/channel     | 5  | page limit |
+
+**Channel**
+
+| Version | Type  | Method                          | CU | Multiplier |
+| ------- | ----- | ------------------------------- | -- | ---------- |
+| v2      | `GET` | /v2/farcaster/channel/list      | 2  | page limit |
+|         |       | /v2/farcaster/channel/search    | 20 |            |
+|         |       | /v2/farcaster/channel           | 2  |            |
+|         |       | /v2/farcaster/channel/followers | 1  | page limit |
+|         |       | /v2/farcaster/channel/users     | 1  | page limit |
+|         |       | /v2/farcaster/channel/trending  | 4  | page limit |
+
+**Follows**
+
+| Version | Type  | Method                          | CU | Multiplier |
+| ------- | ----- | ------------------------------- | -- | ---------- |
+| v2      | `GET` | v2/farcaster/followers/relevant | 20 |            |
+
+**fname**
+
+| Version | Type  | Method                           | CU | Multiplier |
+| ------- | ----- | -------------------------------- | -- | ---------- |
+| v2      | `GET` | /v2/farcaster/fname/availability | 1  |            |
+
+**Storage**
+
+| Version | Type  | Method                            | CU | Multiplier |
+| ------- | ----- | --------------------------------- | -- | ---------- |
+| v2      | `GET` | /v2/farcaster/storage/allocations | 1  |            |
+|         |       | /v2/farcaster/storage/usage       | 1  |            |
+
+**Signer**
+
+| Version | Type   | Method                                              | CU | Multiplier |
+| ------- | ------ | --------------------------------------------------- | -- | ---------- |
+| v2      | `GET`  | /v2/farcaster/signer                                | 0  |            |
+|         | `GET`  | /v2/farcaster/signer/developer\_managed             | 0  |            |
+|         | `POST` | /v2/farcaster/signer                                | 2  |            |
+|         |        | /v2/farcaster/signer/signed\_key                    | 5  |            |
+|         |        | /v2/farcaster/signer/developer\_managed/signed\_key | 5  |            |
+
+20,000 CUs per monthly active signer per month, where active signer = signers used by developer to write to the protocol in specific time period
+
+**Message**
+
+| Version | Type   | Method               | CU  |
+| ------- | ------ | -------------------- | --- |
+| v2      | `POST` | v2/farcaster/message | 150 |
+
+## Webhooks
+
+| Event type       | Filter             | CU |
+| ---------------- | ------------------ | -- |
+| user.created     |                    | 5  |
+| user.updated     | fids               | 10 |
+| cast.created     | fids               | 15 |
+|                  | mention\_fids      | 15 |
+|                  | author\_fids       | 15 |
+|                  | root\_parent\_urls | 15 |
+|                  | parent\_url        | 15 |
+|                  | embeds             | 15 |
+| reaction.created | fids               | 15 |
+|                  | target\_fids       | 15 |
+| reaction.deleted | fids               | 15 |
+|                  | target\_fids       | 15 |
+| follow\.created  | fids               | 15 |
+|                  | target\_fids       | 15 |
+| follow\.deleted  | fids               | 15 |
+|                  | target\_fids       | 15 |
 
 
 # Create signer
@@ -12482,6 +18896,17 @@ Deletes a mute for a given FID. This is an allowlisted API, reach out if you wan
 </Info>
 
 
+# Delete mini app
+Source: https://docs.neynar.com/reference/delete-neynar-frame
+
+delete /v2/farcaster/frame/
+Delete an existing mini app, if it was made by the developer (identified by API key)
+
+<Info>
+  ### Related doc: [Dynamic frame creation](/docs/how-to-create-frames-using-the-neynar-sdk)
+</Info>
+
+
 # Delete reaction
 Source: https://docs.neynar.com/reference/delete-reaction
 
@@ -12523,6 +18948,22 @@ This is an allowlisted API, reach out if you want access.
 </Info>
 
 
+# Developer hosted frames
+Source: https://docs.neynar.com/reference/developer-frames
+
+Build your own frames and use Neynar to
+
+<CardGroup>
+  <Card title="Validate frame action against Farcaster Hub" href="/reference/validate-frame-action" icon="angle-right" iconType="solid" horizontal />
+
+  <Card title="Post a frame action on your Farcaster enabled client" href="/reference/post-frame-action" icon="angle-right" iconType="solid" horizontal />
+
+  <Card title="Retrieve analytics for frames validated with Neynar" href="/reference/fetch-validate-frame-analytics" icon="angle-right" iconType="solid" horizontal />
+
+  <Card title="Access HTML OG metadata for frames" href="/docs/html-metadata-in-frames-and-catalogs" icon="angle-right" iconType="solid" horizontal />
+</CardGroup>
+
+
 # Fetch all channels with their details
 Source: https://docs.neynar.com/reference/fetch-all-channels
 
@@ -12538,7 +18979,7 @@ get /v2/farcaster/notifications/
 Returns a list of notifications for a specific FID.
 
 <Info>
-  ### If listening to bot mentions, use webhooks (see [here](/docs/listen-for-bot-mentions)). It's more real time and cheaper compute. Related tutorial for this API: [Notifications for FID](/docs/what-does-dwreths-farcaster-notification-look-like)
+  ### If listening to bot mentions, use webhooks (see [Listen for Bot Mentions](/docs/listen-for-bot-mentions)). It's more real time and cheaper compute. Related tutorial for this API: [Notifications for FID](/docs/what-does-dwreths-farcaster-notification-look-like)
 </Info>
 
 
@@ -12790,14 +19231,6 @@ A curated list of featured mini apps
 
 
 
-# Meta tags from URL
-Source: https://docs.neynar.com/reference/fetch-frame-meta-tags-from-url
-
-get /v2/farcaster/frame/crawl/
-Fetches the mini app meta tags from the URL
-
-
-
 # Relevant mini apps
 Source: https://docs.neynar.com/reference/fetch-frame-relevant
 
@@ -12806,11 +19239,10 @@ Fetch a list of mini apps relevant to the user based on casts by users with stro
 
 
 
-# Casts with mini apps
+# null
 Source: https://docs.neynar.com/reference/fetch-frames-only-feed
 
 get /v2/farcaster/feed/frames/
-Fetch feed of casts with mini apps, reverse chronological order
 
 
 
@@ -12822,6 +19254,17 @@ Fetches all FIDs that a user has muted.
 
 <Info>
   ### Related doc: [Mutes, Blocks, and Bans](/docs/mutes-blocks-and-bans)
+</Info>
+
+
+# List of mini apps
+Source: https://docs.neynar.com/reference/fetch-neynar-frames
+
+get /v2/farcaster/frame/list/
+Fetch a list of mini apps made by the developer (identified by API key)
+
+<Info>
+  ### Related doc: [Dynamic frame creation](/docs/how-to-create-frames-using-the-neynar-sdk)
 </Info>
 
 
@@ -12860,6 +19303,20 @@ Source: https://docs.neynar.com/reference/fetch-popular-casts-by-user
 
 get /v2/farcaster/feed/user/popular/
 Fetch 10 most popular casts for a given user FID; popularity based on replies, likes and recasts; sorted by most popular first
+
+
+
+# null
+Source: https://docs.neynar.com/reference/fetch-power-users
+
+get /v2/farcaster/user/power/
+
+
+
+# null
+Source: https://docs.neynar.com/reference/fetch-power-users-lite
+
+get /v2/farcaster/user/power_lite/
 
 
 
@@ -12976,6 +19433,8 @@ Source: https://docs.neynar.com/reference/fetch-user-balance
 
 get /v2/farcaster/user/balance/
 Fetches the token balances of a user given their FID
+
+## Fetch User Balance
 
 <Info>
   ### Related tutorial: [User balances directly w/ FID](/docs/how-to-fetch-user-balance-using-farcaster-fid)
@@ -13111,6 +19570,14 @@ Fetch reactions by a user.
 
 
 
+# Reciprocal Followers
+Source: https://docs.neynar.com/reference/fetch-user-reciprocal-followers
+
+get /v2/farcaster/followers/reciprocal/
+Returns users who the given FID follows and they follow the FID back (reciprocal following relationship)
+
+
+
 # Proof for a username
 Source: https://docs.neynar.com/reference/fetch-username-proof-by-name
 
@@ -13148,6 +19615,22 @@ Source: https://docs.neynar.com/reference/fetch-users-casts-1
 
 get /v1/castsByFid
 Fetch user's casts.
+
+
+
+# Analytics for the mini app
+Source: https://docs.neynar.com/reference/fetch-validate-frame-analytics
+
+get /v2/farcaster/frame/validate/analytics/
+Fetch analytics for total-interactors, interactors, nteractions-per-cast and input-text.
+
+
+
+# All mini apps validated by user
+Source: https://docs.neynar.com/reference/fetch-validate-frame-list
+
+get /v2/farcaster/frame/validate/list/
+Fetch a list of all the mini apps validated by a user
 
 
 
@@ -13323,7 +19806,7 @@ You should see a response similar to this (formatted for readability):
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -13501,7 +19984,7 @@ You should see a response like this. (You might not get a beautified/ formatted 
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -13623,7 +20106,7 @@ You should see a response similar to this (formatted for readability):
 <Info>
   ### Ready to start building?
 
-  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Telegram](https://t.me/rishdoteth) with any questions!
+  Get your subscription at [neynar.com](https://neynar.com) and reach out to us on [Slack](https://neynar.com/slack) with any questions!
 </Info>
 
 
@@ -13652,13 +20135,13 @@ Lookup a cast by its FID and hash.
 
 
 # By hash or URL
-Source: https://docs.neynar.com/reference/lookup-cast-by-hash-or-warpcast-url
+Source: https://docs.neynar.com/reference/lookup-cast-by-hash-or-url
 
 get /v2/farcaster/cast/
 Gets information about an individual cast by passing in a Farcaster web URL or cast hash
 
 <Info>
-  ### See related tutorial [here](/docs/how-to-get-cast-information-from-warpcast-url)
+  ### See related tutorial [Get Cast Information from URL](/docs/how-to-get-cast-information-from-url)
 </Info>
 
 
@@ -13719,6 +20202,17 @@ Source: https://docs.neynar.com/reference/lookup-hub-info
 get /v1/info
 Retrieve hub information.
 
+
+
+# Mini app by UUID or URL
+Source: https://docs.neynar.com/reference/lookup-neynar-frame
+
+get /v2/farcaster/frame/
+Fetch a mini app either by UUID or Neynar URL
+
+<Info>
+  ### Related doc: [Dynamic frame creation](/docs/how-to-create-frames-using-the-neynar-sdk)
+</Info>
 
 
 # Fetch an on-chain ID Registry Event for a given Address
@@ -13852,21 +20346,21 @@ Source: https://docs.neynar.com/reference/migrate-to-neynar-nodejs-sdk-v2-using-
 Click on copilot on the bottom right in vs-code you'll see the following menu
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=911cd1d61e5a2488ca5af428a55bfa8b" width="514" height="444" data-path="images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=4f591fe87ec7b0aa82aea346a8e67e9a 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=800ba8ab739bfa5fd5a3199f91be1453 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=79d6f4925bf3a66bde19d5cc15abbd39 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=01b848b33cd172f93e806d5f6d4c179b 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=28fe461d31ec9b13ef94836c2616cc54 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/5965b0b77ca3a9b2ae30534bd32931a7fe3c99b22bcfd0084e98fbcfb555bd48-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=0f07f7a225d29b8aac37ecf0cc7a85b5 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=8cd20b700ee820c815ac6e4b11dbabee" width="1196" height="528" data-path="images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=32faa4df11de33bd5e0fa3dabeddfc25 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=f84198941f757b61e83008dfc3c8df16 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=65bd4748cd57e7584450ca77b0b49ba5 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=5a15aa63724c390147e483f3a154a916 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=100155f12b38fd9e415b235356e27dbd 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/ff81959cd8090162c9767829c58d4e81ca15877ef294e61253a92beb7f37a714-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=45919a8612cc46ca2398ddd501df42bf 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=28c7bb08f8234089bfab8de910a1399e" width="846" height="1080" data-path="images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=26a7612743a18ebb27d4b649a9d7c4f3 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=8b99437458457813c27d679d038591fc 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=373581895c3b21f8c9e4af79b670b3e2 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=0ce055faa37eea8b165a7703a050266b 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=313cf3726a5973bf04c897069dd5c84d 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/6c5ec437157bddefec4d27aa8e0eaf5ddaab50242b715e7630427488702af86e-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=ceff93ee5c91162d231a51253fc58888 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 ## Add files
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=499aa6c437ce0c8797dae819e6768825" width="790" height="1398" data-path="images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=59940e30826031665d69d5d48c6da9bf 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=54d798c77e5f81419b19d8a95b5f6507 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=58a57a8a289f51ac14f615110444622f 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=b6809af560d447e559f072658e4c8a0c 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=d50c8782a1ef5079955853cea3963a46 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/e4c88373c7244d87eb3340ca7cf797006e14c702672d068d13072665a9da4afa-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=8fca145a45729a90a561720b0d23af99 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Navigate to `node_modules/@neynar/nodejs-sdk/v1-to-v2-migration.md` and add the file to the working set
@@ -13876,7 +20370,7 @@ Search for `@neynar/nodejs-sdk`in the entire project, add all the files to the w
 You should see something like this
 
 <Frame>
-  <img src="https://mintlify.s3.us-west-1.amazonaws.com/neynar/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png" />
+  <img src="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png?fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=943cf0ada17ef2141a89e325cee59325" width="790" height="558" data-path="images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png" srcset="https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png?w=280&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=51e62368a88f622e042dec3dc93236f0 280w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png?w=560&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=17acc15563d1c3c1927041cc2234ea90 560w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png?w=840&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=9c2ae56877b709880f132df7ce5bde58 840w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png?w=1100&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=21f4a5d1620de8bb45438ad5c6226ac3 1100w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png?w=1650&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=5ea57cb90427d5ddb2c61de259cfb833 1650w, https://mintcdn.com/neynar/V7Un5QUQSGJFAZfS/images/reference/a850e82bb69911fc1aa793d5fc692748d07005f67da37d09181e89004d736504-image.png?w=2500&fit=max&auto=format&n=V7Un5QUQSGJFAZfS&q=85&s=01999f106b1ae77d9cd72785968df564 2500w" data-optimize="true" data-opv="2" />
 </Frame>
 
 Choose an AI agent (we recommend Claude) and add the following prompt.
@@ -13923,6 +20417,27 @@ I need to know exactly how to update it to v2, including all necessary changes t
 ```
 
 With this, you should get most of the code changes correctly replaced but please verify it once. The only place where AI can make mistakes in code replacement is where [v1 API methods are used which are completely removed from the v2 SDK.](/reference/neynar-nodejs-sdk-v1-to-v2-migration-guide#removed-methods-and-changes-in-method-names) This is because the response structure is changed in v2 APIs.
+
+
+# API overview
+Source: https://docs.neynar.com/reference/neynar-farcaster-api-overview
+
+Neynar API overview
+
+### Response objects
+
+* v1 APIs response objects were built to have the same response object format as Warpcast APIs
+* v2 APIs offer new functionality and differ from Warpcast API response objects
+
+### `v1` vs `v2` APIs
+
+<Warning>
+  ### Important Deprecation Notice
+
+  All v1 APIs (`/v1/farcaster/*`) will be fully turned off on March 31, 2025. If you're currently using v1 APIs, please migrate to their v2 counterparts as soon as possible to ensure uninterrupted service. All deprecated v1 APIs have a better v2 substitute, reach out if you see anything missing.
+</Warning>
+
+Both APIs return data available on hubs. Data that is not on the protocol is usually not available on the APIs.
 
 
 # SDK v1 to v2 migration guide
@@ -17878,7 +24393,37 @@ Notifications include likes, mentions, replies, and quotes of a user's casts.
   ```
 </CodeGroup>
 
-This guide should assist in updating your existing code to SDK v2. If you encounter any issues or have further questions, please reach out to us. [Warpcast](https://warpcast.com/~/channel/neynar) [Telegram](https://t.me/rishdoteth)
+This guide should assist in updating your existing code to SDK v2. If you encounter any issues or have further questions, please reach out to us. [Warpcast](https://warpcast.com/~/channel/neynar) [Slack](https://neynar.com/slack)
+
+
+# Post a mini app action, cast action or a cast composer action
+Source: https://docs.neynar.com/reference/post-frame-action
+
+post /v2/farcaster/frame/action/
+Post mini app actions, cast actions or cast composer actions to the server
+(In order to post any of these actions, you need to have an approved `signer_uuid`)
+
+The POST request to the post_url has a timeout of 5 seconds for mini apps.
+
+<Info>
+  To learn more about using this route on your own backend to handle frame interactions, [read our guide on Frame Interactions with the Neynar API](/docs/how-to-handle-frame-interactions-with-the-neynar-api)
+</Info>
+
+The post frame action API can be used by clients to interact with a frame. You need to have an approved `signer_uuid` to post a frame action.
+
+<Info>
+  The POST request to the post\_url has a timeout of 5 seconds.
+</Info>
+
+
+# Signature packet
+Source: https://docs.neynar.com/reference/post-frame-action-developer-managed
+
+post /v2/farcaster/frame/developer_managed/action/
+Post a mini app action that has been signed with a developer managed signer
+
+The POST request to the post_url has a timeout of 5 seconds.
+
 
 
 # Mint NFT(s)
@@ -17944,7 +24489,7 @@ post /v2/farcaster/frame/notifications/
 Send notifications to interactors of a mini app
 
 <Info>
-  ### See guide on setting this up easily [here](/docs/send-notifications-to-mini-app-users)
+  ### See guide on setting this up easily [Send Notifications to Mini App Users](/docs/send-notifications-to-mini-app-users)
 </Info>
 
 
@@ -17972,6 +24517,17 @@ Adds a mute for a given FID. This is an allowlisted API, reach out if you want a
 
 <Info>
   ### Related doc: [Mutes, Blocks, and Bans](/docs/mutes-blocks-and-bans)
+</Info>
+
+
+# Create mini app
+Source: https://docs.neynar.com/reference/publish-neynar-frame
+
+post /v2/farcaster/frame/
+Create a new mini app with a list of pages.
+
+<Info>
+  ### Related doc: [Dynamic frame creation](/docs/how-to-create-frames-using-the-neynar-sdk)
 </Info>
 
 
@@ -18010,391 +24566,89 @@ Create a webhook
 # Quickstart
 Source: https://docs.neynar.com/reference/quickstart
 
-Start building on Farcaster with Neynar
+Getting started with the Neynar Farcaster API
 
-Farcaster is a protocol for building decentralized social apps. Neynar makes it easy to build on Farcaster.
+# Introduction
 
-### Basic understanding of Farcaster
+Neynar provides APIs to easily interact with the [Farcaster](https://www.farcaster.xyz) decentralized social protocol. These APIs let you query user data, social graphs, and content (casts), enabling you to build decentralized social apps quickly.
 
-Farcaster is a decentralized social protocol. Here are three short bullets on the primary Farcaster primitives that will be helpful to keep in mind as you dive in:
+## Core Concepts
 
-<CardGroup>
-  <Card title="User" icon="square-1" iconType="solid">
-    Every user on Farcaster is represented by a permanent *FID* that is the numerical identifier for the user. All user profile data for this FID e.g. username, display name, bio, etc. are stored on Farcaster protocol and mapped to this FID.
-  </Card>
+Farcaster has a few key primitives you'll interact with via the Neynar API:
 
-  <Card title="Casts" icon="square-2" iconType="solid">
-    Users can broadcast information to the protocol in units of information called "casts". It's somewhat similar to a tweet on Twitter/X. Each cast has a unique "hash".
-  </Card>
+* **User** — Each user has a permanent **FID** (Farcaster ID) that identifies them. Profile details such as username, display name, bio, and linked accounts are stored on-chain and mapped to this FID.
+* **Cast** — A unit of content posted to Farcaster, similar to a tweet on X. Each cast has a unique **hash** and may contain text, media, embeds, and metadata.
+* **Social Graph** — The network of follower/following relationships between users.
+* **Feeds** — Collections of casts, often based on a user’s social graph, channel membership, or other filters.
 
-  <Card title="Followers / following" icon="square-3" iconType="solid">
-    Users can follow each other to see casts from them. This creates a social graph for each user on Farcaster.
-  </Card>
-</CardGroup>
+All data is open and decentralized, available on Farcaster hubs. Neynar abstracts away the complexity of querying these hubs.
 
-There's obviously more to this but let's start with this. All the above data is open and decentralized, available on Farcaster nodes called hubs. Neynar makes interfacing with this data relatively trivial.
+## Base URL
 
-In this tutorial, we will learn how use the above primitives to fetch a simple *feed* of casts for a given user.
+All requests to the Neynar API must be made to:
 
-## Get Neynar API key
+```
+https://api.neynar.com
+```
 
-Don't have an API key yet? Register now at [neynar.com](https://neynar.com/#pricing).
+HTTPS is required for all requests. HTTP requests will be rejected.
 
-<Steps>
-  <Step>
-    Click "Subscribe now."
-  </Step>
+## Authentication
 
-  <Step>
-    You will be redirected to a Stripe checkout page.
-  </Step>
+All API endpoints require an API key. Include the following header with every request:
 
-  <Step>
-    Upon successful payment, we'll send you an email. Once the email arrives, you'll be able to sign in to the [Developer Portal](https://dev.neynar.com)
-  </Step>
-</Steps>
+<ParamField header="x-api-key" type="string" example="NEYNAR_API_KEY" required>
+  Your Neynar API key as a string.
+</ParamField>
 
-Don't hesitate to reach out to us on our [channel](https://warpcast.com/~/channel/neynar) or [Telegram](https://t.me/rishdoteth) with any questions!
+You can obtain your API key from the [Developer Portal](https://dev.neynar.com) after signing up.
 
-## Set up Neynar SDK
+<Info>
+  Neynar APIs support payment per API request via [x402](https://www.x402.org/). API requests missing an API key header will see an x402 error to pay per request.
+</Info>
 
-Neynar [`nodejs` SDK](https://github.com/neynarxyz/nodejs-sdk) is an easy way to use the APIs. This section only needs to be done once when setting up the SDK for the first time.
+## Examples
 
-To install the Neynar TypeScript SDK:
-
-<CodeGroup>
-  ```typescript yarn
-  yarn add @neynar/nodejs-sdk
-  ```
-
-  ```typescript npm
-  npm install @neynar/nodejs-sdk
-  ```
-
-  ```typescript pnpm
-  pnpm install @neynar/nodejs-sdk
-  ```
-
-  ```typescript bun
-  bun add @neynar/nodejs-sdk
-  ```
-</CodeGroup>
-
-To get started, initialize the client in a file named `index.ts`:
-
-<CodeGroup>
-  ```typescript Typescript
-  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
-
-  const config = new Configuration({
-    apiKey: process.env.NEYNAR_API_KEY,
-  });
-
-  // make sure to set your NEYNAR_API_KEY .env
-  // for testing purposes, you can insert your key as a string param into NeynarAPIClient
-  const client = new NeynarAPIClient(config);
-  ```
-</CodeGroup>
-
-Depending on your build environment, you might also need the following two steps:
-
-<Steps>
-  <Step>
-    check the `type` field in package.json. Since we're using ES6 modules, you may need to set it to "module".
-
-    <CodeGroup>
-      ```json package.json
-      {
-        "scripts": {
-          "start": "node --loader ts-node/esm index.ts"
-        },
-        "type": "module", // <-- set to module if needed
-        "dependencies": {
-          // this is for illustration purposes, the version numbers will depend on when you do this tutorial
-          "@neynar/nodejs-sdk": "^2.0.2",
-          "ts-node": "^10.9.2",
-          "typescript": "^5.6.3"
-        }
+<Tabs>
+  <Tab title="JavaScript">
+    ```javascript
+    fetch('https://api.neynar.com/v2/farcaster/user/bulk?fids=1', {
+      method: 'GET',
+      headers: {
+        'x-api-key': 'insert-your-api-key',
+        'Content-Type': 'application/json'
       }
-      ```
-    </CodeGroup>
-  </Step>
+    })
+    .then(response => response.json())
+    .then(data => console.log(data));
+    ```
+  </Tab>
 
-  <Step>
-    If you hit errors, try adding a `tsconfig.json` file in the directory to help with typescript compilation
+  <Tab title="cURL">
+    ```bash
+    curl -X GET "https://api.neynar.com/v2/farcaster/user/bulk?fids=1" \
+      -H "x-api-key: insert-your-api-key" \
+      -H "Content-Type: application/json"
+    ```
+  </Tab>
 
-    <CodeGroup>
-      ```typescript Typescript
-      {
-          "compilerOptions": {
-            "module": "ESNext",
-            "moduleResolution": "node",
-            "target": "ESNext",
-            "esModuleInterop": true,
-            "skipLibCheck": true
-          },
-          "ts-node": {
-            "esm": true
-          }
-        }
-      ```
-    </CodeGroup>
-  </Step>
-</Steps>
+  <Tab title="Python">
+    ```python
+    import requests
 
-Your directory should have the following:
+    api_key = "insert-your-api-key"
 
-* node\_modules
-* index.ts
-* package-lock.json
-* package.json
-* tsconfig.json (optional)
-* yarn.lock
-
-## Fetch Farcaster data using Neynar SDK
-
-### Fetching feed
-
-To fetch the feed for a user, you need to know who the user is following and then fetch casts from those users. Neynar abstracts away all this complexity. Simply put in the `fid` of the user in the `fetchFeed` function and get a feed in response.
-
-In this example, we will fetch the feed for [Dan Romero](https://warpcast.com/dwr.eth) . This is the feed Dan would see if he were to log into a client that showed a feed from people he followed in a reverse chronological order.
-
-<CodeGroup>
-  ```typescript Typescript
-  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
-  import { FeedType } from "@neynar/nodejs-sdk/build/api";
-
-  const config = new Configuration({
-    apiKey: process.env.NEYNAR_API_KEY,
-  });
-
-  const client = new NeynarAPIClient(config);
-
-  // fetch feed of Dan Romero: fid 3
-  async function fetchFollowingFeed() {
-    const feedType = FeedType.Following;
-    const fid = 3;
-    const limit = 1;
-
-    const feed = await client.fetchFeed({
-      fid,
-      feedType,
-      limit,
-    });
-    console.log("User Feed:", feed);
-  }
-
-  fetchFollowingFeed();
-  ```
-</CodeGroup>
-
-You can now run this code by opening up this folder in the terminal and running
-
-<CodeGroup>
-  ```typescript Typescript
-  yarn start
-  ```
-</CodeGroup>
-
-Depending on your machine, typescript might take a few seconds to compile. Once done, it should print the output to your console. Something like below:
-
-<CodeGroup>
-  ```typescript Typescript
-  User Feed: {
-    "casts": [
-      {
-        "object": "cast",
-        "hash": "0xd9993ef80c1a7f75c6f75de3b79bc8a18de89a30",
-        "author": {
-          "object": "user",
-          "fid": 1265,
-          "username": "akhil-bvs",
-          "display_name": "Akhil",
-          "pfp_url": "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/6f618f59-2290-4350-100a-4b5d10abef00/original",
-          "custody_address": "0xdf055eb92e2c97d7da4036278d145458eb11811c",
-          "profile": {
-            "bio": {
-              "text": "product @cooprecs | player /fbi"
-            }
-          },
-          "follower_count": 1919,
-          "following_count": 252,
-          "verifications": [
-            "0xab14023979a34b4abb17abd099a1de1dc452011a"
-          ],
-          "verified_addresses": {
-            "eth_addresses": [
-              "0xab14023979a34b4abb17abd099a1de1dc452011a"
-            ],
-            "sol_addresses": []
-          },
-          "verified_accounts": null,
-          "power_badge": true,
-          "viewer_context": {
-            "following": true,
-            "followed_by": true,
-            "blocking": false,
-            "blocked_by": false
-          }
-        },
-        "thread_hash": "0xd9993ef80c1a7f75c6f75de3b79bc8a18de89a30",
-        "parent_hash": null,
-        "parent_url": null,
-        "root_parent_url": null,
-        "parent_author": {
-          "fid": null
-        },
-        "text": "👀",
-        "timestamp": "2024-11-22T17:39:21.000Z",
-        "embeds": [
-          {
-            "cast_id": {
-              "fid": 880094,
-              "hash": "0x82e6e0e20539578dcb7e03addb94f3a7f7491c49"
-            },
-            "cast": {
-              "object": "cast_embedded",
-              "hash": "0x82e6e0e20539578dcb7e03addb94f3a7f7491c49",
-              "author": {
-                "object": "user_dehydrated",
-                "fid": 880094,
-                "username": "anoncast",
-                "display_name": "anoncast",
-                "pfp_url": "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2c3250ee-e91d-4e8d-76b1-42d1c6ebef00/rectcrop3"
-              },
-              "thread_hash": "0x82e6e0e20539578dcb7e03addb94f3a7f7491c49",
-              "parent_hash": null,
-              "parent_url": null,
-              "root_parent_url": null,
-              "parent_author": {
-                "fid": null
-              },
-              "text": "one day this account will be used by a whistleblower to release classified documents about government fuckery. this account will break the internet and be impossible for anyone to ignore.",
-              "timestamp": "2024-11-22T16:35:36.000Z",
-              "embeds": [],
-              "channel": null
-            }
-          }
-        ],
-        "channel": null,
-        "reactions": {
-          "likes_count": 0,
-          "recasts_count": 0,
-          "likes": [],
-          "recasts": []
-        },
-        "replies": {
-          "count": 0
-        },
-        "mentioned_profiles": [],
-        "viewer_context": {
-          "liked": false,
-          "recasted": false
-        }
-      }
-    ],
-    "next": {
-      "cursor": "eyJ0aW1lc3RhbXAiOiIyMDI0LTExLTIyIDE3OjM5OjIxLjAwMDAwMDAifQ%3D%3D"
+    headers = {
+        "x-api-key": api_key,
+        "Content-Type": "application/json"
     }
-  }
-  ```
-</CodeGroup>
 
-You've successfully fetched the feed for a user in a simple function call!
-
-*Future reading: you can fetch many different kind of feeds. See [Feed](/reference/fetch-user-following-feed) APIs.*
-
-### Fetching user profile data
-
-Now let's fetch data about a user. Remember users are represented by FIDs? We will take an FID and fetch data for that user. Here's how to do it using the SDK:
-
-<CodeGroup>
-  ```javascript Javascript
-  import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
-  import { FeedType } from "@neynar/nodejs-sdk/build/api";
-
-  const config = new Configuration({
-    apiKey:process.env.NEYNAR_API_KEY,
-  });
-
-  const client = new NeynarAPIClient(config);
-
-  // fetch feed of Dan Romero: fid 3
-  async function fetchUser() {
-    const fids = [3];
-
-    const { users } = await client.fetchBulkUsers({ fids });
-    console.log("User :", users[0]);
-  }
-
-  fetchUser();
-  ```
-</CodeGroup>
-
-You can run this in your terminal similar to above by typing in:
-
-<CodeGroup>
-  ```typescript Typescript
-  yarn start
-  ```
-</CodeGroup>
-
-It should show you a response like below:
-
-<CodeGroup>
-  ```typescript Typescript
-  User : {
-        "object": "user",
-        "fid": 3,
-        "username": "dwr.eth",
-        "display_name": "Dan Romero",
-        "pfp_url": "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/bc698287-5adc-4cc5-a503-de16963ed900/original",
-        "custody_address": "0x6b0bda3f2ffed5efc83fa8c024acff1dd45793f1",
-        "profile": {
-          "bio": {
-            "text": "Working on Farcaster and Warpcast."
-          },
-          "location": {
-            "latitude": 34.05,
-            "longitude": -118.24,
-            "address": {
-              "city": "Los Angeles",
-              "state": "California",
-              "state_code": "ca",
-              "country": "United States of America",
-              "country_code": "us"
-            }
-          }
-        },
-        "follower_count": 490770,
-        "following_count": 3498,
-        "verifications": [
-          "0xd7029bdea1c17493893aafe29aad69ef892b8ff2"
-        ],
-        "verified_addresses": {
-          "eth_addresses": [
-            "0xd7029bdea1c17493893aafe29aad69ef892b8ff2"
-          ],
-          "sol_addresses": []
-        },
-        "verified_accounts": [
-          {
-            "platform": "x",
-            "username": "dwr"
-          }
-        ],
-        "power_badge": true
-      }
-  ```
-</CodeGroup>
-
-*Future reading: you can also fetch data about a user by using their wallet address or username as identifiers. See APIs for that here: [User by wallet address](/docs/fetching-farcaster-user-based-on-ethereum-address), [By username](/reference/search-user).*
-
-## You're ready to build!
-
-Now that you're able to fetch user and cast data, you're ready to dive in further and start making your first Farcaster application. We have numerous guides available [here](/docs) and our full API reference is [here](/reference) .
-
-If you have questions or feedback, please reach out to [rish](https://warpcast.com/rish) on Farcaster or [Telegram](https://t.me/rishdoteth) .
+    response = requests.get("https://api.neynar.com/v2/farcaster/user/bulk?fids=1", headers=headers)
+    data = response.json()
+    print(data)
+    ```
+  </Tab>
+</Tabs>
 
 
 # Register new account
@@ -18435,11 +24689,11 @@ Register a new user in two API calls
 
 * fetch the latest fid that a new user must be assigned
 * generate signature for the user and call registration API
-* Read more about how to create new accounts [here](/docs/how-to-create-a-new-farcaster-account-with-neynar).
+* Read more about how to create new accounts [Create a new Farcaster Account with Neynar](/docs/how-to-create-a-new-farcaster-account-with-neynar).
 
 For this flow, Neynar abstracts away all onchain transactions required for account registration and storage and retroactively bills developer account. Developer can choose to subsidize account creation or charge end consumer as they see fit.
 
-Reach out to [@rishdoteth on Telegram](https://t.me/rishdoteth) if you need to be allowlisted for this API.
+Reach out to [@rishdoteth on Slack](https://neynar.com/slack) if you need to be allowlisted for this API.
 
 
 # Register Signed Key
@@ -18561,6 +24815,17 @@ Follow a new user or unfollow an existing user, for a given Farcaster user
 Write follow / unfollow actions to the protocol
 
 
+# Update mini app
+Source: https://docs.neynar.com/reference/update-neynar-frame
+
+put /v2/farcaster/frame/
+Update an existing mini app with a list of pages, if it was made by the developer (identified by API key)
+
+<Info>
+  ### Related doc: [Dynamic frame creation](/docs/how-to-create-frames-using-the-neynar-sdk)
+</Info>
+
+
 # Update user profile
 Source: https://docs.neynar.com/reference/update-user
 
@@ -18600,6 +24865,15 @@ Update webhook active status
 </Info>
 
 
+# Validate mini app action
+Source: https://docs.neynar.com/reference/validate-frame-action
+
+post /v2/farcaster/frame/validate/
+Validates a mini app against by an interacting user against a Farcaster Hub
+(In order to validate a mini app, message bytes from Frame Action must be provided in hex)
+
+
+
 # Validate signed message
 Source: https://docs.neynar.com/reference/validate-message
 
@@ -18636,6 +24910,7 @@ This type of rate limit is triggered when you call the same API above its API-sp
 | POST v2/farcaster/frame/validate           | 5k            | 10k                                                               | 20k                                                              | Custom     |
 | GET v2/farcaster/signer                    | 3k            | 6k                                                                | 12k                                                              | Custom     |
 | GET v2/farcaster/signer/developer\_managed | 3k            | 6k                                                                | 12k                                                              | Custom     |
+| GET v2/farcaster/cast/search               | 60            | 120                                                               | 240                                                              | Custom     |
 | All others                                 | 300           | 600                                                               | 1200                                                             | Custom     |
 
 ## *Global* rate limits in RPM
